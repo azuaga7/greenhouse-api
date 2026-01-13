@@ -18,35 +18,8 @@ app.add_middleware(
 )
 
 CSV_FILE = "telemetria.csv"
-CONFIG_FILE = "mapping_config.json"
 HISTORY = []
-
-# Cargar Mapeo de Intermediario (Si existe)
-MAPPING = {}
-if os.path.exists(CONFIG_FILE):
-    try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            MAPPING = json.load(f)
-    except Exception:
-        pass
-
 FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes"}
-
-def clean_key(key: str) -> str:
-    """Traduce claves técnicas a nombres limpios para el CSV y la Web."""
-    if key in MAPPING:
-        return MAPPING[key]
-    return key.replace("/", "_").replace("$", "").replace(" ", "_")
-
-def transform_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Limpia todo el paquete de datos recibido."""
-    clean_payload = {}
-    for k, v in payload.items():
-        clean_k = clean_key(k)
-        clean_payload[clean_k] = v
-    if "timestamp" not in clean_payload:
-        clean_payload["timestamp"] = datetime.now().isoformat()
-    return clean_payload
 
 class Lectura(BaseModel):
     class Config:
@@ -85,22 +58,21 @@ async def index():
 @app.post("/api/ingreso")
 async def api_ingreso(lectura: Lectura):
     global HISTORY
-    raw_data = lectura.dict()
+    data = lectura.dict()
+    if "timestamp" not in data:
+        data["timestamp"] = datetime.now().isoformat()
     
-    # INTERMEDIARIO: Limpiar datos antes de guardar
-    clean_data = transform_payload(raw_data)
-    
-    HISTORY.append(clean_data)
+    HISTORY.append(data)
     if len(HISTORY) > 1000: HISTORY.pop(0)
     
     try:
-        df = pd.DataFrame([clean_data])
+        df = pd.DataFrame([data])
         file_exists = os.path.exists(CSV_FILE)
         df.to_csv(CSV_FILE, mode='a', header=not file_exists, index=False)
     except Exception as e:
         print(f"Error en CSV: {e}")
         
-    return {"status": "ok", "cleaned_keys": list(clean_data.keys())}
+    return {"status": "ok"}
 
 @app.get("/api/last")
 async def api_last():

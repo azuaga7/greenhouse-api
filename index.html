@@ -12,7 +12,7 @@
         
     :root { 
         --accent: #38bdf8; --bg: #020617; --surface: rgba(15, 23, 42, 0.8); 
-        --border: rgba(148, 163, 184, 0.2); --success: #22c55e; --warn: #eab308; --danger: #ef4444;
+        --border: rgba(148, 163, 184, 0.2); --success: #22c55e; --warn: #fbbf24; --danger: #ef4444;
         --text: #f8fafc; --text-muted: #94a3b8;
         --adtec-accent: #38bdf8;
     }
@@ -22,29 +22,40 @@
         margin: 0; background: var(--bg); color: var(--text); 
         font-family: 'Inter', system-ui, -apple-system, sans-serif; min-height: 100vh;
         display: flex; flex-direction: column; align-items: center; padding: 20px;
-        background-image: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+        background-image: 
+            radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 1) 0%, #020617 100%);
         overflow-x: hidden;
     }
 
-    .dashboard-container {
-        position: relative;
-        background: rgba(15, 23, 42, 0.4);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(12px);
-        overflow: hidden;
-        margin-top: 20px;
+    .adtec-dashboard-root {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
     }
 
-    .widgets-canvas { position: relative; width: 100%; height: 100%; }
-    .grid-overlay {
-        position: absolute; inset: 0;
-        background-image: radial-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px);
-        background-size: 20px 20px; pointer-events: none;
+    .adtec-card { 
+        background: linear-gradient(145deg, rgba(15,23,42,0.97), rgba(15,23,42,0.7));
+        border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.25);
+        padding: 25px; position: relative; backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: flex; flex-direction: column;
     }
 
-    .tabs-nav { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding: 10px; width: 100%; max-width: 1000px; justify-content: center; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding-bottom: 15px; }
+    
+    .logo-section { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { 
+        width: 30px; height: 30px; background: #fbbf24; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    }
+    .logo-icon-inner { font-size: 9px; font-weight: 900; color: black; letter-spacing: -0.5px; }
+    .card-title { font-weight: 600; font-size: 18px; letter-spacing: 0.05em; color: #f8fafc; margin: 0; }
+
+    .tabs-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; width: 100%; justify-content: center; }
     .tab-btn { 
         padding: 10px 20px; cursor: pointer; border-radius: 10px; font-size: 12px; font-weight: 700;
         transition: all 0.2s; color: var(--text-muted); border: 1px solid transparent;
@@ -53,70 +64,87 @@
     .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
     .tab-btn.active { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2); color: var(--accent); }
 
-    .widget {
-        position: absolute;
-        background: rgba(30, 41, 59, 0.5);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
+    .card-body { 
+        position: relative; background: rgba(0,0,0,0.2); border-radius: 12px; 
+        border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden; flex: 1;
         display: flex; flex-direction: column;
-        transition: all 0.3s ease;
+    }
+    .grid-bg { 
+        position: absolute; inset: 0; 
+        background-image: radial-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px); 
+        background-size: 30px 30px; opacity: 0.5; pointer-events: none;
+    }
+
+    .widgets-area { position: relative; width: 100%; height: 100%; z-index: 1; flex: 1; }
+
+    .adtec-status-item { 
+        position: absolute; 
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(45, 212, 191, 0.2);
+        border-radius: 12px; 
+        padding: 12px 14px; 
+        display: flex; 
+        flex-direction: column;
+        transition: all 0.3s ease; 
         backdrop-filter: blur(10px);
+        box-sizing: border-box; 
+        gap: 2px;
     }
-    .widget:hover {
-        border-color: var(--accent);
-        box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
-    }
-    .widget-label { 
+    .adtec-status-item h3 { 
         font-size: 10px; 
         text-transform: uppercase; 
         color: #94a3b8; 
-        margin: 0 0 8px 0; 
+        margin: 0; 
         font-weight: 700; 
         letter-spacing: 0.05em; 
     }
-    .widget-value { font-size: 22px; font-weight: 700; color: #f8fafc; margin: 2px 0; }
-    .widget-unit { font-size: 12px; color: #94a3b8; margin-left: 4px; }
+    .adtec-status-value { font-size: 22px; font-weight: 700; color: #f8fafc; margin: 2px 0; }
+    .adtec-status-sub { font-size: 10px; color: #9ca3af; }
     
-    .gauge-bar { width: 100%; height: 6px; background: rgba(15,23,42,0.8); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 4px; margin-top: 5px; overflow: hidden; position: relative; }
-    .gauge-fill { height: 100%; width: 0%; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+    .adtec-temp-bar { width: 100%; height: 6px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; margin-top: 8px; overflow: hidden; position: relative; }
+    .adtec-temp-bar-fill { height: 100%; width: 0%; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: var(--accent); }
 
-    .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; margin-top: auto; text-transform: uppercase; border: 1px solid rgba(148, 163, 184, 0.3); letter-spacing: 0.5px; }
-    .status-chip.on { background: rgba(34,197,94,0.1); color: #22c55e; border-color: rgba(34,197,94,0.4); }
-    .status-chip.off { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.4); }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; }
+    .adtec-status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; margin-top: auto; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .adtec-status-chip.on { background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.4); }
+    .adtec-status-chip.off { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.4); }
+    .adtec-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #9ca3af; }
+    .adtec-status-dot.on { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .adtec-status-dot.off { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
-    .control-btn { 
-        flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(148,163,184,0.1); 
+    .vfd-btn { 
+        flex: 1; padding: 8px; border-radius: 6px; border: 1px solid rgba(148,163,184,0.1); 
         color: white; font-weight: 800; font-size: 11px; cursor: pointer; 
         transition: all 0.2s; background: rgba(255,255,255,0.05); 
     }
-    .control-btn:hover { background: rgba(255,255,255,0.1); }
+    .vfd-btn.start { background: rgba(34, 197, 94, 0.2); color: #22c55e; border-color: #22c55e; }
+    .vfd-btn.stop { background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: #ef4444; }
 
-    input[type="range"] {
-        -webkit-appearance: none; width: 100%; height: 4px; background: #334155; border-radius: 2px; outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer;
-    }
-
-    .adtec-label-widget {
-        pointer-events: none;
-        white-space: nowrap;
-        font-family: 'Inter', sans-serif;
-        letter-spacing: -0.02em;
-    }
+    .switch { position: relative; display: inline-block; width: 36px; height: 20px; transform: scale(0.7); }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background-color: #334155; transition: .4s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--accent); }
+    input:checked + .slider:before { transform: translateX(16px); }
 
     .gsm-bars { display: flex; gap: 2px; align-items: flex-end; height: 14px; }
     .gsm-bar { width: 3px; background: rgba(255,255,255,0.1); border-radius: 1px; }
     .gsm-bar.active { background: var(--accent); box-shadow: 0 0 5px var(--accent); }
 
+    .adtec-label-widget {
+        pointer-events: none;
+        white-space: pre-wrap;
+        font-family: 'Inter', sans-serif;
+        display: flex; align-items: center; justify-content: center;
+        text-align: center;
+    }
+
     </style>
 </head>
 <body style="margin:0; padding:0; background:#020617; color:#f8fafc; font-family:'Inter', sans-serif;">
-    <div id="dashboard-root"></div>
+    <div id="dashboard-root" class="adtec-dashboard-root"></div>
     <script>
         // Configuración Maestra exportada desde el Studio
+        // Se utilizan las claves de telemetría exactas de los widgets
         const CONFIG = {
             dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"📄","title":"Estado Actual del Invernadero","width":970,"height":900,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"📄","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"📄","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Ubicación","key":"sin_key","min":0,"max":100,"x":700,"y":610,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271001285","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":10,"w":220,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":140,"w":220,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":270,"w":220,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":330,"y":110,"w":220,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":400,"w":220,"h":140,"tabId":"3","format":"fixed1"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes"},
@@ -153,14 +181,39 @@
         const tab = CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId));
         if (!tab) return;
 
-        const canvasContainer = document.createElement('div');
-        canvasContainer.className = 'dashboard-container';
-        canvasContainer.style.width = tab.width + 'px';
-        canvasContainer.style.height = tab.height + 'px';
-        canvasContainer.innerHTML = '<div class="grid-overlay"></div><div id="widgets-canvas" class="widgets-canvas"></div>';
-        root.appendChild(canvasContainer);
+        const card = document.createElement('div');
+        card.className = 'adtec-card';
+        card.style.width = tab.width + 'px';
+        card.style.minHeight = tab.height + 'px';
+        card.style.margin = '0 auto';
+        
+        let headerHtml = '<div class="card-header">' +
+            '<div class="logo-section">' +
+            '<div class="logo-icon"><div class="logo-icon-inner">ADTEC</div></div>' +
+            '<span class="card-title">' + tab.title + '</span>' +
+            '</div>';
+        
+        if (tab.type === 'control') {
+            headerHtml += '<div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); padding:5px 12px; border-radius:20px; border: 1px solid rgba(148,163,184,0.1);">' +
+                '<span id="manual-label" style="font-size:9px; font-weight:700; color: #9ca3af">AUTO</span>' +
+                '<label class="switch">' +
+                '<input type="checkbox" id="master_manual" onchange="sendControl(\'manual\', this.checked)">' +
+                '<span class="slider"></span>' +
+                '</label>' +
+                '</div>';
+        } else {
+            headerHtml += '<div style="font-size: 11px; color: #9ca3af;" id="conn-status-text">ESPERANDO DATOS...</div>';
+        }
+        headerHtml += '</div>';
+        card.innerHTML = headerHtml;
 
-        const canvas = canvasContainer.querySelector('#widgets-canvas');
+        const body = document.createElement('div');
+        body.className = 'card-body';
+        body.innerHTML = '<div class="grid-bg"></div><div id="widgets-canvas" class="widgets-area"></div>';
+        card.appendChild(body);
+        root.appendChild(card);
+
+        const canvas = body.querySelector('#widgets-canvas');
         const widgets = CONFIG.dashboard.widgets.filter(w => String(w.tabId) === String(activeTabId));
         
         canvas.innerHTML = widgets.map(w => renderWidgetMarkup(w)).join('');
@@ -182,34 +235,36 @@
 
         switch(w.type) {
             case 'gauge':
-                content = '<div class="widget-value" id="val_' + w.key + '">--<span class="widget-unit">' + (w.unit || '') + '</span></div>' +
-                          '<div class="gauge-bar"><div class="gauge-fill" id="bar_' + w.key + '"></div></div>';
+                content = '<div class="adtec-status-value" id="val_' + w.id + '">--<span class="adtec-status-sub">' + (w.unit || '') + '</span></div>' +
+                          '<div class="adtec-temp-bar" id="bar_container_' + w.id + '">' +
+                          '<div class="adtec-temp-bar-fill" id="bar_' + w.id + '" style="width: 0%;"></div>' +
+                          '</div>';
                 break;
             case 'indicator':
-                content = '<div class="status-chip off" id="chip_' + w.key + '">' +
-                          '<span class="status-dot"></span>' +
-                          '<span id="label_' + w.key + '">OFFLINE</span>' +
+                content = '<div class="adtec-status-chip off" id="chip_' + w.id + '">' +
+                          '<span class="adtec-status-dot off" id="dot_' + w.id + '"></span>' +
+                          '<span id="label_' + w.id + '">APAGADO</span>' +
                           '</div>';
                 break;
             case 'text':
             case 'datetime':
-                content = '<div class="widget-value" style="font-size:16px;" id="val_' + w.key + '">--</div>';
+                content = '<div class="adtec-status-value" style="font-size:16px;" id="val_' + w.id + '">--</div>';
                 break;
             case 'control-relay':
-                content = '<div class="status-chip off" id="chip_' + w.key + '" style="margin-bottom:10px;">' +
-                          '<span class="status-dot"></span> <span id="label_' + w.key + '">ESTADO</span></div>' +
+                content = '<div class="adtec-status-chip off" id="chip_' + w.id + '" style="margin-bottom:10px;">' +
+                          '<span class="adtec-status-dot off" id="dot_' + w.id + '"></span> <span id="label_' + w.id + '">ESTADO</span></div>' +
                           '<div style="display:flex; gap:8px;">' +
-                          '<button class="control-btn" onclick="sendControl(\'' + w.target + '\', true)">ON</button>' +
-                          '<button class="control-btn" onclick="sendControl(\'' + w.target + '\', false)">OFF</button>' +
+                          '<button class="vfd-btn start" onclick="sendControl(\'' + w.target + '\', true)">ON</button>' +
+                          '<button class="vfd-btn stop" onclick="sendControl(\'' + w.target + '\', false)">OFF</button>' +
                           '</div>';
                 break;
             case 'control-vfd':
-                content = '<div class="widget-value" id="val_' + w.key + '">-- Hz</div>' +
-                          '<input type="range" min="0" max="60" step="0.5" style="width:100%; margin:10px 0;" ' +
+                content = '<div class="adtec-status-value" id="val_' + w.id + '">-- Hz</div>' +
+                          '<input type="range" min="0" max="60" step="0.5" id="ctrl_' + w.id + '" style="width:100%; margin:10px 0;" ' +
                           'onchange="sendControl(\'' + w.target + '\', parseFloat(this.value))">' +
                           '<div style="display:flex; gap:8px;">' +
-                          '<button class="control-btn" onclick="sendControl(\'' + w.target + '_state\', true)">START</button>' +
-                          '<button class="control-btn" onclick="sendControl(\'' + w.target + '_state\', false)">STOP</button>' +
+                          '<button class="vfd-btn start" onclick="sendControl(\'' + w.target + '_state\', true)">RUN</button>' +
+                          '<button class="vfd-btn stop" onclick="sendControl(\'' + w.target + '_state\', false)">STOP</button>' +
                           '</div>';
                 break;
             case 'chart':
@@ -217,16 +272,27 @@
                 content = '<canvas id="chart_' + w.id + '" style="width:100%; height:100%;"></canvas>';
                 break;
             case 'label':
-                return '<div class="adtec-label-widget" style="position:absolute;' + style + ' color:' + (w.color || 'white') + '; font-size:' + (w.fontSize || 14) + 'px; font-weight:bold; display:flex; align-items:center;">' + w.label + '</div>';
+                return '<div class="adtec-label-widget" style="' + style + ' color:' + (w.color || 'white') + '; font-size:' + (w.fontSize || 14) + 'px; font-weight:bold;">' + w.label + '</div>';
         }
 
-        return '<div class="widget" style="' + style + '">' +
-               '<div class="widget-label">' + w.label + '</div>' +
+        return '<div class="adtec-status-item" style="' + style + '" id="widget_' + w.id + '">' +
+               '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+               '<h3>' + w.label + '</h3>' +
+               '<span style="font-size: 9px; opacity: 0.4; color: #9ca3af;">' + w.key + '</span>' +
+               '</div>' +
                content +
                '</div>';
     }
 
-    // ==================== DATA & UI LOGIC ====================
+    function getGradientByType(type, alpha, inverted) {
+        let stops = [{ pos: 0, color: '#3b82f6' }, { pos: 50, color: '#10b981' }, { pos: 100, color: '#ef4444' }];
+        if (type === 'HUM') stops = [{ pos: 0, color: '#ef4444' }, { pos: 50, color: '#3b82f6' }, { pos: 100, color: '#1e3a8a' }];
+        if (inverted) {
+            const colors = stops.map(s => s.color).reverse();
+            stops = stops.map((s, i) => ({ ...s, color: colors[i] }));
+        }
+        return 'linear-gradient(90deg, ' + stops.map(s => s.color + Math.floor(alpha*255).toString(16).padStart(2, '0') + ' ' + s.pos + '%').join(', ') + ')';
+    }
 
     function formatValue(val, format, unit = "") {
         if (val === null || val === undefined) return "--";
@@ -250,45 +316,73 @@
         charts[w.id] = new Chart(ctx, {
             type: 'line',
             data: { labels: [], datasets: [{ label: w.label, data: [], borderColor: '#38bdf8', borderWidth: 2, fill: isSummary, tension: 0.4, pointRadius: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: isSummary }, y: { display: isSummary } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: isSummary, grid: { color: 'rgba(148, 163, 184, 0.1)' } }, y: { display: isSummary, grid: { color: 'rgba(148, 163, 184, 0.1)' } } } }
         });
     }
 
     function updateUI() {
+        const isManual = controlState.manual === true || controlState.manual === 'ON' || controlState.manual === 1;
+        const masterManual = document.getElementById('master_manual');
+        if (masterManual) masterManual.checked = isManual;
+        const manualLabel = document.getElementById('manual-label');
+        if (manualLabel) { 
+            manualLabel.innerText = isManual ? 'MANUAL' : 'AUTO'; 
+            manualLabel.style.color = isManual ? 'var(--adtec-accent)' : '#9ca3af'; 
+        }
+
         CONFIG.dashboard.widgets.forEach(w => {
             const val = lastData[w.key];
             
-            // Valores de texto
-            const valEl = document.getElementById('val_' + w.key);
+            // Texto y Valores
+            const valEl = document.getElementById('val_' + w.id);
             if (valEl) {
                 if (w.type === 'datetime' && val) {
                     valEl.innerText = new Date(val).toLocaleString();
                 } else {
-                    valEl.innerHTML = formatValue(val, w.format, '<span class="widget-unit">' + (w.unit || '') + '</span>');
+                    valEl.innerHTML = formatValue(val, w.format, '<span class="adtec-status-sub">' + (w.unit || '') + '</span>');
                 }
             }
 
-            // Barras de progreso (Gauges)
-            if (w.type === 'gauge' && val !== undefined) {
-                const bar = document.getElementById('bar_' + w.key);
-                if (bar) {
+            // Gauges
+            if (w.type === 'gauge') {
+                const bar = document.getElementById('bar_' + w.id);
+                const container = document.getElementById('bar_container_' + w.id);
+                if (bar && val !== undefined) {
                     const pct = ((val - (w.min || 0)) / ((w.max || 100) - (w.min || 0))) * 100;
                     bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+                    
+                    // Aplicar gradiente dinámico si es posible
+                    const variable = CONFIG.dashboard.variables.find(v => v.key === w.key);
+                    if (variable && variable.isDataEmitter) {
+                        container.style.background = getGradientByType(variable.dataType || 'TEMP', 0.25, w.inverted);
+                        bar.style.background = getGradientByType(variable.dataType || 'TEMP', 1, w.inverted);
+                    }
                 }
             }
 
-            // Indicadores y Relés
+            // Indicadores
             if (w.type === 'indicator' || w.type === 'control-relay') {
                 const isOn = (val == 1 || val == true || val == "ON");
-                const chip = document.getElementById('chip_' + w.key);
-                const label = document.getElementById('label_' + w.key);
-                if (chip) {
-                    chip.className = 'status-chip ' + (isOn ? 'on' : 'off');
-                    if (label) label.innerText = isOn ? 'ACTIVO' : 'INACTIVO';
+                const chip = document.getElementById('chip_' + w.id);
+                const dot = document.getElementById('dot_' + w.id);
+                const label = document.getElementById('label_' + w.id);
+                if (chip) chip.className = 'adtec-status-chip ' + (isOn ? 'on' : 'off');
+                if (dot) dot.className = 'adtec-status-dot ' + (isOn ? 'on' : 'off');
+                if (label) label.innerText = isOn ? 'ENCENDIDO' : 'APAGADO';
+            }
+
+            // Controles VFD
+            if (w.type === 'control-vfd') {
+                const ctrl = document.getElementById('ctrl_' + w.id);
+                if (ctrl) {
+                    const freq = parseFloat(controlState[w.target]) || 0;
+                    ctrl.value = freq;
+                    const vVal = document.getElementById('val_' + w.id);
+                    if (vVal) vVal.innerText = freq.toFixed(1) + " Hz";
                 }
             }
 
-            // Actualizar Gráficos Widget
+            // Gráficos Widget
             if (w.type === 'chart' || w.type === 'summary-chart') {
                 const chart = charts[w.id];
                 if (chart && historyData.length > 0) {
@@ -299,19 +393,16 @@
             }
         });
 
-        // Banner de Conexión GSM
+        // Estado de Conexión
         const statusText = document.getElementById('conn-status-text');
-        const bars = document.getElementById('gsm-signal-bars');
-        if (lastData.timestamp) {
+        if (statusText && lastData.timestamp) {
             const diff = (new Date() - new Date(lastData.timestamp)) / 1000;
             if (diff < 60) {
                 statusText.innerText = "SISTEMA ONLINE";
                 statusText.style.color = "var(--success)";
-                if (bars) Array.from(bars.children).forEach(b => b.classList.add('active'));
             } else {
                 statusText.innerText = "SISTEMA OFFLINE";
                 statusText.style.color = "var(--danger)";
-                if (bars) Array.from(bars.children).forEach(b => b.classList.remove('active'));
             }
         }
     }
