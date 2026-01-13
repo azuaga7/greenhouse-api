@@ -56,9 +56,8 @@ async def index():
     return HTMLResponse(content="<h1>ADTEC Cloud Dashboard</h1><p>Archivo index.html no encontrado.</p>")
 
 @app.post("/api/ingreso")
-async def api_ingreso(lectura: Lectura):
+async def api_ingreso(data: Dict[str, Any]):
     global HISTORY
-    data = lectura.dict()
     if "timestamp" not in data:
         data["timestamp"] = datetime.now().isoformat()
     
