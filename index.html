@@ -330,8 +330,11 @@
             manualLabel.style.color = isManual ? 'var(--adtec-accent)' : '#9ca3af'; 
         }
 
+        // SOPORTE PARA "IDIOMA" UNIFICADO: Buscar en la raiz o en .data
+        const currentData = (lastData.data && typeof lastData.data === 'object') ? { ...lastData, ...lastData.data } : lastData;
+
         CONFIG.dashboard.widgets.forEach(w => {
-            const val = lastData[w.key];
+            const val = currentData[w.key];
             
             // Texto y Valores
             const valEl = document.getElementById('val_' + w.id);
@@ -347,13 +350,12 @@
             if (w.type === 'gauge') {
                 const bar = document.getElementById('bar_' + w.id);
                 const container = document.getElementById('bar_container_' + w.id);
-                if (bar && val !== undefined) {
-                    const pct = ((val - (w.min || 0)) / ((w.max || 100) - (w.min || 0))) * 100;
+                if (bar && val !== undefined && val !== null) {
+                    const pct = ((parseFloat(val) - (w.min || 0)) / ((w.max || 100) - (w.min || 0))) * 100;
                     bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
                     
-                    // Aplicar gradiente dinámico si es posible
                     const variable = CONFIG.dashboard.variables.find(v => v.key === w.key);
-                    if (variable && variable.isDataEmitter) {
+                    if (variable) {
                         container.style.background = getGradientByType(variable.dataType || 'TEMP', 0.25, w.inverted);
                         bar.style.background = getGradientByType(variable.dataType || 'TEMP', 1, w.inverted);
                     }
@@ -387,7 +389,10 @@
                 const chart = charts[w.id];
                 if (chart && historyData.length > 0) {
                     chart.data.labels = historyData.slice(-20).map(d => d.timestamp?.split('T')[1]?.split('.')[0] || '');
-                    chart.data.datasets[0].data = historyData.slice(-20).map(d => parseFloat(d[w.key]) || 0);
+                    chart.data.datasets[0].data = historyData.slice(-20).map(d => {
+                        const dClean = (d.data && typeof d.data === 'object') ? { ...d, ...d.data } : d;
+                        return parseFloat(dClean[w.key]) || 0;
+                    });
                     chart.update('none');
                 }
             }
@@ -395,8 +400,8 @@
 
         // Estado de Conexión
         const statusText = document.getElementById('conn-status-text');
-        if (statusText && lastData.timestamp) {
-            const diff = (new Date() - new Date(lastData.timestamp)) / 1000;
+        if (statusText && currentData.timestamp) {
+            const diff = (new Date() - new Date(currentData.timestamp)) / 1000;
             if (diff < 60) {
                 statusText.innerText = "SISTEMA ONLINE";
                 statusText.style.color = "var(--success)";
@@ -408,31 +413,37 @@
     }
 
     async function fetchUpdate() {
+        // PETICIONES INDEPENDIENTES: Si una falla, la otra sigue.
         try {
-            const [rData, rCtrl] = await Promise.all([ 
-                fetch('/api/last'), 
-                fetch('/api/control_state') 
-            ]);
-            lastData = await rData.json();
-            controlState = await rCtrl.json();
-            
-            if (lastData && Object.keys(lastData).length > 0) {
-                console.log("📡 Datos en Vivo:", lastData);
-                updateUI();
+            const res = await fetch('/api/last');
+            if (res.ok) {
+                lastData = await res.json();
+                console.log("📡 Telemetría OK:", lastData);
             }
-        } catch(e) { console.error("Update error:", e); }
+        } catch(e) { console.warn("Fallo Telemetría:", e); }
+
+        try {
+            const res = await fetch('/api/control_state');
+            if (res.ok) {
+                controlState = await res.json();
+            }
+        } catch(e) { console.warn("Fallo Controles:", e); }
+
+        updateUI();
     }
 
     async function sendControl(key, val) {
         try {
-            await fetch('/api/control_state', {
+            const res = await fetch('/api/control_state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ [key]: val })
             });
-            controlState[key] = val;
-            updateUI();
-        } catch(e) { console.error(e); }
+            if (res.ok) {
+                controlState[key] = val;
+                updateUI();
+            }
+        } catch(e) { console.error("Error envío control:", e); }
     }
 
     function switchTab(id) { activeTabId = id; render(); }

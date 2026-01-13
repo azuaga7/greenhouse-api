@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import json
 from datetime import datetime
+import math
 
 app = FastAPI(title="ADTEC Cloud Dashboard")
 
@@ -22,15 +23,23 @@ HISTORY = []
 LAST_DATA = {}
 FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes"}
 
-class Lectura(BaseModel):
-    class Config:
-        extra = "allow"
+def clean_for_json(obj):
+    """Limpia recursivamente NaN de un objeto para que sea JSON compliant"""
+    if isinstance(obj, list):
+        return [clean_for_json(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: clean_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return 0
+    return obj
 
 # Cargar historial existente al iniciar
 if os.path.exists(CSV_FILE):
     try:
         df_init = pd.read_csv(CSV_FILE)
-        HISTORY = df_init.to_dict(orient="records")
+        # Reemplazar NaN por vacio o 0 antes de convertir a dict
+        HISTORY = clean_for_json(df_init.to_dict(orient="records"))
         if len(HISTORY) > 1000: HISTORY = HISTORY[-1000:]
         if HISTORY: LAST_DATA = HISTORY[-1]
     except Exception as e:
@@ -58,10 +67,22 @@ async def index():
     return HTMLResponse(content="<h1>ADTEC Cloud Dashboard</h1><p>Archivo index.html no encontrado.</p>")
 
 @app.post("/api/ingreso")
-async def api_ingreso(data: Dict[str, Any]):
+async def api_ingreso(payload: Dict[str, Any]):
     global HISTORY, LAST_DATA
+    
+    # SOPORTE PARA EL "IDIOMA" UNIFICADO:
+    # Si viene con {"device": "...", "data": {...}}, extraemos "data"
+    data = payload.get("data", payload)
+    
+    if not isinstance(data, dict):
+        # Fallback por si data no es un dict
+        data = payload
+
     if "timestamp" not in data:
         data["timestamp"] = datetime.now().isoformat()
+    
+    # Limpiar datos entrantes de posibles NaN/Inf
+    data = clean_for_json(data)
     
     LAST_DATA = data
     HISTORY.append(data)
@@ -78,11 +99,11 @@ async def api_ingreso(data: Dict[str, Any]):
 
 @app.get("/api/last")
 async def api_last():
-    return LAST_DATA
+    return JSONResponse(content=clean_for_json(LAST_DATA))
 
 @app.get("/api/data")
 async def api_data():
-    return HISTORY
+    return JSONResponse(content=clean_for_json(HISTORY))
 
 @app.get("/api/control_state")
 async def get_control_state(format: Optional[str] = None):
