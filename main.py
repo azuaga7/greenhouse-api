@@ -19,6 +19,7 @@ app.add_middleware(
 
 CSV_FILE = "telemetria.csv"
 HISTORY = []
+LAST_DATA = {}
 FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes"}
 
 class Lectura(BaseModel):
@@ -31,6 +32,7 @@ if os.path.exists(CSV_FILE):
         df_init = pd.read_csv(CSV_FILE)
         HISTORY = df_init.to_dict(orient="records")
         if len(HISTORY) > 1000: HISTORY = HISTORY[-1000:]
+        if HISTORY: LAST_DATA = HISTORY[-1]
     except Exception as e:
         print(f"Error al cargar historial: {e}")
 
@@ -57,10 +59,11 @@ async def index():
 
 @app.post("/api/ingreso")
 async def api_ingreso(data: Dict[str, Any]):
-    global HISTORY
+    global HISTORY, LAST_DATA
     if "timestamp" not in data:
         data["timestamp"] = datetime.now().isoformat()
     
+    LAST_DATA = data
     HISTORY.append(data)
     if len(HISTORY) > 1000: HISTORY.pop(0)
     
@@ -75,7 +78,7 @@ async def api_ingreso(data: Dict[str, Any]):
 
 @app.get("/api/last")
 async def api_last():
-    return HISTORY[-1] if HISTORY else {}
+    return LAST_DATA
 
 @app.get("/api/data")
 async def api_data():

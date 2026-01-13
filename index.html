@@ -409,12 +409,15 @@
 
     async function fetchUpdate() {
         try {
-            const [rData, rCtrl] = await Promise.all([ fetch('/api/data'), fetch('/api/control_state') ]);
-            historyData = await rData.json();
+            const [rData, rCtrl] = await Promise.all([ 
+                fetch('/api/last'), 
+                fetch('/api/control_state') 
+            ]);
+            lastData = await rData.json();
             controlState = await rCtrl.json();
-            if (historyData.length > 0) {
-                lastData = historyData[historyData.length - 1];
-                console.log("📡 Datos Recibidos:", lastData); // <-- Útil para debug
+            
+            if (lastData && Object.keys(lastData).length > 0) {
+                console.log("📡 Datos en Vivo:", lastData);
                 updateUI();
             }
         } catch(e) { console.error("Update error:", e); }
