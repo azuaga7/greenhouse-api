@@ -291,11 +291,12 @@
             }
             if (val === undefined && key.includes('.')) {
                 const [blockId, prop] = key.split('.');
-                val = state.blocks?.[blockId]?.[prop.toLowerCase()] || state.blocks?.[blockId]?.[prop];
+                const block = state.blocks && state.blocks[blockId];
+                val = block && (block[prop.toLowerCase()] || block[prop]);
             }
             if (val === undefined) return '--';
             const widget = widgets.find(w => w.key === key);
-            return formatValue(val, widget?.format, widget?.unit);
+            return formatValue(val, widget && widget.format, widget && widget.unit);
         };
   
         
@@ -318,8 +319,8 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
         if (!canvasRef.current || typeof Chart === 'undefined') return;
 
         const ctx = canvasRef.current.getContext('2d');
-        const primaryLimits = getScaleSettings(chartConfig?.primaryY);
-        const secondaryLimits = getScaleSettings(chartConfig?.secondaryY);
+        const primaryLimits = getScaleSettings(chartConfig && chartConfig.primaryY);
+        const secondaryLimits = getScaleSettings(chartConfig && chartConfig.secondaryY);
 
         chartRef.current = new Chart(ctx, {
             type: 'line',
@@ -347,7 +348,7 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
                         tension: 0.3,
                         pointRadius: 0,
                         yAxisID: 'y1',
-                        hidden: !chartConfig?.secondaryY
+                        hidden: !(chartConfig && chartConfig.secondaryY)
                     }
                 ]
             },
@@ -381,7 +382,7 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
                         ticks: { color: '#38bdf8', font: { size: 10 } } 
                     },
                     y1: {
-                        display: !!chartConfig?.secondaryY,
+                        display: !!(chartConfig && chartConfig.secondaryY),
                         position: 'right',
                         beginAtZero: false,
                         min: secondaryLimits.min,
@@ -412,7 +413,9 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
                             label: (item) => {
                                 const label = item.dataset.label || '';
                                 const value = item.formattedValue;
-                                const unit = CONFIG.dashboard.widgets.find(w => w.key === (item.datasetIndex === 0 ? chartConfig.primaryY : chartConfig.secondaryY))?.unit || '';
+                                const unitKey = (item.datasetIndex === 0 ? (chartConfig && chartConfig.primaryY) : (chartConfig && chartConfig.secondaryY));
+                                const widgetFound = CONFIG.dashboard.widgets.find(w => w.key === unitKey);
+                                const unit = (widgetFound && widgetFound.unit) || '';
                                 return label + ': ' + value + ' ' + unit;
                             }
                         }
@@ -431,20 +434,20 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
         if (!chart) return;
         
         const data = dataHistory || [];
-        const primaryLimits = getScaleSettings(chartConfig?.primaryY);
-        const secondaryLimits = getScaleSettings(chartConfig?.secondaryY);
+        const primaryLimits = getScaleSettings(chartConfig && chartConfig.primaryY);
+        const secondaryLimits = getScaleSettings(chartConfig && chartConfig.secondaryY);
 
         // Actualizar nombres de variables
-        const v1 = CONFIG.dashboard.variables.find(v => v.key === chartConfig?.primaryY);
-        const v2 = CONFIG.dashboard.variables.find(v => v.key === chartConfig?.secondaryY);
+        const v1Label = CONFIG.labels[chartConfig && chartConfig.primaryY] || (chartConfig && chartConfig.primaryY) || 'Variable 1';
+        const v2Label = CONFIG.labels[chartConfig && chartConfig.secondaryY] || (chartConfig && chartConfig.secondaryY) || 'Variable 2';
 
         chart.data.labels = data.map(d => d.t);
         chart.data.datasets[0].data = data.map(d => d.v);
-        chart.data.datasets[0].label = v1 ? v1.label : 'Variable 1';
+        chart.data.datasets[0].label = v1Label;
 
-        if (chartConfig?.secondaryY) {
+        if (chartConfig && chartConfig.secondaryY) {
             chart.data.datasets[1].data = data.map(d => d.v2);
-            chart.data.datasets[1].label = v2 ? v2.label : 'Variable 2';
+            chart.data.datasets[1].label = v2Label;
             chart.data.datasets[1].hidden = false;
             chart.options.scales.y1.display = true;
         } else {
@@ -465,7 +468,7 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
 });
 
 const DashboardApp = () => {
-    const [activeTabId, setActiveTabId] = useState(CONFIG.dashboard.tabs[0].id);
+    const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [controlState, setControlState] = useState({});
     const [historyData, setHistoryData] = useState([]); 
@@ -480,8 +483,10 @@ const DashboardApp = () => {
     const [connStatus, setConnStatus] = useState('OFFLINE');
     const [connColor, setConnColor] = useState('#ef4444');
 
+    const getWidgetValue = (key) => getWidgetValueShared(key, lastData, CONFIG.dashboard.widgets);
+
     const currentTab = useMemo(() => 
-        CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0]
+        CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0] || { width: 1000, height: 700 }
     , [activeTabId, CONFIG.dashboard.tabs]);
 
     useEffect(() => {
@@ -508,7 +513,7 @@ const DashboardApp = () => {
                 const data = await res.json();
                 setLastData(data);
                 
-                if (chartConfig.timeRange === 'Ahora') {
+                if (chartConfig.timeRange === 'Ahora' && data) {
                     const timestamp = data.timestamp || new Date().toISOString();
                     const tLabel = new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     const val1 = parseFloat(data[chartConfig.primaryY]);
@@ -527,7 +532,7 @@ const DashboardApp = () => {
                     }
                 }
 
-                if (data.timestamp || Object.keys(data).length > 0) {
+                if ((data && data.timestamp) || (data && Object.keys(data).length > 0)) {
                     setConnStatus("ONLINE");
                     setConnColor("var(--success)");
                 } else {
@@ -622,8 +627,7 @@ const DashboardApp = () => {
     }, [activeTabId]);
 
     const activeVarLabel = useMemo(() => {
-        const v = CONFIG.dashboard.variables.find(v => v.key === chartConfig.primaryY);
-        return v ? v.label : chartConfig.primaryY;
+        return CONFIG.labels[chartConfig.primaryY] || chartConfig.primaryY;
     }, [chartConfig.primaryY]);
 
     return (
@@ -676,7 +680,7 @@ const DashboardApp = () => {
                                             onChange={(e) => setChartConfig(prev => ({ ...prev, primaryY: e.target.value }))}
                                             style={{ width: '100%', padding: '8px', background: '#1e293b', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: 6, fontSize: 12, fontWeight: 'bold' }}
                                         >
-                                            {CONFIG.dashboard.variables.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
+                                            {(CONFIG.dashboard.variables || []).map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -687,7 +691,7 @@ const DashboardApp = () => {
                                             style={{ width: '100%', padding: '8px', background: '#1e293b', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: 6, fontSize: 12, fontWeight: 'bold' }}
                                         >
                                             <option value="">(sin eje secundario)</option>
-                                            {CONFIG.dashboard.variables.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
+                                            {(CONFIG.dashboard.variables || []).map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -980,6 +984,8 @@ const DashboardApp = () => {
         </div>
     );
 };
+
+ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
 
         
         // Inicializar iconos después de que React termine
