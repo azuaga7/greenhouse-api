@@ -125,10 +125,12 @@
         border: 1px solid rgba(148, 163, 184, 0.3); text-transform: uppercase; letter-spacing: 0.5px;
     }
     .adtec-status-chip.on { background: rgba(34,197,94,0.1); color: #22c55e; border-color: rgba(34,197,94,0.4); }
+    .adtec-status-chip.warn { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.4); }
     .adtec-status-chip.off { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.4); }
     
     .adtec-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; }
     .adtec-status-dot.on { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    .adtec-status-dot.warn { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
     .adtec-status-dot.off { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
 
     .vfd-btn { 
@@ -199,13 +201,13 @@
     <script type="text/babel">
         
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Ubicación","key":"sin_key","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"time_hm","unit":""},{"id":"w_1768271001285","type":"connection","label":"Estado de red","key":"gsm_1_STATE_OUT","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1"},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":40,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true},{"key":"gsm_1_STATE_OUT","label":"State Output","dataType":"STATE","isDataEmitter":false}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
-            labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_STATE_OUT":"State Output"},
-            refreshInterval: 3000,
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Ubicación","key":"sin_key","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":""},{"id":"w_1768271001285","type":"connection","label":"Estado de red","key":"gsm_1_STATE_OUT","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1"},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":40,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true},{"key":"gsm_1_STATE_OUT","label":"Señal del GSM","dataType":"STATE","isDataEmitter":false}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_STATE_OUT":"Señal del GSM"},
+            refreshInterval: 1000,
             chartConfig: {
                 primaryY: '',
                 secondaryY: '',
-                timeRange: '24h'
+                timeRange: 'Ahora'
             }
         };
         
@@ -300,33 +302,63 @@
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 // Componente de Gráfico Optimizado (Zero-Flicker)
-const DashboardChart = React.memo(({ widget, dataHistory }) => {
+const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
+
+    // Obtener configuración de escala (min/max) desde los widgets
+    const getScaleSettings = (key) => {
+        if (!key) return { min: undefined, max: undefined };
+        const w = CONFIG.dashboard.widgets.find(w => w.key === key);
+        if (!w || (w.min === 0 && w.max === 0)) return { min: undefined, max: undefined };
+        return { min: w.min, max: w.max };
+    };
 
     useEffect(() => {
         if (!canvasRef.current || typeof Chart === 'undefined') return;
 
         const ctx = canvasRef.current.getContext('2d');
+        const primaryLimits = getScaleSettings(chartConfig?.primaryY);
+        const secondaryLimits = getScaleSettings(chartConfig?.secondaryY);
+
         chartRef.current = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Array(50).fill(''),
-                datasets: [{
-                    label: widget.label,
-                    data: Array(50).fill(null),
-                    borderColor: 'rgba(56, 189, 248, 0.9)',
-                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 0
-                }]
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Eje Principal',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Eje Secundario',
+                        data: [],
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        yAxisID: 'y1',
+                        hidden: !chartConfig?.secondaryY
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 scales: {
                     x: { 
                         display: true,
@@ -336,38 +368,58 @@ const DashboardChart = React.memo(({ widget, dataHistory }) => {
                             font: { size: 9 },
                             maxRotation: 0,
                             autoSkip: true,
-                            maxTicksLimit: 5 
-                        },
-                        min: 0,
-                        max: 50
+                            maxTicksLimit: 8 
+                        }
                     },
                     y: {
                         display: true,
+                        position: 'left',
                         beginAtZero: false,
-                        min: (widget.min !== undefined && widget.min !== null) ? widget.min : undefined,
-                        max: (widget.max !== undefined && widget.max !== null) ? widget.max : undefined,
+                        min: primaryLimits.min,
+                        max: primaryLimits.max,
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
-                        ticks: { color: '#94a3b8', font: { size: 10 } } 
+                        ticks: { color: '#38bdf8', font: { size: 10 } } 
+                    },
+                    y1: {
+                        display: !!chartConfig?.secondaryY,
+                        position: 'right',
+                        beginAtZero: false,
+                        min: secondaryLimits.min,
+                        max: secondaryLimits.max,
+                        grid: { drawOnChartArea: false }, 
+                        ticks: { color: '#a855f7', font: { size: 10 } }
                     }
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         enabled: true,
-                        intersect: false,
-                        mode: 'index',
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#38bdf8',
-                        bodyColor: '#fff',
-                        borderColor: 'rgba(56, 189, 248, 0.2)',
-                        borderWidth: 1
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#fff',
+                        titleFont: { size: 11, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        padding: 10,
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        callbacks: {
+                            title: (items) => {
+                                const item = items[0];
+                                const rawData = dataHistory[item.dataIndex];
+                                if (!rawData || !rawData.fullTimestamp) return item.label;
+                                const d = new Date(rawData.fullTimestamp);
+                                return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES');
+                            },
+                            label: (item) => {
+                                const label = item.dataset.label || '';
+                                const value = item.formattedValue;
+                                const unit = CONFIG.dashboard.widgets.find(w => w.key === (item.datasetIndex === 0 ? chartConfig.primaryY : chartConfig.secondaryY))?.unit || '';
+                                return label + ': ' + value + ' ' + unit;
+                            }
+                        }
                     }
                 }
             }
         });
-
-        // Dibujo inicial estructural
-        chartRef.current.update('none');
 
         return () => {
             if (chartRef.current) chartRef.current.destroy();
@@ -379,17 +431,35 @@ const DashboardChart = React.memo(({ widget, dataHistory }) => {
         if (!chart) return;
         
         const data = dataHistory || [];
-        
-        if (data.length > 0) {
-            chart.data.labels = data.map(d => d.t);
-            chart.data.datasets[0].data = data.map(d => d.v);
+        const primaryLimits = getScaleSettings(chartConfig?.primaryY);
+        const secondaryLimits = getScaleSettings(chartConfig?.secondaryY);
+
+        // Actualizar nombres de variables
+        const v1 = CONFIG.dashboard.variables.find(v => v.key === chartConfig.primaryY);
+        const v2 = CONFIG.dashboard.variables.find(v => v.key === chartConfig.secondaryY);
+
+        chart.data.labels = data.map(d => d.t);
+        chart.data.datasets[0].data = data.map(d => d.v);
+        chart.data.datasets[0].label = v1 ? v1.label : 'Variable 1';
+
+        if (chartConfig.secondaryY) {
+            chart.data.datasets[1].data = data.map(d => d.v2);
+            chart.data.datasets[1].label = v2 ? v2.label : 'Variable 2';
+            chart.data.datasets[1].hidden = false;
+            chart.options.scales.y1.display = true;
         } else {
-            chart.data.labels = Array(50).fill('');
-            chart.data.datasets[0].data = Array(50).fill(null);
+            chart.data.datasets[1].hidden = true;
+            chart.options.scales.y1.display = false;
         }
 
+        // Actualizar límites dinámicamente
+        chart.options.scales.y.min = primaryLimits.min;
+        chart.options.scales.y.max = primaryLimits.max;
+        chart.options.scales.y1.min = secondaryLimits.min;
+        chart.options.scales.y1.max = secondaryLimits.max;
+
         chart.update('none');
-    }, [dataHistory]);
+    }, [dataHistory, chartConfig]);
 
     return <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />;
 });
@@ -398,8 +468,15 @@ const DashboardApp = () => {
     const [activeTabId, setActiveTabId] = useState(CONFIG.dashboard.tabs[0].id);
     const [lastData, setLastData] = useState({});
     const [controlState, setControlState] = useState({});
-    const [historyData, setHistoryData] = useState({});
-    const [chartConfig, setChartConfig] = useState(CONFIG.chartConfig);
+    const [historyData, setHistoryData] = useState([]); 
+    const [liveData, setLiveData] = useState([]); 
+    const [chartConfig, setChartConfig] = useState({
+        ...CONFIG.chartConfig,
+        filter: 'all',
+        fromDate: '',
+        toDate: '',
+        timeRange: 'Ahora'
+    });
     const [connStatus, setConnStatus] = useState('OFFLINE');
     const [connColor, setConnColor] = useState('#ef4444');
 
@@ -407,51 +484,19 @@ const DashboardApp = () => {
         CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0]
     , [activeTabId, CONFIG.dashboard.tabs]);
 
-    const getWidgetValue = (key) => getWidgetValueShared(key, lastData, CONFIG.dashboard.widgets);
+    useEffect(() => {
+        if (!chartConfig.primaryY && CONFIG.dashboard.variables && CONFIG.dashboard.variables.length > 0) {
+            setChartConfig(prev => ({ ...prev, primaryY: CONFIG.dashboard.variables[0].key }));
+        }
+    }, []);
 
     const fetchHistory = async () => {
+        if (chartConfig.timeRange === 'Ahora') return;
         try {
             const res = await fetch('/api/data');
             if (res.ok) {
-                let fullHistory = await res.json();
-                
-                // Filtro por tiempo (24h, 7d, all)
-                const now = new Date();
-                if (chartConfig.timeRange === '24h') {
-                    const limit = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                    fullHistory = fullHistory.filter(row => new Date(row.timestamp || row.data?.timestamp) > limit);
-                } else if (chartConfig.timeRange === '7d') {
-                    const limit = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    fullHistory = fullHistory.filter(row => new Date(row.timestamp || row.data?.timestamp) > limit);
-                }
-
-                const newHistory = {};
-                
-                // Procesar widgets individuales
-                CONFIG.dashboard.widgets.forEach(w => {
-                    if (w.type === 'chart' || w.type === 'summary-chart') {
-                        newHistory[w.id] = fullHistory.map(row => {
-                            const valStr = getWidgetValueShared(w.key, row, CONFIG.dashboard.widgets);
-                            const valRaw = typeof valStr === 'string' ? valStr.replace(/[^-0.0-9.]/g, '') : valStr;
-                            const timestamp = row.timestamp || row.data?.timestamp;
-                            const tLabel = timestamp ? new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
-                            return { t: tLabel, v: parseFloat(valRaw) };
-                        }).filter(d => !isNaN(d.v));
-                    }
-                });
-
-                // Procesar datos para el Laboratorio (si existe la pestaña)
-                if (currentTab.type === 'charts') {
-                    newHistory['lab'] = fullHistory.map(row => {
-                        const valStr = getWidgetValueShared(chartConfig.primaryY, row, CONFIG.dashboard.widgets);
-                        const valRaw = typeof valStr === 'string' ? valStr.replace(/[^-0.0-9.]/g, '') : valStr;
-                        const timestamp = row.timestamp || row.data?.timestamp;
-                        const tLabel = timestamp ? new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
-                        return { t: tLabel, v: parseFloat(valRaw) };
-                    }).filter(d => !isNaN(d.v));
-                }
-
-                setHistoryData(newHistory);
+                const fullHistory = await res.json();
+                setHistoryData(fullHistory);
             }
         } catch(e) { console.error("Error historial:", e); }
     };
@@ -463,26 +508,26 @@ const DashboardApp = () => {
                 const data = await res.json();
                 setLastData(data);
                 
-                setHistoryData(prev => {
-                    const next = { ...prev };
-                    const timestamp = data.timestamp || data.data?.timestamp || new Date().toISOString();
+                if (chartConfig.timeRange === 'Ahora') {
+                    const timestamp = data.timestamp || new Date().toISOString();
                     const tLabel = new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const val1 = parseFloat(data[chartConfig.primaryY]);
+                    const val2 = chartConfig.secondaryY ? parseFloat(data[chartConfig.secondaryY]) : null;
+                    
+                    if (!isNaN(val1)) {
+                        setLiveData(prev => {
+                            const next = [...prev, { 
+                                t: tLabel, 
+                                v: val1, 
+                                v2: val2,
+                                fullTimestamp: timestamp 
+                            }];
+                            return next.length > 100 ? next.slice(-100) : next;
+                        });
+                    }
+                }
 
-                    CONFIG.dashboard.widgets.forEach(w => {
-                        if (w.type === 'chart' || w.type === 'summary-chart') {
-                            const valStr = getWidgetValueShared(w.key, data, CONFIG.dashboard.widgets);
-                            const val = parseFloat(valStr);
-                            if (!isNaN(val)) {
-                                const current = next[w.id] || [];
-                                next[w.id] = [...current, { t: tLabel, v: val }].slice(-100);
-                            }
-                        }
-                    });
-                    return next;
-                });
-
-                const dataTimestamp = data.timestamp || (data.data && data.data.timestamp);
-                if (dataTimestamp || Object.keys(data).length > 0) {
+                if (data.timestamp || Object.keys(data).length > 0) {
                     setConnStatus("ONLINE");
                     setConnColor("var(--success)");
                 } else {
@@ -500,6 +545,55 @@ const DashboardApp = () => {
         } catch(e) { console.warn("Fallo Controles:", e); }
     };
 
+    const displayData = useMemo(() => {
+        if (chartConfig.timeRange === 'Ahora') return liveData;
+
+        let filtered = historyData;
+        const now = new Date().getTime();
+
+        // 1. Filtro de Tiempo (Rango Rápido)
+        if (chartConfig.timeRange === '24h') {
+            const oneDayAgo = now - (24 * 60 * 60 * 1000);
+            filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= oneDayAgo);
+        } else if (chartConfig.timeRange === '7d') {
+            const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+            filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= sevenDaysAgo);
+        } else if (chartConfig.timeRange === 'Rango') {
+            if (chartConfig.fromDate && chartConfig.toDate) {
+                const start = new Date(chartConfig.fromDate).getTime();
+                const end = new Date(chartConfig.toDate).getTime();
+                filtered = historyData.filter(d => {
+                    const ts = new Date(d.timestamp).getTime();
+                    return ts >= start && ts <= end;
+                });
+            }
+        }
+
+        // 2. Filtro Horario (Día / Noche)
+        if (chartConfig.filter === 'day') {
+            filtered = filtered.filter(d => {
+                const h = new Date(d.timestamp).getHours();
+                return h >= 7 && h < 19;
+            });
+        } else if (chartConfig.filter === 'night') {
+            filtered = filtered.filter(d => {
+                const h = new Date(d.timestamp).getHours();
+                return h < 7 || h >= 19;
+            });
+        }
+
+        return filtered.map(d => {
+            const ts = new Date(d.timestamp);
+            const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            return {
+                t: label,
+                v: parseFloat(d[chartConfig.primaryY]),
+                v2: chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : null,
+                fullTimestamp: d.timestamp
+            };
+        }).filter(d => !isNaN(d.v));
+    }, [chartConfig, historyData, liveData]);
+
     const sendControl = async (key, val) => {
         try {
             const res = await fetch('/api/control_state', {
@@ -515,17 +609,22 @@ const DashboardApp = () => {
 
     useEffect(() => {
         fetchHistory();
-    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange]);
+    }, [chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate]);
 
     useEffect(() => {
         fetchUpdate();
         const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
         return () => clearInterval(interval);
-    }, []);
+    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange]);
 
     useEffect(() => {
         setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
     }, [activeTabId]);
+
+    const activeVarLabel = useMemo(() => {
+        const v = CONFIG.dashboard.variables.find(v => v.key === chartConfig.primaryY);
+        return v ? v.label : chartConfig.primaryY;
+    }, [chartConfig.primaryY]);
 
     return (
         <div className="adtec-dashboard-root">
@@ -571,24 +670,24 @@ const DashboardApp = () => {
                             <div style={{ background: 'rgba(255,255,255,0.03)', padding: 15, borderRadius: 12, border: '1px solid rgba(148,163,184,0.1)', marginBottom: 20 }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 15 }}>
                                     <div className="form-group">
-                                        <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Eje Y Principal</label>
+                                        <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Eje Y Principal (Celeste)</label>
                                         <select 
                                             value={chartConfig.primaryY} 
                                             onChange={(e) => setChartConfig(prev => ({ ...prev, primaryY: e.target.value }))}
-                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 12 }}
+                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: 6, fontSize: 12, fontWeight: 'bold' }}
                                         >
-                                            {CONFIG.dashboard.widgets.filter(w => w.key && w.key !== 'sin_key').map(w => <option key={w.key} value={w.key}>{w.label}</option>)}
+                                            {CONFIG.dashboard.variables.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">
-                                        <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Eje Y Secundario</label>
+                                        <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Eje Y Secundario (Lila)</label>
                                         <select 
                                             value={chartConfig.secondaryY} 
                                             onChange={(e) => setChartConfig(prev => ({ ...prev, secondaryY: e.target.value }))}
-                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 12 }}
+                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: '#a855f7', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: 6, fontSize: 12, fontWeight: 'bold' }}
                                         >
                                             <option value="">(sin eje secundario)</option>
-                                            {CONFIG.dashboard.widgets.filter(w => w.key && w.key !== 'sin_key').map(w => <option key={w.key} value={w.key}>{w.label}</option>)}
+                                            {CONFIG.dashboard.variables.map(v => <option key={v.key} value={v.key}>{v.label}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -601,6 +700,7 @@ const DashboardApp = () => {
                                             ].map(f => (
                                                 <button
                                                     key={f.id}
+                                                    disabled={chartConfig.timeRange === 'Ahora'}
                                                     onClick={() => setChartConfig(prev => ({ ...prev, filter: f.id }))}
                                                     style={{ 
                                                         flex: 1,
@@ -614,10 +714,11 @@ const DashboardApp = () => {
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        gap: 4
+                                                        gap: 4,
+                                                        opacity: chartConfig.timeRange === 'Ahora' ? 0.5 : 1
                                                     }}
                                                 >
-                                                    {f.icon} {f.label}
+                                                    {f.icon}
                                                 </button>
                                             ))}
                                         </div>
@@ -629,18 +730,20 @@ const DashboardApp = () => {
                                         <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Desde</label>
                                         <input 
                                             type="datetime-local" 
+                                            disabled={chartConfig.timeRange !== 'Rango'}
                                             value={chartConfig.fromDate || ''}
                                             onChange={(e) => setChartConfig(prev => ({ ...prev, fromDate: e.target.value }))}
-                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 11 }}
+                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 11, opacity: chartConfig.timeRange !== 'Rango' ? 0.5 : 1 }}
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Hasta</label>
                                         <input 
                                             type="datetime-local" 
+                                            disabled={chartConfig.timeRange !== 'Rango'}
                                             value={chartConfig.toDate || ''}
                                             onChange={(e) => setChartConfig(prev => ({ ...prev, toDate: e.target.value }))}
-                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 11 }}
+                                            style={{ width: '100%', padding: '8px', background: '#1e293b', color: 'white', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 6, fontSize: 11, opacity: chartConfig.timeRange !== 'Rango' ? 0.5 : 1 }}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -650,7 +753,7 @@ const DashboardApp = () => {
                                                 { id: 'Ahora', label: 'LIVE' },
                                                 { id: '24h', label: '24H' },
                                                 { id: '7d', label: '7D' },
-                                                { id: 'all', label: 'ALL' }
+                                                { id: 'Rango', label: 'RANGO' }
                                             ].map(r => (
                                                 <button
                                                     key={r.id}
@@ -676,8 +779,9 @@ const DashboardApp = () => {
                             </div>
                             <div style={{ height: '400px', background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 15 }}>
                                 <DashboardChart 
-                                    widget={{ label: 'Laboratorio de Datos' }} 
-                                    dataHistory={historyData['lab'] || []} 
+                                    widget={{ label: activeVarLabel }} 
+                                    dataHistory={displayData} 
+                                    chartConfig={chartConfig}
                                 />
                             </div>
                         </div>
@@ -709,7 +813,7 @@ const DashboardApp = () => {
                                             </div>
                                         </div>
                                         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-                                            <DashboardChart widget={w} dataHistory={historyData[w.id]} />
+                                            <DashboardChart widget={w} dataHistory={[]} chartConfig={{ primaryY: w.key }} />
                                         </div>
                                     </div>
                                 );
@@ -724,7 +828,7 @@ const DashboardApp = () => {
 
                                     {w.type === 'gauge' && (
                                         <>
-                                            <div className="adtec-status-value">
+                                            <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
                                                 {valStr.replace(w.unit || '', '')}
                                                 <span className="adtec-status-sub">{w.unit || ''}</span>
                                             </div>
@@ -793,20 +897,31 @@ const DashboardApp = () => {
                                         );
                                     })()}
 
-                                    {(w.type === 'text' || w.type === 'datetime') && (() => {
-                                        if (w.key === 'gsm_signal' || w.label.toLowerCase().includes('señal')) {
-                                            const signal = parseInt(valStr) || 0;
+                                    {(w.type === 'text' || w.type === 'datetime' || w.type === 'connection') && (() => {
+                                        const isGsmWidget = w.key === 'gsm_signal' || w.label.toLowerCase().includes('señal') || w.type === 'connection';
+                                        
+                                        if (isGsmWidget) {
+                                            const rawVal = parseInt(valStr);
+                                            const signal = (rawVal === 99 || isNaN(rawVal)) ? 0 : Math.ceil((rawVal / 31) * 5);
+                                            const isOnline = connStatus === 'ONLINE';
+
                                             return (
-                                                <div className="gsm-bars" style={{ height: 30, display: 'flex', gap: 3, alignItems: 'flex-end', marginTop: 10 }}>
-                                                    {[1, 2, 3, 4, 5].map(bar => (
-                                                        <div key={bar} style={{ 
-                                                            width: 6, 
-                                                            height: bar * 20 + '%', 
-                                                            background: bar <= signal ? 'var(--adtec-accent)' : 'rgba(255,255,255,0.1)',
-                                                            borderRadius: '2px',
-                                                            boxShadow: bar <= signal ? '0 0 10px var(--adtec-accent)' : 'none'
-                                                        }} />
-                                                    ))}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 5 }}>
+                                                    <div className="gsm-bars" style={{ height: 25, display: 'flex', gap: 3, alignItems: 'flex-end' }}>
+                                                        {[1, 2, 3, 4, 5].map(bar => (
+                                                            <div key={bar} style={{ 
+                                                                width: 6, 
+                                                                height: bar * 20 + '%', 
+                                                                background: bar <= signal ? 'var(--adtec-accent)' : 'rgba(255,255,255,0.1)',
+                                                                borderRadius: '2px',
+                                                                boxShadow: bar <= signal ? '0 0 10px var(--adtec-accent)' : 'none'
+                                                            }} />
+                                                        ))}
+                                                    </div>
+                                                    <div className={"adtec-status-chip " + (isOnline ? (rawVal === 99 ? "warn" : "on") : "off")} style={{ alignSelf: 'flex-start' }}>
+                                                        <span className={"adtec-status-dot " + (isOnline ? (rawVal === 99 ? "warn" : "on") : "off")} />
+                                                        <span>{isOnline ? (rawVal === 99 ? 'BUSCANDO...' : 'CONECTADO') : 'DESCONECTADO'}</span>
+                                                    </div>
                                                 </div>
                                             );
                                         }
@@ -836,7 +951,7 @@ const DashboardApp = () => {
                                         }
 
                                         return (
-                                            <div className="adtec-status-value">
+                                            <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
                                                 {valStr.replace(w.unit || '', '')}
                                                 <span className="adtec-status-sub">{w.unit || ''}</span>
                                             </div>
@@ -858,16 +973,13 @@ const DashboardApp = () => {
                                 </div>
                             );
                         })}
-                    </div>
-                )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
-
-const root = ReactDOM.createRoot(document.getElementById('dashboard-root'));
-root.render(<DashboardApp />);
 
         
         // Inicializar iconos después de que React termine
