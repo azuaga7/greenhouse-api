@@ -119,11 +119,18 @@ async def api_ingreso(payload: Dict[str, Any]):
     # Limpiar datos entrantes de posibles NaN/Inf
     data = clean_for_json(data)
     
-    # NUEVO: Lógica de Ciudad y País basada en coordenadas
-    if "gsm_location" in data and data["gsm_location"] != "0.0,0.0":
-        data["gsm_city_country"] = await get_city_country(data["gsm_location"])
-    elif "gsm_city_country" not in data:
-        data["gsm_city_country"] = "Ubicación Pro"
+    # Motor de Geocodificación Inteligente (Normaliza y procesa múltiples módulos GSM)
+    for k, v in list(data.items()):
+        k_upper = k.upper()
+        if "GSM" in k_upper and "LOCATION" in k_upper and "_STAT" not in k_upper and "_CITY" not in k_upper:
+            if v and v != "0.0,0.0" and "," in str(v):
+                # Generar clave de ciudad específica para este módulo (Ej: gsm_1_LOCATION_CITY)
+                city_key = k + "_CITY"
+                data[city_key] = await get_city_country(v)
+                # Mantener compatibilidad con motor original y widgets estándar
+                if k == "gsm_location" or k == "gsm_1_LOCATION":
+                    data["gsm_location"] = v
+                    data["gsm_city_country"] = data[city_key]
 
     LAST_DATA = data
     HISTORY.append(data)
