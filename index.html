@@ -199,7 +199,7 @@
     <script type="text/babel">
         
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"📄","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"📄","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"📄","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Ubicación","key":"sin_key","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271001285","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"📊","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"📈","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"🎮","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Ubicación","key":"sin_key","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":""},{"id":"w_1768271001285","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"raw"},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes"},
             refreshInterval: 3000
         };
@@ -214,7 +214,17 @@
                 const totalSeconds = Math.floor(isNum ? num : 0);
                 const h = Math.floor(totalSeconds / 3600);
                 const m = Math.floor((totalSeconds % 3600) / 60);
-                return h + "h " + m + "m";
+                const s = totalSeconds % 60;
+                if (format === 'time_hm') return h + "h " + m + "m";
+                return h + ":" + m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+            }
+            if (format === 'datetime' || (typeof val === 'string' && val.includes('T') && val.includes(':'))) {
+                try {
+                    const date = new Date(val);
+                    if (!isNaN(date.getTime())) {
+                        return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    }
+                } catch (e) { }
             }
             if (format === 'bool_onoff') return (val == 1 || val == "ON" || val == true) ? "ON" : "OFF";
             if (format === 'percent') return (isNum ? num.toFixed(0) : val) + "%";
@@ -354,14 +364,13 @@ const DashboardChart = React.memo(({ widget, dataHistory }) => {
         };
     }, []);
 
-    // Sincronización de datos históricos y en vivo
     useEffect(() => {
         const chart = chartRef.current;
         if (!chart || !dataHistory) return;
         
         chart.data.labels = dataHistory.map(d => d.t);
         chart.data.datasets[0].data = dataHistory.map(d => d.v);
-        chart.update('none'); // Update instantáneo sin parpadeo
+        chart.update('none');
     }, [dataHistory]);
 
     return <canvas ref={canvasRef} />;
@@ -372,10 +381,8 @@ const DashboardApp = () => {
     const [lastData, setLastData] = useState({});
     const [controlState, setControlState] = useState({});
     const [historyData, setHistoryData] = useState({});
-    const [connStatus, setConnStatus] = useState('ESPERANDO DATOS...');
-    const [connColor, setConnColor] = useState('#9ca3af');
-    const [isLive, setIsLive] = useState(true);
-    const [timeFilter, setTimeFilter] = useState('all');
+    const [connStatus, setConnStatus] = useState('OFFLINE');
+    const [connColor, setConnColor] = useState('#ef4444');
 
     const currentTab = useMemo(() => 
         CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0]
@@ -388,13 +395,6 @@ const DashboardApp = () => {
             const res = await fetch('/api/data');
             if (res.ok) {
                 let fullHistory = await res.json();
-                const now = Date.now();
-                if (timeFilter === '24h') {
-                    fullHistory = fullHistory.filter(d => (now - new Date(d.timestamp).getTime()) < 86400000);
-                } else if (timeFilter === '7d') {
-                    fullHistory = fullHistory.filter(d => (now - new Date(d.timestamp).getTime()) < 604800000);
-                }
-
                 const newHistory = {};
                 CONFIG.dashboard.widgets.forEach(w => {
                     if (w.type === 'chart' || w.type === 'summary-chart') {
@@ -418,36 +418,31 @@ const DashboardApp = () => {
                 const data = await res.json();
                 setLastData(data);
                 
-                if (isLive) {
-                    setHistoryData(prev => {
-                        const next = { ...prev };
-                        const timestamp = data.timestamp || data.data?.timestamp || new Date().toISOString();
-                        const tLabel = new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                setHistoryData(prev => {
+                    const next = { ...prev };
+                    const timestamp = data.timestamp || data.data?.timestamp || new Date().toISOString();
+                    const tLabel = new Date(timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                        CONFIG.dashboard.widgets.forEach(w => {
-                            if (w.type === 'chart' || w.type === 'summary-chart') {
-                                const valStr = getWidgetValueShared(w.key, data, CONFIG.dashboard.widgets);
-                                const val = parseFloat(valStr);
-                                if (!isNaN(val)) {
-                                    const current = next[w.id] || [];
-                                    next[w.id] = [...current, { t: tLabel, v: val }].slice(-100);
-                                }
+                    CONFIG.dashboard.widgets.forEach(w => {
+                        if (w.type === 'chart' || w.type === 'summary-chart') {
+                            const valStr = getWidgetValueShared(w.key, data, CONFIG.dashboard.widgets);
+                            const val = parseFloat(valStr);
+                            if (!isNaN(val)) {
+                                const current = next[w.id] || [];
+                                next[w.id] = [...current, { t: tLabel, v: val }].slice(-100);
                             }
-                        });
-                        return next;
+                        }
                     });
-                }
+                    return next;
+                });
 
                 const dataTimestamp = data.timestamp || (data.data && data.data.timestamp);
-                if (dataTimestamp) {
-                    const diff = (new Date() - new Date(dataTimestamp)) / 1000;
-                    if (diff < 60) {
-                        setConnStatus("SISTEMA ONLINE");
-                        setConnColor("var(--success)");
-                    } else {
-                        setConnStatus("SISTEMA OFFLINE");
-                        setConnColor("var(--danger)");
-                    }
+                if (dataTimestamp || Object.keys(data).length > 0) {
+                    setConnStatus("ONLINE");
+                    setConnColor("var(--success)");
+                } else {
+                    setConnStatus("OFFLINE");
+                    setConnColor("var(--danger)");
                 }
             }
         } catch(e) { console.warn("Fallo Telemetría:", e); }
@@ -478,7 +473,7 @@ const DashboardApp = () => {
         fetchUpdate();
         const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
         return () => clearInterval(interval);
-    }, [isLive, timeFilter]);
+    }, []);
 
     useEffect(() => {
         setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
@@ -505,26 +500,18 @@ const DashboardApp = () => {
                         <span className="card-title">{currentTab.title}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <select 
-                            value={timeFilter} 
-                            onChange={(e) => setTimeFilter(e.target.value)}
-                            style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '10px', padding: '2px 5px' }}
-                        >
-                            <option value="all">Todo el Historial</option>
-                            <option value="24h">Últimas 24 Horas</option>
-                            <option value="7d">Últimos 7 Días</option>
-                        </select>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '9px', fontWeight: '800', color: isLive ? 'var(--success)' : '#9ca3af' }}>LIVE</span>
-                            <label className="switch">
-                                <input type="checkbox" checked={isLive} onChange={(e) => setIsLive(e.target.checked)} />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-                        <a href="/api/download/csv" style={{ textDecoration: 'none', background: 'rgba(255,255,255,0.05)', padding: '5px 10px', borderRadius: '6px', fontSize: '10px', color: '#94a3b8', border: '1px solid var(--border)' }}>
-                            <i data-lucide="download" style={{ width: 12, height: 12, marginRight: 5 }}></i> CSV
-                        </a>
-                        <div style={{ fontSize: '11px', color: connColor }}>{connStatus}</div>
+                        {currentTab.type === 'control' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
+                                <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
+                                    {controlState.manual ? 'MANUAL' : 'AUTO'}
+                                </span>
+                                <label className="switch">
+                                    <input type="checkbox" checked={!!controlState.manual} onChange={(e) => sendControl('manual', e.target.checked)} />
+                                    <span className="slider"></span>
+                                </label>
+                            </div>
+                        )}
+                        <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
                     </div>
                 </div>
 
@@ -549,7 +536,12 @@ const DashboardApp = () => {
                                     <div key={w.id} className="adtec-status-item" style={style}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
                                             <h3>{w.label}</h3>
-                                            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--adtec-accent)' }}>{valStr}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <a href="/api/download/csv" title="Descargar CSV" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+                                                    <i data-lucide="download" style={{ width: 14, height: 14 }}></i>
+                                                </a>
+                                                <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--adtec-accent)' }}>{valStr}</span>
+                                            </div>
                                         </div>
                                         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
                                             <DashboardChart widget={w} dataHistory={historyData[w.id]} />
@@ -568,7 +560,7 @@ const DashboardApp = () => {
                                     {w.type === 'gauge' && (
                                         <>
                                             <div className="adtec-status-value">
-                                                {valStr}
+                                                {valStr.replace(w.unit || '', '')}
                                                 <span className="adtec-status-sub">{w.unit || ''}</span>
                                             </div>
                                             <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted) }}>
@@ -636,19 +628,39 @@ const DashboardApp = () => {
                                         );
                                     })()}
 
-                                    {(w.type === 'text' || w.type === 'datetime') && (
-                                        <div className="adtec-status-value" style={{ fontSize: '16px' }}>
-                                            {w.key === 'gsm_signal' ? (
-                                                <div className="gsm-bars">
+                                    {(w.type === 'text' || w.type === 'datetime') && (() => {
+                                        if (w.key === 'gsm_signal' || w.label.toLowerCase().includes('señal')) {
+                                            const signal = parseInt(valStr) || 0;
+                                            return (
+                                                <div className="gsm-bars" style={{ height: 30, display: 'flex', gap: 3, alignItems: 'flex-end', marginTop: 10 }}>
                                                     {[1, 2, 3, 4, 5].map(bar => (
-                                                        <div key={bar} className={"gsm-bar " + (bar <= (parseInt(valStr) || 0) ? "active" : "")} style={{ height: (bar * 20) + "%" }} />
+                                                        <div key={bar} style={{ 
+                                                            width: 6, 
+                                                            height: bar * 20 + '%', 
+                                                            background: bar <= signal ? 'var(--adtec-accent)' : 'rgba(255,255,255,0.1)',
+                                                            borderRadius: '2px',
+                                                            boxShadow: bar <= signal ? '0 0 10px var(--adtec-accent)' : 'none'
+                                                        }} />
                                                     ))}
                                                 </div>
-                                            ) : (
-                                                valStr
-                                            )}
-                                        </div>
-                                    )}
+                                            );
+                                        }
+                                        if (w.label.toLowerCase().includes('red') || w.label.toLowerCase().includes('estado')) {
+                                            const isOnline = connStatus === 'ONLINE';
+                                            return (
+                                                <div className={"adtec-status-chip " + (isOnline ? "on" : "off")} style={{ marginTop: 'auto', alignSelf: 'flex-start' }}>
+                                                    <span className={"adtec-status-dot " + (isOnline ? "on" : "off")} />
+                                                    <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                                                </div>
+                                            );
+                                        }
+                                        return (
+                                            <div className="adtec-status-value">
+                                                {valStr.replace(w.unit || '', '')}
+                                                <span className="adtec-status-sub">{w.unit || ''}</span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             );
                         })}
