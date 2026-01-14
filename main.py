@@ -9,8 +9,38 @@ import os
 import json
 from datetime import datetime
 import math
+import httpx
 
 app = FastAPI(title="ADTEC Cloud Dashboard")
+
+# Memoria caché para no saturar OpenStreetMap
+LOCATION_CACHE = {}
+
+async def get_city_country(location_str: str):
+    """Convierte 'lat,lon' en 'Ciudad, Pais' usando Nominatim (OpenStreetMap)"""
+    if not location_str or location_str == "0.0,0.0" or "," not in location_str:
+        return "Ubicación Desconocida"
+    
+    if location_str in LOCATION_CACHE:
+        return LOCATION_CACHE[location_str]
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            lat, lon = location_str.split(",")
+            url = f"https://nominatim.openstreetmap.org/reverse?lat={lat.strip()}&lon={lon.strip()}&format=json&accept-language=es"
+            headers = {"User-Agent": "GreenhouseConfigStudio/1.0"}
+            resp = await client.get(url, headers=headers, timeout=5.0)
+            if resp.status_code == 200:
+                geo = resp.json()
+                address = geo.get("address", {})
+                city = address.get("city") or address.get("town") or address.get("village") or address.get("county") or "Desconocido"
+                country = address.get("country", "Desconocido")
+                res = f"{city}, {country}"
+                LOCATION_CACHE[location_str] = res
+                return res
+    except Exception as e:
+        print(f"Error Geocoding: {e}")
+    return "Ubicación Pro"
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +52,7 @@ app.add_middleware(
 CSV_FILE = "telemetria.csv"
 HISTORY = []
 LAST_DATA = {}
-FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_STATE_OUT":"Señal del GSM"}
+FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Señal GSM","gsm_1_STATE":"Estado de Red GSM","gsm_1_LOCATION":"Coordenadas"}
 
 # Servir archivos estáticos (librerías)
 if os.path.exists("libs"):
@@ -89,6 +119,12 @@ async def api_ingreso(payload: Dict[str, Any]):
     # Limpiar datos entrantes de posibles NaN/Inf
     data = clean_for_json(data)
     
+    # NUEVO: Lógica de Ciudad y País basada en coordenadas
+    if "gsm_location" in data and data["gsm_location"] != "0.0,0.0":
+        data["gsm_city_country"] = await get_city_country(data["gsm_location"])
+    elif "gsm_city_country" not in data:
+        data["gsm_city_country"] = "Ubicación Pro"
+
     LAST_DATA = data
     HISTORY.append(data)
     if len(HISTORY) > 1000: HISTORY.pop(0)
