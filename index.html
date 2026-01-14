@@ -435,14 +435,14 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
         const secondaryLimits = getScaleSettings(chartConfig?.secondaryY);
 
         // Actualizar nombres de variables
-        const v1 = CONFIG.dashboard.variables.find(v => v.key === chartConfig.primaryY);
-        const v2 = CONFIG.dashboard.variables.find(v => v.key === chartConfig.secondaryY);
+        const v1 = CONFIG.dashboard.variables.find(v => v.key === chartConfig?.primaryY);
+        const v2 = CONFIG.dashboard.variables.find(v => v.key === chartConfig?.secondaryY);
 
         chart.data.labels = data.map(d => d.t);
         chart.data.datasets[0].data = data.map(d => d.v);
         chart.data.datasets[0].label = v1 ? v1.label : 'Variable 1';
 
-        if (chartConfig.secondaryY) {
+        if (chartConfig?.secondaryY) {
             chart.data.datasets[1].data = data.map(d => d.v2);
             chart.data.datasets[1].label = v2 ? v2.label : 'Variable 2';
             chart.data.datasets[1].hidden = false;
