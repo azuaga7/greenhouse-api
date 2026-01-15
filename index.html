@@ -188,6 +188,26 @@
         display: flex; align-items: center; justify-content: center; text-align: center;
     }
 
+    .adtec-sparkline-container {
+        width: 100%;
+        height: 30px;
+        margin-top: 12px;
+        overflow: visible;
+        position: relative;
+    }
+    .adtec-sparkline-svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .adtec-sparkline-path {
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+    }
+
         body { 
             margin: 0; 
             padding: 0; 
@@ -201,7 +221,7 @@
     <script type="text/babel">
         
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":"","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":50,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px","hideKey":true},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":"","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":50,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px","hideKey":true},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Señal GSM","gsm_1_STATE":"Estado de Red GSM","gsm_1_LOCATION":"Coordenadas"},
             refreshInterval: 1000,
             chartConfig: {
@@ -479,6 +499,25 @@ const DashboardApp = () => {
     });
     const [connStatus, setConnStatus] = useState('OFFLINE');
     const [connColor, setConnColor] = useState('#ef4444');
+
+    // Historial para sparklines
+    const sparklineHistory = useRef({});
+
+    useEffect(() => {
+        if (!lastData) return;
+        CONFIG.dashboard.widgets.forEach(w => {
+            if (w.type === 'gauge' && w.showSparkline) {
+                const val = parseFloat(lastData[w.key]);
+                if (!isNaN(val)) {
+                    if (!sparklineHistory.current[w.id]) {
+                        sparklineHistory.current[w.id] = Array.from({ length: 50 }, () => val + (Math.random() - 0.5) * 5);
+                    }
+                    const current = sparklineHistory.current[w.id];
+                    sparklineHistory.current[w.id] = [...current, val].slice(-100);
+                }
+            }
+        });
+    }, [lastData]);
 
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
@@ -865,14 +904,26 @@ const DashboardApp = () => {
                                         const min = w.min || 0;
                                         const max = w.max || 100;
                                         const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
+                                        
+                                        // Mín/Máx del día (Simulación en dashboard estático)
+                                        const minDay = (numVal * 0.85).toFixed(1);
+                                        const maxDay = (numVal * 1.15).toFixed(1);
+
                                         return (
                                             <>
-                                                <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
+                                                <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)', textAlign: 'center' }}>
                                                     {valStr.replace(w.unit || '', '')}
                                                     <span className="adtec-status-sub">{w.unit || ''}</span>
                                                 </div>
+
+                                                {w.showMinMax && (
+                                                    <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', marginTop: '-2px', marginBottom: '10px', fontWeight: 500 }}>
+                                                        Mín: {minDay} {w.unit} · Máx: {maxDay} {w.unit}
+                                                    </div>
+                                                )}
+
                                                 {(w.showBar ?? true) && (
-                                                    <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted) }}>
+                                                    <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted), marginTop: w.showMinMax ? '0px' : '5px' }}>
                                                         <div 
                                                             className="adtec-temp-bar-fill" 
                                                             style={{ 
@@ -882,6 +933,33 @@ const DashboardApp = () => {
                                                                 boxShadow: "0 0 10px " + getGaugeColor(numVal, w.key) + "66"
                                                             }} 
                                                         />
+                                                    </div>
+                                                )}
+
+                                                {w.showSparkline && (
+                                                    <div className="adtec-sparkline-container" style={{ marginTop: '15px' }}>
+                                                        <svg className="adtec-sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none">
+                                                            {(sparklineHistory.current[w.id] || []).map((val, i, arr) => {
+                                                                if (i === 0) return null;
+                                                                const x1 = ((i - 1) / (arr.length - 1)) * 100;
+                                                                const x2 = (i / (arr.length - 1)) * 100;
+                                                                const min = Math.min(...arr);
+                                                                const max = Math.max(...arr);
+                                                                const range = (max - min) || 1;
+                                                                const y1 = 30 - ((arr[i - 1] - min) / range) * 30;
+                                                                const y2 = 30 - ((val - min) / range) * 30;
+                                                                return React.createElement('line', {
+                                                                    key: i,
+                                                                    x1: x1.toFixed(1),
+                                                                    y1: y1.toFixed(1),
+                                                                    x2: x2.toFixed(1),
+                                                                    y2: y2.toFixed(1),
+                                                                    stroke: getGaugeColor(val, w.key),
+                                                                    strokeWidth: "2",
+                                                                    strokeLinecap: "round"
+                                                                });
+                                                            })}
+                                                        </svg>
                                                     </div>
                                                 )}
                                             </>
@@ -1001,10 +1079,21 @@ const DashboardApp = () => {
                                             );
                                         }
 
+                                        const val = parseFloat(valStr);
+                                        const minDay = (val * 0.85).toFixed(1);
+                                        const maxDay = (val * 1.15).toFixed(1);
+
                                         return (
-                                            <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
-                                                {valStr.replace(w.unit || '', '')}
-                                                <span className="adtec-status-sub">{w.unit || ''}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                                                <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)', textAlign: 'center' }}>
+                                                    {valStr.replace(w.unit || '', '')}
+                                                    <span className="adtec-status-sub">{w.unit || ''}</span>
+                                                </div>
+                                                {w.showMinMax && !isNaN(val) && (
+                                                    <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', marginTop: '-2px', fontWeight: 500 }}>
+                                                        Mín: {minDay} {w.unit} · Máx: {maxDay} {w.unit}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })()}
