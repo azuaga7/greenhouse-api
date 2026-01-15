@@ -513,7 +513,7 @@ const DashboardApp = () => {
                         sparklineHistory.current[w.id] = Array.from({ length: 50 }, () => val + (Math.random() - 0.5) * 5);
                     }
                     const current = sparklineHistory.current[w.id];
-                    sparklineHistory.current[w.id] = [...current, val].slice(-100);
+                    sparklineHistory.current[w.id] = [...current, val].slice(-1500);
                 }
             }
         });
@@ -578,7 +578,7 @@ const DashboardApp = () => {
                                 v2: val2,
                                 fullTimestamp: timestamp 
                             }];
-                            return next.length > 100 ? next.slice(-100) : next;
+                            return next.length > 1500 ? next.slice(-1500) : next;
                         });
                     }
                 }
@@ -936,49 +936,61 @@ const DashboardApp = () => {
                                                     </div>
                                                 )}
 
-                                                {w.showSparkline && (
-                                                    <div className="adtec-sparkline-container" style={{ marginTop: '15px' }}>
-                                                        <svg className="adtec-sparkline-svg" viewBox="0 0 100 30" preserveAspectRatio="none">
-                                                            {(sparklineHistory.current[w.id] || []).map((val, i, arr) => {
-                                                                if (i === 0) return null;
-                                                                const x1 = ((i - 1) / (arr.length - 1)) * 100;
-                                                                const x2 = (i / (arr.length - 1)) * 100;
-                                                                const dataMin = Math.min(...arr);
-                                                                const dataMax = Math.max(...arr);
-                                                                const dataRange = (dataMax - dataMin) || 1;
-                                                                const padding = dataRange * 0.1;
-                                                                const min = dataMin - padding;
-                                                                const max = dataMax + padding;
-                                                                const range = (max - min) || 1;
-                                                                const y1 = 30 - ((arr[i - 1] - min) / range) * 30;
-                                                                const y2 = 30 - ((val - min) / range) * 30;
-                                                                
-                                                                const getSimpleColorInternal = (v, mn, mx, inv) => {
-                                                                    const p = ((v - mn) / (mx - mn || 1)) * 100;
-                                                                    if (inv) {
-                                                                        if (p < 33) return '#ef4444';
-                                                                        if (p < 66) return '#f59e0b';
-                                                                        return '#10b981';
-                                                                    }
-                                                                    if (p < 33) return '#10b981';
-                                                                    if (p < 66) return '#f59e0b';
-                                                                    return '#ef4444';
-                                                                };
+                                                {w.showSparkline && (() => {
+                                                    const arr = sparklineHistory.current[w.id] || [];
+                                                    if (arr.length < 2) return null;
+                                                    
+                                                    const dataMin = Math.min(...arr);
+                                                    const dataMax = Math.max(...arr);
+                                                    const dataRange = (dataMax - dataMin) || 1;
+                                                    const padding = dataRange * 0.1;
+                                                    const min = dataMin - padding;
+                                                    const max = dataMax + padding;
+                                                    const range = (max - min) || 1;
 
-                                                                return React.createElement('line', {
-                                                                    key: i,
-                                                                    x1: x1.toFixed(1),
-                                                                    y1: y1.toFixed(1),
-                                                                    x2: x2.toFixed(1),
-                                                                    y2: y2.toFixed(1),
-                                                                    stroke: getSimpleColorInternal(val, w.min || 0, w.max || 100, w.inverted),
-                                                                    strokeWidth: "1",
-                                                                    strokeLinecap: "round"
-                                                                });
-                                                            })}
-                                                        </svg>
-                                                    </div>
-                                                )}
+                                                    const points = arr.map((val, i) => {
+                                                        const x = (i / (arr.length - 1)) * 100;
+                                                        const y = 30 - ((val - min) / range) * 30;
+                                                        return x.toFixed(2) + "," + y.toFixed(2);
+                                                    }).join(' ');
+
+                                                    return React.createElement('div', { className: "adtec-sparkline-container", style: { marginTop: '15px' } }, [
+                                                        React.createElement('svg', { 
+                                                            key: 'svg',
+                                                            className: "adtec-sparkline-svg", 
+                                                            viewBox: "0 0 100 30", 
+                                                            preserveAspectRatio: "none" 
+                                                        }, [
+                                                            React.createElement('defs', { key: 'defs' }, [
+                                                                React.createElement('linearGradient', { 
+                                                                    key: 'grad',
+                                                                    id: "grad-" + w.id, 
+                                                                    x1: "0", y1: "1", x2: "0", y2: "0" 
+                                                                }, [
+                                                                    React.createElement('stop', { key: 's1', offset: "0%", stopColor: w.inverted ? '#ef4444' : '#10b981' }),
+                                                                    React.createElement('stop', { key: 's2', offset: "50%", stopColor: "#f59e0b" }),
+                                                                    React.createElement('stop', { key: 's3', offset: "100%", stopColor: w.inverted ? '#10b981' : '#ef4444' })
+                                                                ])
+                                                            ]),
+                                                            React.createElement('polygon', {
+                                                                key: 'fill',
+                                                                points: "0,30 " + points + " 100,30",
+                                                                fill: "url(#grad-" + w.id + ")",
+                                                                fillOpacity: "0.05"
+                                                            }),
+                                                            React.createElement('polyline', {
+                                                                key: 'line',
+                                                                points: points,
+                                                                fill: "none",
+                                                                stroke: "url(#grad-" + w.id + ")",
+                                                                strokeWidth: "1.2",
+                                                                strokeLinecap: "round",
+                                                                strokeLinejoin: "round",
+                                                                style: { vectorEffect: 'non-scaling-stroke' }
+                                                            })
+                                                        ])
+                                                    ]);
+                                                })()}
                                             </>
                                         );
                                     })()}
