@@ -943,19 +943,36 @@ const DashboardApp = () => {
                                                                 if (i === 0) return null;
                                                                 const x1 = ((i - 1) / (arr.length - 1)) * 100;
                                                                 const x2 = (i / (arr.length - 1)) * 100;
-                                                                const min = Math.min(...arr);
-                                                                const max = Math.max(...arr);
+                                                                const dataMin = Math.min(...arr);
+                                                                const dataMax = Math.max(...arr);
+                                                                const dataRange = (dataMax - dataMin) || 1;
+                                                                const padding = dataRange * 0.1;
+                                                                const min = dataMin - padding;
+                                                                const max = dataMax + padding;
                                                                 const range = (max - min) || 1;
                                                                 const y1 = 30 - ((arr[i - 1] - min) / range) * 30;
                                                                 const y2 = 30 - ((val - min) / range) * 30;
+                                                                
+                                                                const getSimpleColorInternal = (v, mn, mx, inv) => {
+                                                                    const p = ((v - mn) / (mx - mn || 1)) * 100;
+                                                                    if (inv) {
+                                                                        if (p < 33) return '#ef4444';
+                                                                        if (p < 66) return '#f59e0b';
+                                                                        return '#10b981';
+                                                                    }
+                                                                    if (p < 33) return '#10b981';
+                                                                    if (p < 66) return '#f59e0b';
+                                                                    return '#ef4444';
+                                                                };
+
                                                                 return React.createElement('line', {
                                                                     key: i,
                                                                     x1: x1.toFixed(1),
                                                                     y1: y1.toFixed(1),
                                                                     x2: x2.toFixed(1),
                                                                     y2: y2.toFixed(1),
-                                                                    stroke: getGaugeColor(val, w.key),
-                                                                    strokeWidth: "2",
+                                                                    stroke: getSimpleColorInternal(val, w.min || 0, w.max || 100, w.inverted),
+                                                                    strokeWidth: "1",
                                                                     strokeLinecap: "round"
                                                                 });
                                                             })}
