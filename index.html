@@ -144,8 +144,8 @@
     .vfd-btn:hover { background: rgba(255,255,255,0.1); }
     .vfd-btn:active { transform: scale(0.98); }
     .vfd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .vfd-btn.start { background: rgba(34, 197, 94, 0.2); color: #22c55e; border-color: #22c55e; }
-    .vfd-btn.stop { background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: #ef4444; }
+    .vfd-btn.start { background: rgba(34, 197, 94, 0.2); color:rgb(214, 245, 245); border-color: #22c55e; }
+    .vfd-btn.stop { background: rgba(239, 68, 68, 0.2); color:rgb(255, 204, 204); border-color: #ef4444; }
 
     .adtec-security-banner {
         margin-top: 25px; padding: 15px 20px; 
@@ -201,7 +201,7 @@
     <script type="text/babel">
         
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":120000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1"},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1"},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":""},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff"},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms"},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1"},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1"},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1"},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":40,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px"},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","isDataEmitter":true},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP","isDataEmitter":true},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP","isDataEmitter":true},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","isDataEmitter":false},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","isDataEmitter":false},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","isDataEmitter":false},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":"","isDataEmitter":true},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","isDataEmitter":false},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","isDataEmitter":false},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","isDataEmitter":false},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE","isDataEmitter":true},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":"","isDataEmitter":true},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP","isDataEmitter":true},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","isDataEmitter":true},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL","isDataEmitter":false},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE","isDataEmitter":false},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION","isDataEmitter":false}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"raw","unit":"","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"","min":0,"max":10000,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":50,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px","hideKey":true},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Señal GSM","gsm_1_STATE":"Estado de Red GSM","gsm_1_LOCATION":"Coordenadas"},
             refreshInterval: 1000,
             chartConfig: {
@@ -241,7 +241,7 @@
 
         const getGaugeColor = (val, key = "") => {
             const num = parseFloat(val);
-            if (isNaN(num)) return '#38bdf8';
+            if (isNaN(num)) return '#10b981';
             if (key.toLowerCase().includes('temp')) {
                 if (num < 15) return '#3b82f6';
                 if (num < 30) return '#10b981';
@@ -251,18 +251,15 @@
             if (key.toLowerCase().includes('hum')) {
                 if (num < 40) return '#ef4444';
                 if (num < 70) return '#10b981';
-                return '#3b82f6';
+                return '#f59e0b';
             }
-            if (num < 20) return '#3b82f6';
-            if (num < 80) return '#10b981';
+            if (num < 20) return '#10b981';
+            if (num < 80) return '#f59e0b';
             return '#ef4444';
         };
 
         const getGradientByType = (type, alpha, inverted) => {
-            let stops = [{ pos: 0, color: '#3b82f6' }, { pos: 50, color: '#10b981' }, { pos: 100, color: '#ef4444' }];
-            if (type.toUpperCase().includes('HUM')) {
-                stops = [{ pos: 0, color: '#ef4444' }, { pos: 50, color: '#3b82f6' }, { pos: 100, color: '#1e3a8a' }];
-            }
+            let stops = [{ pos: 0, color: '#10b981' }, { pos: 50, color: '#f59e0b' }, { pos: 100, color: '#ef4444' }];
             if (inverted) {
                 const colors = stops.map(s => s.color).reverse();
                 stops = stops.map((s, i) => ({ ...s, color: colors[i] }));
@@ -677,6 +674,23 @@ const DashboardApp = () => {
                                 </label>
                             </div>
                         )}
+                        {currentTab.type === 'charts' && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button 
+                                    onClick={() => setChartConfig(prev => ({
+                                        ...prev,
+                                        primaryY: (CONFIG.dashboard.variables && CONFIG.dashboard.variables[0]?.key) || '',
+                                        secondaryY: '',
+                                        filter: 'all',
+                                        fromDate: '',
+                                        toDate: '',
+                                        timeRange: 'Ahora'
+                                    }))}
+                                    style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(148,163,184,0.1)', cursor: 'pointer', fontSize: 10 }}
+                                >Reset filtros</button>
+                                <a href="/api/download/csv" style={{ padding: '5px 10px', borderRadius: 6, background: 'var(--adtec-accent)', color: 'black', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>CSV</a>
+                            </div>
+                        )}
                         <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
                     </div>
                 </div>
@@ -822,9 +836,10 @@ const DashboardApp = () => {
                             if (w.type === 'chart' || w.type === 'summary-chart') {
                                 return (
                                     <div key={w.id} className="adtec-status-item" style={style}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                                            <h3>{w.label}</h3>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5, gap: 8 }}>
+                                            <h3 style={{ flex: 1, wordBreak: 'break-word', lineHeight: '1.1' }}>{w.label}</h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                                {!w.hideKey && <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af' }}>{w.key}</span>}
                                                 <a href="/api/download/csv" title="Descargar CSV" style={{ color: '#94a3b8', textDecoration: 'none' }}>
                                                     <i data-lucide="download" style={{ width: 14, height: 14 }}></i>
                                                 </a>
@@ -840,29 +855,38 @@ const DashboardApp = () => {
 
                             return (
                                 <div key={w.id} className="adtec-status-item" style={style}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <h3>{w.label}</h3>
-                                        <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af' }}>{w.key}</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                                            <h3 style={{ flex: 1, wordBreak: 'break-word', lineHeight: '1.1' }}>{w.label}</h3>
+                                        {!w.hideKey && <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af', flexShrink: 0 }}>{w.key}</span>}
                                     </div>
 
-                                    {w.type === 'gauge' && (
-                                        <>
-                                            <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
-                                                {valStr.replace(w.unit || '', '')}
-                                                <span className="adtec-status-sub">{w.unit || ''}</span>
-                                            </div>
-                                            <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted) }}>
-                                                <div 
-                                                    className="adtec-temp-bar-fill" 
-                                                    style={{ 
-                                                        width: Math.min(100, Math.max(0, ((val - (w.min || 0)) / ((w.max || 100) - (w.min || 0))) * 100)) + "%",
-                                                        background: getGradientByType('TEMP', 1, w.inverted),
-                                                        boxShadow: "0 0 10px " + getGaugeColor(val, w.key) + "66"
-                                                    }} 
-                                                />
-                                            </div>
-                                        </>
-                                    )}
+                                    {w.type === 'gauge' && (() => {
+                                        const numVal = isNaN(parseFloat(valStr)) ? (w.min || 0) : parseFloat(valStr);
+                                        const min = w.min || 0;
+                                        const max = w.max || 100;
+                                        const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
+                                        return (
+                                            <>
+                                                <div className="adtec-status-value" style={{ color: 'var(--adtec-accent)' }}>
+                                                    {valStr.replace(w.unit || '', '')}
+                                                    <span className="adtec-status-sub">{w.unit || ''}</span>
+                                                </div>
+                                                {(w.showBar ?? true) && (
+                                                    <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted) }}>
+                                                        <div 
+                                                            className="adtec-temp-bar-fill" 
+                                                            style={{ 
+                                                                width: pct + "%",
+                                                                background: getGradientByType('TEMP', 1, w.inverted),
+                                                                backgroundSize: (100 / (Math.max(1, pct) / 100)) + "% 100%",
+                                                                boxShadow: "0 0 10px " + getGaugeColor(numVal, w.key) + "66"
+                                                            }} 
+                                                        />
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
 
                                     {w.type === 'indicator' && (() => {
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
