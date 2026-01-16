@@ -132,14 +132,38 @@ async def api_ingreso(payload: Dict[str, Any]):
                     data["gsm_location"] = v
                     data["gsm_city_country"] = data[city_key]
 
+    # ORDENAR COLUMNAS PARA EL CSV (Identidad Pro)
+    # 1. Extraer todas las keys disponibles de los field labels (que vienen del editor)
+    ordered_keys = ["timestamp"]
+    if isinstance(FIELD_LABELS, dict):
+        # Añadir las variables configuradas en el orden del editor
+        ordered_keys.extend([k for k in FIELD_LABELS.keys() if k != "timestamp"])
+    
+    # 2. Añadir keys adicionales que puedan venir en la telemetría pero no estén en labels
+    for k in data.keys():
+        if k not in ordered_keys:
+            ordered_keys.append(k)
+
+    # 3. Crear un diccionario ordenado para el CSV
+    ordered_data = {k: data.get(k, "") for k in ordered_keys}
+
     LAST_DATA = data
     HISTORY.append(data)
     if len(HISTORY) > 1000: HISTORY.pop(0)
     
     try:
-        df = pd.DataFrame([data])
+        # Usar ordered_data para asegurar el orden de las columnas en el CSV
+        df = pd.DataFrame([ordered_data])
         file_exists = os.path.exists(CSV_FILE)
-        df.to_csv(CSV_FILE, mode='a', header=not file_exists, index=False)
+        
+        if not file_exists:
+            df.to_csv(CSV_FILE, mode='w', header=True, index=False)
+        else:
+            # Leer las columnas existentes del CSV para mantener consistencia
+            df_existing = pd.read_csv(CSV_FILE, nrows=0)
+            # Reordenar el nuevo dataframe para que coincida con el CSV existente
+            df = df.reindex(columns=df_existing.columns, fill_value="")
+            df.to_csv(CSV_FILE, mode='a', header=False, index=False)
     except Exception as e:
         print(f"Error en CSV: {e}")
         

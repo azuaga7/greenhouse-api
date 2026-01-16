@@ -1,2 +1,1 @@
-timestamp,Humedad del Invernadero,Temperatura del Invernadero,Temperatura Exterior,Estado Bomba de Agua,Estado Vent. 1,Estado Vent. 2,Frecuencia Ventiladores Pared,Uso Bomba de Agua,Uso Ventiladores 1 - 2,Uso Ventiladores 3 - 4,Estado de Ventiladores Axiales,Uso Ventiladores Axiales,Temperatura de Pozo,Luxes,Señal GSM,Estado de Red GSM,Coordenadas
-
+timestamp,dht22_1_HUM_OUT,dht22_1_TEMP_OUT,ds18b20_2_TEMP_OUT,relay_3_STATE_OUT,relay_1_STATE_OUT,relay_2_STATE_OUT,vfd_1_FREQ_OUT,relay_3_RUNTIME_OUT,relay_1_RUNTIME_OUT,relay_2_RUNTIME_OUT,vfd_1_STATE_OUT,vfd_1_RUNTIME_OUT,ds18b20_1_TEMP_OUT,tsl2561_1_LUX_OUT,gsm_1_SIGNAL,gsm_1_STATE,gsm_1_LOCATION
