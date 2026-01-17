@@ -198,17 +198,7 @@
         overflow: visible;
         position: relative;
     }
-    /* Punto 2: Buffer visual inicial al 50% */
-    .adtec-sparkline-container::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: rgba(56, 189, 248, 0.05); /* Más tenue */
-        pointer-events: none;
-    }
+    /* Punto 2: Removido para usar motor real */
     .adtec-sparkline-svg {
         width: 100%;
         height: 100%;
@@ -248,7 +238,7 @@
     <script type="text/babel">
         
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":480,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","unit":"","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hms","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":50,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px","hideKey":true},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":966,"height":800,"type":"dashboard"},{"id":"2","name":"Grafico","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"sliders","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas del Sistema","width":1000,"height":700,"type":"dashboard"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":250,"y":10,"w":232,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":227,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":232,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":250,"y":210,"w":232,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":-1,"max":70,"x":10,"y":410,"w":232,"h":180,"tabId":"1","format":"fixed1","inverted":false,"hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":250,"y":410,"w":232,"h":180,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true,"unit":""},{"id":"w_1768271000492","type":"location","label":"Coordenadas","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":590,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271000964","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":100,"x":490,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","unit":"","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100000,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":10000,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":20,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":150,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":280,"w":300,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":370,"y":150,"w":250,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":410,"w":300,"h":140,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768373240835","type":"text","label":"Nuevo text","key":"sin_key","unit":"","min":0,"max":0,"x":50,"y":20,"w":850,"h":90,"tabId":"4","format":"raw","borderRadius":12,"boxShadow":"0 0 10px","hideKey":true},{"id":"w_1768400611507","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":100,"x":720,"y":10,"w":185,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Señal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado de Red GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"Coordenadas","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Señal GSM","gsm_1_STATE":"Estado de Red GSM","gsm_1_LOCATION":"Coordenadas"},
             refreshInterval: 1000,
             chartConfig: {
@@ -365,6 +355,7 @@
         // Motor de Minigráficos (Sparkline Engine)
         const SparklineEngine = {
             memory: {},
+            BUFFER_SIZE: 100, // Reducido de 750 a 100
             getSafeRange(min, max) {
                 const sMin = Number(min) || 0;
                 let sMax = Number(max) || 100;
@@ -372,26 +363,111 @@
                 return { min: sMin, max: sMax, mid: (sMin + sMax) / 2 };
             },
             getBuffer(id, variableKey, min, max) {
-                const { mid } = this.getSafeRange(min, max);
+                const { mid, min: sMin, max: sMax } = this.getSafeRange(min, max);
                 if (!this.memory[id] || this.memory[id].variableKey !== variableKey) {
                     this.memory[id] = {
-                        data: new Array(1500).fill(mid),
-                        variableKey: variableKey
+                        data: new Array(this.BUFFER_SIZE).fill(mid),
+                        variableKey: variableKey,
+                        hasData: false,
+                        lastMin: sMin,
+                        lastMax: sMax,
+                        dailyMin: undefined,
+                        dailyMax: undefined
                     };
+                } else {
+                    // DETECTAR CAMBIO DE ESCALA EN CALIENTE
+                    const buffer = this.memory[id];
+                    if (buffer.lastMin !== sMin || buffer.lastMax !== sMax) {
+                        const oldMin = buffer.lastMin !== undefined ? buffer.lastMin : 0;
+                        const oldMax = buffer.lastMax !== undefined ? buffer.lastMax : 100;
+                        const oldRange = Math.max(1, oldMax - oldMin);
+                        const newRange = Math.max(1, sMax - sMin);
+
+                        buffer.data = buffer.data.map(val => {
+                            const pct = (val - oldMin) / oldRange;
+                            return sMin + (pct * newRange);
+                        });
+
+                        buffer.lastMin = sMin;
+                        buffer.lastMax = sMax;
+                    }
                 }
                 return this.memory[id].data;
+            },
+            hasRealData(id) {
+                return this.memory[id] && this.memory[id].hasData;
+            },
+            getStats(id) {
+                return {
+                    min: this.memory[id] ? this.memory[id].dailyMin : undefined,
+                    max: this.memory[id] ? this.memory[id].dailyMax : undefined
+                };
+            },
+            setHistory(id, variableKey, history, min, max) {
+                const buffer = this.getBuffer(id, variableKey, min, max);
+                const { mid, min: sMin, max: sMax } = this.getSafeRange(min, max);
+                if (!history || history.length === 0) return;
+                
+                this.memory[id].lastMin = sMin;
+                this.memory[id].lastMax = sMax;
+
+                let hMin = Infinity;
+                let hMax = -Infinity;
+
+                const incoming = history.map(v => {
+                    const num = parseFloat(v);
+                    const val = isNaN(num) ? sMin : Math.max(sMin, Math.min(sMax, num));
+                    if (!isNaN(num)) {
+                        hMin = Math.min(hMin, num);
+                        hMax = Math.max(hMax, num);
+                    }
+                    return val;
+                }).slice(-this.BUFFER_SIZE);
+
+                if (hMin !== Infinity) {
+                    this.memory[id].dailyMin = hMin;
+                    this.memory[id].dailyMax = hMax;
+                }
+
+                if (incoming.length > 0) {
+                    buffer.fill(mid);
+                    const startIdx = this.BUFFER_SIZE - incoming.length;
+                    for (let i = 0; i < incoming.length; i++) {
+                        buffer[startIdx + i] = incoming[i];
+                    }
+                    this.memory[id].hasData = true;
+                }
             },
             update(id, variableKey, newValue, min, max) {
                 const buffer = this.getBuffer(id, variableKey, min, max);
                 const { min: sMin, max: sMax } = this.getSafeRange(min, max);
-                buffer.shift();
+                
+                this.memory[id].lastMin = sMin;
+                this.memory[id].lastMax = sMax;
+
                 let val = parseFloat(newValue);
-                if (newValue === null || newValue === undefined || newValue === '' || isNaN(val)) {
+                const isInvalid = newValue === null || newValue === undefined || newValue === '' || isNaN(val);
+                if (isInvalid) {
                     val = sMin;
                 } else {
                     val = Math.max(sMin, Math.min(sMax, val));
+                    
+                    const current = parseFloat(newValue);
+                    if (!isNaN(current)) {
+                        if (this.memory[id].dailyMin === undefined) {
+                            this.memory[id].dailyMin = current;
+                            this.memory[id].dailyMax = current;
+                        } else {
+                            this.memory[id].dailyMin = Math.min(this.memory[id].dailyMin, current);
+                            this.memory[id].dailyMax = Math.max(this.memory[id].dailyMax, current);
+                        }
+                    }
                 }
+                
+                buffer.shift();
                 buffer.push(val);
+                this.memory[id].hasData = true;
+                
                 return buffer;
             }
         };
@@ -438,20 +514,32 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
 
-    // Obtener configuración de escala (min/max) desde los widgets
+    // Obtener configuración de escala (min/max) y formato
     const getScaleSettings = (key) => {
-        if (!key) return { min: undefined, max: undefined };
+        if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
         const w = CONFIG.dashboard.widgets.find(w => w.key === key);
-        if (!w || (w.min === 0 && w.max === 0)) return { min: undefined, max: undefined };
-        return { min: w.min, max: w.max };
+        if (!w) return { min: undefined, max: undefined, format: undefined, unit: "" };
+        
+        // Si es estado digital, escala inicial 0-2
+        if (w.format === 'bool_onoff' || w.type === 'indicator' || w.type === 'control-relay') {
+            return { min: 0, max: 2, format: 'bool_onoff', unit: w.unit || "" };
+        }
+
+        const hasNoLimits = (w.min === 0 && w.max === 0) || (w.min === undefined && w.max === undefined);
+        return { 
+            min: hasNoLimits ? undefined : w.min, 
+            max: hasNoLimits ? undefined : w.max,
+            format: w.format,
+            unit: w.unit || ""
+        };
     };
 
     useEffect(() => {
         if (!canvasRef.current || typeof Chart === 'undefined') return;
 
         const ctx = canvasRef.current.getContext('2d');
-        const primaryLimits = getScaleSettings(chartConfig && chartConfig.primaryY);
-        const secondaryLimits = getScaleSettings(chartConfig && chartConfig.secondaryY);
+        const pS = getScaleSettings(chartConfig && chartConfig.primaryY);
+        const sS = getScaleSettings(chartConfig && chartConfig.secondaryY);
 
         chartRef.current = new Chart(ctx, {
             type: 'line',
@@ -507,19 +595,27 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
                         display: true,
                         position: 'left',
                         beginAtZero: false,
-                        min: primaryLimits.min,
-                        max: primaryLimits.max,
+                        suggestedMin: pS.min,
+                        suggestedMax: pS.max,
                         grid: { color: 'rgba(255,255,255,0.05)' }, 
-                        ticks: { color: '#38bdf8', font: { size: 10 } } 
+                        ticks: { 
+                            color: '#38bdf8', 
+                            font: { size: 10 },
+                            callback: (val) => formatValue(val, pS.format, "")
+                        } 
                     },
                     y1: {
                         display: !!(chartConfig && chartConfig.secondaryY),
                         position: 'right',
                         beginAtZero: false,
-                        min: secondaryLimits.min,
-                        max: secondaryLimits.max,
+                        suggestedMin: sS.min,
+                        suggestedMax: sS.max,
                         grid: { drawOnChartArea: false }, 
-                        ticks: { color: '#a855f7', font: { size: 10 } }
+                        ticks: { 
+                            color: '#a855f7', 
+                            font: { size: 10 },
+                            callback: (val) => formatValue(val, sS.format, "")
+                        }
                     }
                 },
                     plugins: { 
@@ -575,9 +671,8 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
         const chart = chartRef.current;
         if (!chart) return;
         
-        const data = dataHistory || [];
-        const primaryLimits = getScaleSettings(chartConfig && chartConfig.primaryY);
-        const secondaryLimits = getScaleSettings(chartConfig && chartConfig.secondaryY);
+        const pS = getScaleSettings(chartConfig && chartConfig.primaryY);
+        const sS = getScaleSettings(chartConfig && chartConfig.secondaryY);
 
         // Actualizar nombres de variables
         const v1Label = CONFIG.labels[chartConfig && chartConfig.primaryY] || (chartConfig && chartConfig.primaryY) || 'Variable 1';
@@ -597,11 +692,16 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
             chart.options.scales.y1.display = false;
         }
 
-        // Actualizar límites dinámicamente
-        chart.options.scales.y.min = primaryLimits.min;
-        chart.options.scales.y.max = primaryLimits.max;
-        chart.options.scales.y1.min = secondaryLimits.min;
-        chart.options.scales.y1.max = secondaryLimits.max;
+        // Actualizar límites dinámicamente con auto-escalado (suggested)
+        chart.options.scales.y.suggestedMin = pS.min;
+        chart.options.scales.y.suggestedMax = pS.max;
+        chart.options.scales.y.ticks.callback = (val) => formatValue(val, pS.format, "");
+
+        if (chartConfig && chartConfig.secondaryY) {
+            chart.options.scales.y1.suggestedMin = sS.min;
+            chart.options.scales.y1.suggestedMax = sS.max;
+            chart.options.scales.y1.ticks.callback = (val) => formatValue(val, sS.format, "");
+        }
 
         chart.update('none');
     }, [dataHistory, chartConfig]);
@@ -609,63 +709,123 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     return <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />;
 });
 
-// Componente de Minigráfico (Sparkline) - Motor Pro de 1500 puntos
+// Componente de Minigráfico (Sparkline) - Motor Pro de 100 puntos
 const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) => {
+    // Estado local para asegurar dibujo sincronizado
+    const [points, setPoints] = useState(() => {
+        const initial = SparklineEngine.getBuffer(id, variableKey, min, max);
+        return [...initial];
+    });
+
     useEffect(() => {
+        let newPoints;
         if (value !== undefined) {
-            SparklineEngine.update(id, variableKey, value, min, max);
+            newPoints = SparklineEngine.update(id, variableKey, value, min, max);
+        } else {
+            newPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
         }
+        setPoints([...newPoints]);
     }, [id, variableKey, value, min, max]);
 
-    const points = useMemo(() => {
-        return SparklineEngine.getBuffer(id, variableKey, min, max);
-    }, [id, variableKey, min, max, value]);
+    const hasData = useMemo(() => SparklineEngine.hasRealData(id), [id, value]);
+    const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
 
     const pathData = useMemo(() => {
         if (points.length === 0) return "";
         const width = 100;
-        const height = 30;
+        const height = 50;
+        
+        // Sincronizar con motor
         const sMin = Number(min) || 0;
-        let sMax = Number(max) || 100;
+        let sMax = Number(max);
+        if (isNaN(sMax)) sMax = 100;
         if (sMax <= sMin) sMax = sMin + 1;
         const range = sMax - sMin;
         
         return points.map((val, i) => {
             const x = (i / (points.length - 1)) * width;
-            const pct = (val - sMin) / range;
+            // Blindaje: fijar al borde si excede
+            const cappedVal = Math.max(sMin, Math.min(sMax, val));
+            const pct = (cappedVal - sMin) / range;
             const y = height - (pct * height);
             return (i === 0 ? 'M' : 'L') + " " + x + " " + y;
         }).join(' ');
-    }, [points, min, max, value]);
+    }, [points, min, max]);
+
+    // Color de la línea: Degradado real por defecto. Azul de Diagnóstico SOLO si hubo datos y se perdieron.
+    const strokeColor = (hasData && isDisconnected) ? "#3b82f6" : "url(#grad-final-" + id + ")";
+
+    // Asegurar que las variables de color existan para el degradado
+    const sparklineColors = {
+        '--grad-start': inverted ? '#ef4444' : '#10b981',
+        '--grad-mid': '#f59e0b',
+        '--grad-end': inverted ? '#10b981' : '#ef4444'
+    };
 
     return React.createElement('div', { 
         className: 'adtec-sparkline-container ' + (inverted ? 'gauge-gradient-inverted' : 'gauge-gradient-normal'),
-        style: { marginTop: '12px' }
+        style: { 
+            marginTop: '7px', 
+            ...sparklineColors,
+            background: 'rgba(0,0,0,0.2)',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '1px solid rgba(148,163,184,0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            height: '50px'
+        }
     }, [
         React.createElement('svg', { 
             key: 'svg',
             className: 'adtec-sparkline-svg', 
-            viewBox: '0 0 100 30', 
-            preserveAspectRatio: 'none' 
+            viewBox: '0 0 100 50', 
+            preserveAspectRatio: 'none',
+            style: { height: '50px', flex: 1 }
         }, [
             React.createElement('defs', { key: 'defs' }, [
                 React.createElement('linearGradient', { 
                     key: 'grad',
                     id: "grad-final-" + id, 
-                    x1: "0", y1: "1", x2: "0", y2: "0" 
+                    x1: "0", y1: "50", x2: "0", y2: "0",
+                    gradientUnits: "userSpaceOnUse"
                 }, [
-                    React.createElement('stop', { key: 's1', offset: "0%", stopColor: "var(--grad-start)" }),
-                    React.createElement('stop', { key: 's2', offset: "50%", stopColor: "var(--grad-mid)" }),
-                    React.createElement('stop', { key: 's3', offset: "100%", stopColor: "var(--grad-end)" })
+                    /* Colores en RGB puro para asegurar visibilidad absoluta */
+                    React.createElement('stop', { key: 's1', offset: "0%", stopColor: "var(--grad-start, rgb(16, 185, 129))" }),
+                    React.createElement('stop', { key: 's2', offset: "50%", stopColor: "var(--grad-mid, rgb(245, 158, 11))" }),
+                    React.createElement('stop', { key: 's3', offset: "100%", stopColor: "var(--grad-end, rgb(239, 68, 68))" })
+                ]),
+                /* Fondo Degradado Tenue/Brilloso */
+                React.createElement('linearGradient', { 
+                    key: 'bg-grad',
+                    id: "bg-grad-final-" + id, 
+                    x1: "0", y1: "1", x2: "0", y2: "0"
+                }, [
+                    React.createElement('stop', { key: 'b1', offset: "0%", stopColor: "rgba(56, 189, 248, 0.02)" }),
+                    React.createElement('stop', { key: 'b2', offset: "50%", stopColor: "rgba(56, 189, 248, 0.1)" }),
+                    React.createElement('stop', { key: 'b3', offset: "100%", stopColor: "rgba(56, 189, 248, 0.02)" })
                 ])
             ]),
+            /* Fondo Degradado Tenue */
+            React.createElement('rect', { 
+                key: 'bg-rect',
+                x: "0", y: "0", width: "100", height: "50", 
+                fill: "url(#bg-grad-final-" + id + ")", 
+                opacity: "0.6" 
+            }),
+            /* Líneas de Guía de Fondo */
+            React.createElement('line', { key: 'g1', x1: "0", y1: "0", x2: "100", y2: "0", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
+            React.createElement('line', { key: 'g2', x1: "0", y1: "25", x2: "100", y2: "25", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5", strokeDasharray: "2,2" }),
+            React.createElement('line', { key: 'g3', x1: "0", y1: "50", x2: "100", y2: "50", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
             React.createElement('path', {
                 key: 'path',
                 d: pathData,
                 className: 'adtec-sparkline-path',
-                stroke: "url(#grad-final-" + id + ")",
+                stroke: strokeColor,
                 fill: 'none',
-                strokeWidth: '1.5'
+                strokeWidth: '2',
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round'
             })
         ])
     ]);
@@ -686,9 +846,6 @@ const DashboardApp = () => {
     });
     const [connStatus, setConnStatus] = useState('OFFLINE');
     const [connColor, setConnColor] = useState('#ef4444');
-
-    // Estadísticas diarias (Mín/Máx reales)
-    const [dailyStats, setDailyStats] = useState({});
 
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
@@ -718,12 +875,19 @@ const DashboardApp = () => {
     }, []);
 
     const fetchHistory = async () => {
-        if (chartConfig.timeRange === 'Ahora') return;
         try {
             const res = await fetch('/api/data');
             if (res.ok) {
                 const fullHistory = await res.json();
                 setHistoryData(fullHistory);
+
+                // Cargar historial en los Sparklines al inicio
+                CONFIG.dashboard.widgets.forEach(w => {
+                    if (w.showSparkline || w.type === 'gauge') {
+                        const hData = fullHistory.map(d => d[w.key]).filter(v => v !== undefined);
+                        SparklineEngine.setHistory(w.id, w.key, hData, w.min, w.max);
+                    }
+                });
             }
         } catch(e) { console.error("Error historial:", e); }
     };
@@ -749,7 +913,7 @@ const DashboardApp = () => {
                                 v2: val2,
                                 fullTimestamp: timestamp 
                             }];
-                            return next.length > 1500 ? next.slice(-1500) : next;
+                            return next.length > 100 ? next.slice(-100) : next;
                         });
                     }
                 }
@@ -758,26 +922,6 @@ const DashboardApp = () => {
                     setConnStatus("ONLINE");
                     setConnColor("var(--success)");
 
-                    // Actualizar estadísticas reales (Mín/Máx)
-                    setDailyStats(prev => {
-                        const next = { ...prev };
-                        CONFIG.dashboard.widgets.forEach(w => {
-                            const rawVal = getRawWidgetValue(w.key, data);
-                            if (rawVal === undefined || rawVal === null || rawVal === '--') return;
-                            const val = typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal).replace(/[^-0.0-9.]/g, ''));
-                            if (!isNaN(val)) {
-                                if (!next[w.key]) {
-                                    next[w.key] = { min: val, max: val };
-                                } else {
-                                    next[w.key] = {
-                                        min: Math.min(next[w.key].min, val),
-                                        max: Math.max(next[w.key].max, val)
-                                    };
-                                }
-                            }
-                        });
-                        return next;
-                    });
                 } else {
                     setConnStatus("OFFLINE");
                     setConnColor("var(--danger)");
@@ -1107,10 +1251,10 @@ const DashboardApp = () => {
                                         const max = w.max || 100;
                                         const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
                                         
-                                        // Mín/Máx reales del día
-                                        const stats = dailyStats[w.key];
-                                        const minDay = stats ? formatValue(stats.min, w.format, "") : "--";
-                                        const maxDay = stats ? formatValue(stats.max, w.format, "") : "--";
+                                        // Mín/Máx reales del día desde el motor
+                                        const stats = SparklineEngine.getStats(w.id);
+                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
 
                                         return (
                                             <>
@@ -1140,7 +1284,15 @@ const DashboardApp = () => {
                                             )}
 
                                             {w.showSparkline && (
-                                                <Sparkline id={w.id} variableKey={w.key} min={w.min} max={w.max} inverted={w.inverted} value={numVal} />
+                                                <Sparkline 
+                                                    id={w.id} 
+                                                    variableKey={w.key} 
+                                                    min={w.min} 
+                                                    max={w.max} 
+                                                    inverted={w.inverted} 
+                                                    value={numVal} 
+                                                    showShadow={w.sparklineShadow}
+                                                />
                                             )}
                                         </>
                                     );
@@ -1296,10 +1448,6 @@ const DashboardApp = () => {
                                                 </div>
                                             );
                                         }
-
-                                        const stats = dailyStats[w.key];
-                                        const minDay = stats ? formatValue(stats.min, w.format, "") : "--";
-                                        const maxDay = stats ? formatValue(stats.max, w.format, "") : "--";
 
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
