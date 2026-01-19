@@ -425,8 +425,14 @@
                 }).slice(-this.BUFFER_SIZE);
 
                 if (hMin !== Infinity) {
-                    this.memory[id].dailyMin = hMin;
-                    this.memory[id].dailyMax = hMax;
+                    // LÓGICA DE FUSIÓN (No pisa si ya hubo datos vivos más extremos)
+                    if (this.memory[id].dailyMin === undefined) {
+                        this.memory[id].dailyMin = hMin;
+                        this.memory[id].dailyMax = hMax;
+                    } else {
+                        this.memory[id].dailyMin = Math.min(this.memory[id].dailyMin, hMin);
+                        this.memory[id].dailyMax = Math.max(this.memory[id].dailyMax, hMax);
+                    }
                 }
 
                 if (incoming.length > 0) {
@@ -905,6 +911,14 @@ const DashboardApp = () => {
                 if (isValidData) {
                     setLastData(data);
                     setPulsesLost(0);
+
+                    // --- CAPA 3: Inteligencia Colectiva (Mín/Máx unificado) ---
+                    CONFIG.dashboard.widgets.forEach(w => {
+                        const val = parseFloat(data[w.key]);
+                        if (!isNaN(val)) {
+                            SparklineEngine.update(w.id, w.key, val, w.min || 0, w.max || 100);
+                        }
+                    });
                     
                     // --- CAPA 2: Lógica de 4 Estados (Reportados por ESP32) ---
                     const reportedState = (data.gsm_stored_state || "ONLINE").toUpperCase();
@@ -1503,6 +1517,11 @@ const DashboardApp = () => {
                                                 </div>
                                             );
                                         }
+
+                                        // Mín/Máx reales del día desde el motor (Unificado)
+                                        const stats = SparklineEngine.getStats(w.id);
+                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
 
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
