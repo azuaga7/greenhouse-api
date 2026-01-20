@@ -51,6 +51,7 @@ app.add_middleware(
 
 CSV_FILE = "telemetria.csv"
 HISTORY = []
+ALERTS = []
 LAST_DATA = {}
 FIELD_LABELS = {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS"}
 
@@ -177,6 +178,27 @@ async def api_last():
 async def api_data():
     return JSONResponse(content=clean_for_json(HISTORY))
 
+@app.post("/api/alerts")
+async def api_alerts(payload: Dict[str, Any]):
+    global ALERTS
+    # El payload puede ser {"type": "alert", "msg": "...", "signal": "...", "value": ...}
+    alert = payload.copy()
+    if "timestamp" not in alert:
+        alert["timestamp"] = datetime.now().isoformat()
+    ALERTS.append(alert)
+    if len(ALERTS) > 100: ALERTS.pop(0)
+    return {"status": "ok"}
+
+@app.get("/api/alerts")
+async def get_alerts():
+    return JSONResponse(content=clean_for_json(ALERTS))
+
+@app.post("/api/alerts/clear")
+async def clear_alerts():
+    global ALERTS
+    ALERTS = []
+    return {"status": "ok"}
+
 @app.get("/api/download/csv")
 async def download_csv():
     if os.path.exists(CSV_FILE):
@@ -204,5 +226,5 @@ async def update_control_state(update: ControlUpdate):
 if __name__ == "__main__":
     import uvicorn
     import os
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
