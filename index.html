@@ -1016,21 +1016,11 @@ const DashboardApp = () => {
 
                     // Actualizar Live Chart
                     if (chartConfig.timeRange === 'Ahora') {
-                        const tLabel = new Date(data.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        const val1 = parseFloat(data[chartConfig.primaryY]);
-                        const val2 = chartConfig.secondaryY ? parseFloat(data[chartConfig.secondaryY]) : null;
-                        
-                        if (!isNaN(val1)) {
-                            setLiveData(prev => {
-                                const next = [...prev, { 
-                                    t: tLabel, 
-                                    v: val1, 
-                                    v2: val2,
-                                    fullTimestamp: data.timestamp 
-                                }];
-                                return next.length > 100 ? next.slice(-100) : next;
-                            });
-                        }
+                        setLiveData(prev => {
+                            const next = [...prev, data];
+                            // Guardamos hasta 200 puntos para mayor historial dinámico
+                            return next.length > 200 ? next.slice(-200) : next;
+                        });
                     }
                 } else {
                     // --- CAPA 1: Heartbeat (Modo de Gracia) ---
@@ -1088,52 +1078,59 @@ const DashboardApp = () => {
     };
 
     const displayData = useMemo(() => {
-        if (chartConfig.timeRange === 'Ahora') return liveData;
-
-        let filtered = historyData;
+        const isLive = chartConfig.timeRange === 'Ahora';
+        let filtered = isLive ? liveData : historyData;
         const now = new Date().getTime();
 
-        // 1. Filtro de Tiempo (Rango Rápido)
-        if (chartConfig.timeRange === '24h') {
-            const oneDayAgo = now - (24 * 60 * 60 * 1000);
-            filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= oneDayAgo);
-        } else if (chartConfig.timeRange === '7d') {
-            const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
-            filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= sevenDaysAgo);
-        } else if (chartConfig.timeRange === 'Rango') {
-            if (chartConfig.fromDate && chartConfig.toDate) {
-                const start = new Date(chartConfig.fromDate).getTime();
-                const end = new Date(chartConfig.toDate).getTime();
-                filtered = historyData.filter(d => {
-                    const ts = new Date(d.timestamp).getTime();
-                    return ts >= start && ts <= end;
+        if (!isLive) {
+            // 1. Filtro de Tiempo (Rango Rápido)
+            if (chartConfig.timeRange === '24h') {
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+                filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= oneDayAgo);
+            } else if (chartConfig.timeRange === '7d') {
+                const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+                filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= sevenDaysAgo);
+            } else if (chartConfig.timeRange === 'Rango') {
+                if (chartConfig.fromDate && chartConfig.toDate) {
+                    const start = new Date(chartConfig.fromDate).getTime();
+                    const end = new Date(chartConfig.toDate).getTime();
+                    filtered = historyData.filter(d => {
+                        const ts = new Date(d.timestamp).getTime();
+                        return ts >= start && ts <= end;
+                    });
+                }
+            }
+
+            // 2. Filtro Horario (Día / Noche)
+            if (chartConfig.filter === 'day') {
+                filtered = filtered.filter(d => {
+                    const h = new Date(d.timestamp).getHours();
+                    return h >= 7 && h < 19;
+                });
+            } else if (chartConfig.filter === 'night') {
+                filtered = filtered.filter(d => {
+                    const h = new Date(d.timestamp).getHours();
+                    return h < 7 || h >= 19;
                 });
             }
         }
 
-        // 2. Filtro Horario (Día / Noche)
-        if (chartConfig.filter === 'day') {
-            filtered = filtered.filter(d => {
-                const h = new Date(d.timestamp).getHours();
-                return h >= 7 && h < 19;
-            });
-        } else if (chartConfig.filter === 'night') {
-            filtered = filtered.filter(d => {
-                const h = new Date(d.timestamp).getHours();
-                return h < 7 || h >= 19;
-            });
-        }
-
         return filtered.map(d => {
             const ts = new Date(d.timestamp);
-            const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            const label = isLive 
+                ? ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                : ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            
+            const v1 = parseFloat(d[chartConfig.primaryY]);
+            const v2 = chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : NaN;
+
             return {
                 t: label,
-                v: parseFloat(d[chartConfig.primaryY]),
-                v2: chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : null,
+                v: v1,
+                v2: v2,
                 fullTimestamp: d.timestamp
             };
-        }).filter(d => !isNaN(d.v));
+        }).filter(d => !isNaN(d.v) || !isNaN(d.v2));
     }, [chartConfig, historyData, liveData]);
 
     const sendControl = async (key, val) => {
