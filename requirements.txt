@@ -3,3 +3,5 @@ uvicorn
 pandas
 python-multipart
 httpx
+python-jose[cryptography]
+passlib[bcrypt]
