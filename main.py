@@ -117,6 +117,7 @@ def update_session(username: str, role: str):
         del ACTIVE_SESSIONS[uname]
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+    global USERS_DB
     # Si no hay usuarios cargados, el acceso es libre (modo editor)
     if not USERS_DB:
         return {"username": "Invitado", "mode": "adtec", "permissions": {"canControl": True, "canDownload": True, "accessDocs": True, "accessData": True}}
@@ -144,7 +145,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
                 elapsed = (datetime.now() - start_time).total_seconds() / 60
                 if elapsed > ttl:
                     # ELIMINAR DE LA BASE DE DATOS DEFINITIVAMENTE
-                    global USERS_DB
                     USERS_DB = [u for u in USERS_DB if u["username"] != username]
                     save_users()
                     print(f"🗑️ Usuario invitado '{username}' ha sido eliminado por expiración de TTL ({ttl} min).")
