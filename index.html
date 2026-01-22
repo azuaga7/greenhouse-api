@@ -314,7 +314,6 @@
     <script type="text/babel">
         
         const CONFIG = {
-            authEnabled: false,
             dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":816,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":100,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":100,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":100,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":600,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":10,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":140,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":270,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":330,"y":110,"w":260,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":400,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768842671728","type":"text","label":"Ultima Alerta","key":"sin_key","unit":"","min":0,"max":0,"x":10,"y":600,"w":680,"h":90,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","unit":"Hs","min":0,"max":0,"x":490,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":false},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS"},
             refreshInterval: 1000,
@@ -914,139 +913,7 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) =>
     ]);
 });
 
-const LoginPage = ({ onLogin }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        try {
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('password', password);
-
-            const res = await fetch('/api/token', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                sessionStorage.setItem('adtec_token', data.access_token);
-                sessionStorage.setItem('adtec_user', JSON.stringify(data.user));
-                onLogin(data.user);
-            } else {
-                const err = await res.json();
-                setError(err.detail || 'Credenciales incorrectas');
-            }
-        } catch (e) {
-            setError('Error de conexión con el servidor');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div style={{ 
-            height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)', color: 'white',
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-        }}>
-            <div className="adtec-card" style={{ 
-                width: '400px', padding: '40px', background: '#1e293b', 
-                border: '1px solid rgba(56, 189, 248, 0.2)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-                fontFamily: "'Segoe UI', sans-serif"
-            }}>
-                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <div className="logo-icon" style={{ width: 60, height: 60, margin: '0 auto 15px' }}>
-                        <div className="logo-icon-inner" style={{ fontSize: 18 }}>ADTEC</div>
-                    </div>
-                    <h2 style={{ margin: 0, fontSize: '24px', color: '#f8fafc', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Iniciar Sesión</h2>
-                    <p style={{ fontSize: '14px', color: '#94a3b8', marginTop: '5px', fontWeight: 600, letterSpacing: '0.02em' }}>Control de Invernadero Pro</p>
-                </div>
-
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div className="form-group">
-                        <label style={{ fontSize: '11px', color: '#38bdf8', marginBottom: '8px', display: 'block', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Usuario</label>
-                        <input 
-                            type="text" 
-                            value={username} 
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                            style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontFamily: "'Segoe UI', sans-serif" }}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label style={{ fontSize: '11px', color: '#38bdf8', marginBottom: '8px', display: 'block', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Contraseña</label>
-                        <input 
-                            type="password" 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontFamily: "'Segoe UI', sans-serif" }}
-                        />
-                    </div>
-
-                    {error && <div style={{ color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>⚠️ {error}</div>}
-
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        style={{ 
-                            padding: '12px', background: 'var(--adtec-accent)', color: 'black', border: 'none', 
-                            borderRadius: '8px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
-                            opacity: loading ? 0.7 : 1, transition: 'all 0.2s'
-                        }}
-                    >
-                        {loading ? 'Validando...' : 'ACCEDER'}
-                    </button>
-                </form>
-
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                    <a 
-                        href="#" 
-                        onClick={(e) => { e.preventDefault(); alert("Por favor, póngase en contacto con ADTEC Innovations para restablecer su acceso."); }}
-                        style={{ color: '#94a3b8', fontSize: '12px', textDecoration: 'none' }}
-                    >
-                        ¿Has olvidado tu contraseña?
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const Toast = ({ message, type, onClose }) => {
-    useEffect(() => {
-        const timer = setTimeout(onClose, 5000);
-        return () => clearTimeout(timer);
-    }, [onClose]);
-
-    return (
-        <div style={{
-            position: 'fixed', bottom: '20px', right: '20px', padding: '15px 25px',
-            backgroundColor: type === 'error' ? '#ef4444' : '#10b981',
-            color: 'white', borderRadius: '8px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)',
-            zIndex: 10000, display: 'flex', alignItems: 'center', gap: '10px',
-            animation: 'slideIn 0.3s ease-out'
-        }}>
-            <span>{type === 'error' ? '⚠️' : 'ℹ️'}</span>
-            <span style={{ fontWeight: 'bold' }}>{message}</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '18px' }}>×</button>
-        </div>
-    );
-};
-
 const DashboardApp = () => {
-    const [user, setUser] = useState(() => {
-        const saved = sessionStorage.getItem('adtec_user');
-        return saved ? JSON.parse(saved) : null;
-    });
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [alerts, setAlerts] = useState([]);
@@ -1063,68 +930,9 @@ const DashboardApp = () => {
     const [connStatus, setConnStatus] = useState('OFFLINE');
     const [connColor, setConnColor] = useState('#ef4444');
     const [pulsesLost, setPulsesLost] = useState(0);
-    const [lastActivity, setLastValidLocation] = useState({ city: '--', coord: '--' }); // Reusando nombre por compatibilidad
-    
-    // Estados de sesión avanzada
-    const [controlHolder, setControlHolder] = useState(null);
-    const [activeUsers, setActiveUsers] = useState([]);
-    const [toasts, setToasts] = useState([]);
 
-    const addToast = useCallback((message, type = 'info') => {
-        const id = Math.random().toString(36).substr(2, 9);
-        setToasts(prev => [...prev, { id, message, type }]);
-    }, []);
-
-    const removeToast = useCallback((id) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-    }, []);
-
-    // --- LÓGICA DE INACTIVIDAD ---
-    const lastActivityRef = useRef(Date.now());
-    
-    useEffect(() => {
-        if (!user || user.mode === 'adtec') return;
-
-        const handleActivity = () => { lastActivityRef.current = Date.now(); };
-        window.addEventListener('mousemove', handleActivity);
-        window.addEventListener('keydown', handleActivity);
-
-        const checkInactivity = setInterval(() => {
-            const idleTime = Date.now() - lastActivityRef.current;
-            const maxIdle = 15 * 60 * 1000; // 15 minutos por defecto
-            
-            if (idleTime > maxIdle) {
-                handleLogout();
-                alert("Sesión cerrada por inactividad.");
-            }
-        }, 30000);
-
-        return () => {
-            window.removeEventListener('mousemove', handleActivity);
-            window.removeEventListener('keydown', handleActivity);
-            clearInterval(checkInactivity);
-        };
-    }, [user]);
-
-    const handleLogout = () => {
-        sessionStorage.removeItem('adtec_token');
-        sessionStorage.removeItem('adtec_user');
-        setUser(null);
-    };
-
-    const authenticatedFetch = async (url, options = {}) => {
-        const token = sessionStorage.getItem('adtec_token');
-        const headers = {
-            ...options.headers,
-            'Authorization': 'Bearer ' + token
-        };
-        const res = await fetch(url, { ...options, headers });
-        if (res.status === 401) {
-            handleLogout();
-            throw new Error('Sesión expirada');
-        }
-        return res;
-    };
+    // Memoria persistente para ubicación (Latching)
+    const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
 
     useEffect(() => {
         const currentLoc = getWidgetValueShared('gsm_location', lastData, CONFIG.dashboard.widgets);
@@ -1151,9 +959,8 @@ const DashboardApp = () => {
     }, []);
 
     const fetchHistory = async () => {
-        if (!user && CONFIG.authEnabled) return;
         try {
-            const res = await authenticatedFetch('/api/data');
+            const res = await fetch('/api/data');
             if (res.ok) {
                 const fullHistory = await res.json();
                 setHistoryData(fullHistory);
@@ -1170,17 +977,19 @@ const DashboardApp = () => {
     };
 
     const fetchUpdate = async () => {
-        if (!user && CONFIG.authEnabled) return;
         try {
-            const res = await authenticatedFetch('/api/last');
+            const res = await fetch('/api/last');
             if (res.ok) {
                 const data = await res.json();
+                
+                // Validar que la data es real (tiene timestamp y no es un error de FastAPI)
                 const isValidData = data && data.timestamp && !data.detail && !data.error;
 
                 if (isValidData) {
                     setLastData(data);
                     setPulsesLost(0);
 
+                    // --- CAPA 3: Inteligencia Colectiva (Mín/Máx unificado) ---
                     CONFIG.dashboard.widgets.forEach(w => {
                         const val = parseFloat(data[w.key]);
                         if (!isNaN(val)) {
@@ -1188,77 +997,84 @@ const DashboardApp = () => {
                         }
                     });
                     
+                    // --- CAPA 2: Lógica de 4 Estados (Reportados por ESP32) ---
                     const reportedState = (data.gsm_stored_state || "ONLINE").toUpperCase();
+                    
                     if (reportedState === "ONLINE") {
                         setConnStatus("SISTEMA ONLINE");
-                        setConnColor("#10b981");
+                        setConnColor("#10b981"); // Green
                     } else if (reportedState === "BUSCANDO" || reportedState === "REG_OK") {
                         setConnStatus(reportedState === "REG_OK" ? "SIN DATOS (SÓLO RED)" : "BUSCANDO RED...");
-                        setConnColor("#f59e0b");
+                        setConnColor("#f59e0b"); // Yellow
                     } else if (reportedState === "OFFLINE") {
                         setConnStatus("ERROR: SIN CHIP");
-                        setConnColor("#ef4444");
+                        setConnColor("#ef4444"); // Red
                     } else {
                         setConnStatus(reportedState);
                         setConnColor("#10b981");
                     }
 
+                    // Actualizar Live Chart
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
                             const next = [...prev, data];
+                            // Guardamos hasta 200 puntos para mayor historial dinámico
                             return next.length > 200 ? next.slice(-200) : next;
                         });
                     }
                 } else {
+                    // --- CAPA 1: Heartbeat (Modo de Gracia) ---
                     setPulsesLost(prev => {
                         const next = prev + 1;
                         if (next > 3) {
                             setConnStatus("SISTEMA OFFLINE");
-                            setConnColor("#ef4444");
+                            setConnColor("#ef4444"); // Red
                         } else if (next > 1) {
                             setConnStatus("BUSCANDO...");
-                            setConnColor("#f59e0b");
+                            setConnColor("#f59e0b"); // Yellow
                         }
                         return next;
                     });
                 }
+            } else {
+                // Fallo de respuesta del servidor (404, 500, etc)
+                setPulsesLost(prev => {
+                    const next = prev + 1;
+                    if (next > 3) {
+                        setConnStatus("SISTEMA OFFLINE");
+                        setConnColor("#ef4444");
+                    } else if (next > 1) {
+                        setConnStatus("BUSCANDO...");
+                        setConnColor("#f59e0b");
+                    }
+                    return next;
+                });
             }
         } catch(e) { 
             console.warn("Fallo Telemetría:", e);
+            setPulsesLost(prev => {
+                const next = prev + 1;
+                if (next > 3) {
+                    setConnStatus("SISTEMA OFFLINE");
+                    setConnColor("#ef4444");
+                }
+                return next;
+            });
         }
 
         try {
-            const res = await authenticatedFetch('/api/control_state');
+            const res = await fetch('/api/control_state');
             if (res.ok) {
-                const data = await res.json();
-                setControlState(data.state || data);
-                setControlHolder(data.holder);
+                setControlState(await res.json());
             }
-        } catch(e) { }
+        } catch(e) { console.warn("Fallo Controles:", e); }
 
         try {
-            const resS = await authenticatedFetch('/api/session_status');
-            if (resS.ok) {
-                const status = await resS.json();
-                setActiveUsers(status.active_users || []);
-                setControlHolder(status.control_holder);
-                
-                // Procesar notificaciones del servidor
-                if (status.notifications && status.notifications.length > 0) {
-                    status.notifications.forEach(n => {
-                        // Evitar duplicados si es necesario o simplemente mostrarlos
-                        addToast(n.text, n.type);
-                    });
-                }
-            }
-        } catch(e) { }
-
-        try {
-            const resA = await authenticatedFetch('/api/alerts');
+            const resA = await fetch('/api/alerts');
             if (resA.ok) {
                 setAlerts(await resA.json());
             }
-        } catch(e) { }
+        } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
     const displayData = useMemo(() => {
@@ -1267,6 +1083,7 @@ const DashboardApp = () => {
         const now = new Date().getTime();
 
         if (!isLive) {
+            // 1. Filtro de Tiempo (Rango Rápido)
             if (chartConfig.timeRange === '24h') {
                 const oneDayAgo = now - (24 * 60 * 60 * 1000);
                 filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= oneDayAgo);
@@ -1284,6 +1101,7 @@ const DashboardApp = () => {
                 }
             }
 
+            // 2. Filtro Horario (Día / Noche)
             if (chartConfig.filter === 'day') {
                 filtered = filtered.filter(d => {
                     const h = new Date(d.timestamp).getHours();
@@ -1306,90 +1124,66 @@ const DashboardApp = () => {
             const v1 = parseFloat(d[chartConfig.primaryY]);
             const v2 = chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : NaN;
 
-            return { t: label, v: v1, v2: v2, fullTimestamp: d.timestamp };
+            return {
+                t: label,
+                v: v1,
+                v2: v2,
+                fullTimestamp: d.timestamp
+            };
         }).filter(d => !isNaN(d.v) || !isNaN(d.v2));
     }, [chartConfig, historyData, liveData]);
 
     const sendControl = async (key, val) => {
         try {
-            const res = await authenticatedFetch('/api/control_state', {
+            const res = await fetch('/api/control_state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ [key]: val })
             });
             if (res.ok) {
                 setControlState(prev => ({ ...prev, [key]: val }));
-            } else {
-                const err = await res.json();
-                alert(err.detail || "Error al enviar comando");
             }
         } catch(e) { console.error("Error envío control:", e); }
     };
 
     useEffect(() => {
-        if (user || !CONFIG.authEnabled) fetchHistory();
-    }, [chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate, user]);
+        fetchHistory();
+    }, [chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate]);
 
     useEffect(() => {
-        if (user || !CONFIG.authEnabled) {
-            fetchUpdate();
-            const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
-            return () => clearInterval(interval);
-        }
-    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange, user]);
+        fetchUpdate();
+        const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
+        return () => clearInterval(interval);
+    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange]);
 
     useEffect(() => {
         setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
-    }, [activeTabId, user]);
+    }, [activeTabId]);
 
     const activeVarLabel = useMemo(() => {
         return CONFIG.labels[chartConfig.primaryY] || chartConfig.primaryY;
     }, [chartConfig.primaryY]);
 
-    if (CONFIG.authEnabled && !user) {
-        return <LoginPage onLogin={setUser} />;
-    }
-
     return (
         <div className="adtec-dashboard-root">
-            {toasts.map(t => (
-                <Toast key={t.id} message={t.message} type={t.type} onClose={() => removeToast(t.id)} />
-            ))}
             <div className="tabs-nav">
-                <div style={{ display: 'flex', flex: 1 }}>
-                    {CONFIG.dashboard.tabs.map(t => (
-                        <div 
-                            key={t.id} 
-                            className={"tab-btn " + (activeTabId === t.id ? "active" : "")} 
-                            onClick={() => setActiveTabId(t.id)}
-                            style={{ position: 'relative' }}
-                        >
-                            {t.icon && t.icon.length > 2 ? (
-                                <i data-lucide={t.icon}></i>
-                            ) : (
-                                <span>{t.icon || '📄'}</span>
-                            )} {t.name}
-                            {t.type === 'alerts' && alerts.length > 0 && (
-                                <span className="alert-badge">{alerts.length}</span>
-                            )}
-                        </div>
-                    ))}
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '0 20px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white' }}>{user ? user.username : 'Invitado'}</div>
-                        <div style={{ fontSize: '9px', color: 'var(--adtec-accent)', textTransform: 'uppercase' }}>Modo {user ? user.mode : 'Abierto'}</div>
+                {CONFIG.dashboard.tabs.map(t => (
+                    <div 
+                        key={t.id} 
+                        className={"tab-btn " + (activeTabId === t.id ? "active" : "")} 
+                        onClick={() => setActiveTabId(t.id)}
+                        style={{ position: 'relative' }}
+                    >
+                        {t.icon && t.icon.length > 2 ? (
+                            <i data-lucide={t.icon}></i>
+                        ) : (
+                            <span>{t.icon || '📄'}</span>
+                        )} {t.name}
+                        {t.type === 'alerts' && alerts.length > 0 && (
+                            <span className="alert-badge">{alerts.length}</span>
+                        )}
                     </div>
-                    {user && (
-                        <button 
-                            onClick={handleLogout}
-                            style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: 'bold' }}
-                        >
-                            SALIR
-                        </button>
-                    )}
-                </div>
+                ))}
             </div>
 
             <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
@@ -1401,21 +1195,11 @@ const DashboardApp = () => {
                         </div>
                         {currentTab.type === 'control' && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
-                                {controlHolder && controlHolder !== user.username && (
-                                    <span style={{ fontSize: '9px', color: '#ef4444', fontWeight: 'bold', marginRight: '5px' }}>
-                                        ⚠️ EN CONTROL: {controlHolder}
-                                    </span>
-                                )}
                                 <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
                                     {controlState.manual ? 'MANUAL' : 'AUTO'}
                                 </span>
-                                <label className="switch" style={{ transform: 'scale(0.7)', opacity: (controlHolder && controlHolder !== user.username) ? 0.5 : 1 }}>
-                                    <input 
-                                        type="checkbox" 
-                                        checked={!!controlState.manual} 
-                                        disabled={controlHolder && controlHolder !== user.username}
-                                        onChange={(e) => sendControl('manual', e.target.checked)} 
-                                    />
+                                <label className="switch" style={{ transform: 'scale(0.7)' }}>
+                                    <input type="checkbox" checked={!!controlState.manual} onChange={(e) => sendControl('manual', e.target.checked)} />
                                     <span className="slider"></span>
                                 </label>
                             </div>
@@ -1439,7 +1223,7 @@ const DashboardApp = () => {
                                 <button 
                                     onClick={async () => {
                                         if (confirm('¿Limpiar todo el historial de alertas?')) {
-                                            await authenticatedFetch('/api/alerts/clear', { method: 'POST' });
+                                            await fetch('/api/alerts/clear', { method: 'POST' });
                                             setAlerts([]);
                                         }
                                     }}
@@ -1670,6 +1454,7 @@ const DashboardApp = () => {
                                         const max = w.max || 100;
                                         const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
                                         
+                                        // Mín/Máx reales del día desde el motor
                                         const stats = SparklineEngine.getStats(w.id);
                                         const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
                                         const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
@@ -1728,8 +1513,7 @@ const DashboardApp = () => {
 
                                     {w.type === 'control-relay' && (() => {
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
-                                        const hasControl = !controlHolder || controlHolder === user.username;
-                                        const isManual = !!controlState.manual && hasControl;
+                                        const isManual = !!controlState.manual;
                                         return (
                                             <>
                                                 <div className={"adtec-status-chip " + (isOn ? "on" : "off")} style={{ marginBottom: 10, alignSelf: 'flex-start' }}>
@@ -1742,7 +1526,7 @@ const DashboardApp = () => {
                                                         disabled={!isManual} 
                                                         style={{ 
                                                             background: isOn ? '#10b981' : undefined,
-                                                            opacity: isManual ? 1 : 0.4,
+                                                            opacity: isManual ? 1 : 0.5,
                                                             cursor: isManual ? 'pointer' : 'not-allowed'
                                                         }} 
                                                         onClick={() => sendControl(w.target, true)}
@@ -1754,7 +1538,7 @@ const DashboardApp = () => {
                                                         disabled={!isManual} 
                                                         style={{ 
                                                             background: !isOn ? '#ef4444' : undefined,
-                                                            opacity: isManual ? 1 : 0.4,
+                                                            opacity: isManual ? 1 : 0.5,
                                                             cursor: isManual ? 'pointer' : 'not-allowed'
                                                         }} 
                                                         onClick={() => sendControl(w.target, false)}
@@ -1769,8 +1553,7 @@ const DashboardApp = () => {
                                     {w.type === 'control-vfd' && (() => {
                                         const freq = parseFloat(controlState[w.target] || 0);
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
-                                        const hasControl = !controlHolder || controlHolder === user.username;
-                                        const isManual = !!controlState.manual && hasControl;
+                                        const isManual = !!controlState.manual;
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginTop: 5, alignItems: 'center', width: '100%' }}>
                                                 <div className={"vfd-dial " + (isOn ? "on" : "")}>
@@ -1781,7 +1564,7 @@ const DashboardApp = () => {
                                                     type="range" min="0" max="60" step="0.5" 
                                                     value={freq}
                                                     disabled={!isManual}
-                                                    style={{ width: '100%', accentColor: 'var(--adtec-accent)', opacity: isManual ? 1 : 0.4 }}
+                                                    style={{ width: '100%', accentColor: 'var(--adtec-accent)', opacity: isManual ? 1 : 0.5 }}
                                                     onChange={(e) => sendControl(w.target, parseFloat(e.target.value))}
                                                 />
                                                 <div style={{ display: 'flex', gap: '5px', width: '100%' }}>
@@ -1790,7 +1573,7 @@ const DashboardApp = () => {
                                                         disabled={!isManual} 
                                                         style={{ 
                                                             background: isOn ? '#10b981' : undefined,
-                                                            opacity: isManual ? 1 : 0.4,
+                                                            opacity: isManual ? 1 : 0.5,
                                                             cursor: isManual ? 'pointer' : 'not-allowed'
                                                         }} 
                                                         onClick={() => sendControl(w.target + '_state', true)}
@@ -1802,7 +1585,7 @@ const DashboardApp = () => {
                                                         disabled={!isManual} 
                                                         style={{ 
                                                             background: !isOn ? '#ef4444' : undefined,
-                                                            opacity: isManual ? 1 : 0.4,
+                                                            opacity: isManual ? 1 : 0.5,
                                                             cursor: isManual ? 'pointer' : 'not-allowed'
                                                         }} 
                                                         onClick={() => sendControl(w.target + '_state', false)}
@@ -1868,6 +1651,7 @@ const DashboardApp = () => {
                                             );
                                         }
 
+                                        // Mín/Máx reales del día desde el motor (Unificado)
                                         const stats = SparklineEngine.getStats(w.id);
                                         const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
                                         const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
@@ -1888,8 +1672,8 @@ const DashboardApp = () => {
                                     })()}
 
                                     {w.type === 'location' && (() => {
-                                        const displayCity = lastActivity.city !== '--' ? lastActivity.city : 'Ubicación Pro';
-                                        const displayCoords = lastActivity.coord !== '--' ? lastActivity.coord : 'Detectando GPS...';
+                                        const displayCity = lastValidLocation.city !== '--' ? lastValidLocation.city : 'Ubicación Pro';
+                                        const displayCoords = lastValidLocation.coord !== '--' ? lastValidLocation.coord : 'Detectando GPS...';
                                         return (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5, color: '#9ca3af' }}>
                                                 <span style={{ fontSize: 20 }}>📍</span>
