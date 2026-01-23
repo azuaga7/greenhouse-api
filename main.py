@@ -28,9 +28,9 @@ except ImportError:
 
 app = FastAPI(title="ADTEC Cloud Bridge API")
 
-DATA_DIR = "/opt/bridge/data"
+DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
-ARCHIVE_DIR = "/opt/bridge/archive"
+ARCHIVE_DIR = os.environ.get("ARCHIVE_DIR", "archive")
 DEFAULT_DEVICE = "TEST-EMU"
 DEFAULT_CHANNEL = "ingreso"
 PY_TZ = ZoneInfo("America/Asuncion")
