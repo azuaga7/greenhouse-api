@@ -991,7 +991,15 @@ const DashboardApp = () => {
 
             const res = await fetch(url);
             if (res.ok) {
-                const fullHistory = await res.json();
+                const rawHistory = await res.json();
+                const fullHistory = Array.isArray(rawHistory) ? rawHistory.map(row => {
+                    const normalized = {};
+                    for (const [k, v] of Object.entries(row)) {
+                        if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                        else normalized[k] = v;
+                    }
+                    return normalized;
+                }) : [];
                 setHistoryData(fullHistory);
 
                 // Cargar historial en los Sparklines y Estadísticas Diarias al inicio
@@ -1018,7 +1026,13 @@ const DashboardApp = () => {
         try {
             const res = await fetch(BASE_URL + '/api/last');
             if (res.ok) {
-                const data = await res.json();
+                const raw = await res.json();
+                const normalized = {};
+                for (const [k, v] of Object.entries(raw)) {
+                    if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                    else normalized[k] = v;
+                }
+                const data = normalized;
                 
                 // Validar que la data es real
                 const isValidData = data && data.timestamp && !data.detail && !data.error && data.timestamp !== '--';
