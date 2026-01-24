@@ -155,6 +155,26 @@ async def api_last():
     finally: conn.close()
     return {}
 
+# 2b) /api/data (PROXY: Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
+BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", f"http://{bridgeHost}")
+
+@app.get("/api/data")
+async def api_data(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/data"
+    qs = str(request.url.query)
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+
+    # Si el bridge responde error/no-json, no romper
+    try:
+        data = r.json()
+    except Exception:
+        data = {"detail": r.text}
+
+    return JSONResponse(content=data, status_code=r.status_code)
+
+
 # 3) /api/series
 @app.get("/api/series")
 async def api_series(

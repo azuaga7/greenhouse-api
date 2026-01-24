@@ -324,7 +324,7 @@
         try {
             
         const CONFIG = {
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":816,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":600,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":10,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":140,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":270,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":330,"y":110,"w":260,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":400,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768842671728","type":"text","label":"Ultima Alerta","key":"sin_key","unit":"","min":0,"max":0,"x":10,"y":600,"w":680,"h":90,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","unit":"Hs","min":0,"max":0,"x":490,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":false},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":816,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":600,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":10,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":140,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":270,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":330,"y":110,"w":260,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":400,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768842671728","type":"text","label":"Ultima Alerta","key":"sin_key","unit":"","min":0,"max":0,"x":10,"y":600,"w":680,"h":90,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","unit":"Hs","min":0,"max":0,"x":490,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS"},
             refreshInterval: 1000,
             chartConfig: {
@@ -544,7 +544,8 @@
                 let val = parseFloat(newValue);
                 const isInvalid = newValue === null || newValue === undefined || newValue === '' || isNaN(val);
                 if (isInvalid) {
-                    val = sMin;
+                    // Mantenemos el último valor para evitar saltos a 0 (especialmente en Luxes)
+                    val = buffer[buffer.length - 1];
                 } else {
                     val = Math.max(sMin, Math.min(sMax, val));
                     
@@ -807,7 +808,7 @@ const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
 });
 
 // Componente de Minigráfico (Sparkline) - Motor Pro de 100 puntos
-const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) => {
+const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
     // Estado local para asegurar dibujo sincronizado
     const [points, setPoints] = useState(() => {
         const initial = SparklineEngine.getBuffer(id, variableKey, min, max);
@@ -815,22 +816,22 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) =>
     });
 
     useEffect(() => {
-        let newPoints;
-        if (value !== undefined) {
-            newPoints = SparklineEngine.update(id, variableKey, value, min, max);
-        } else {
-            newPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
-        }
-        setPoints([...newPoints]);
-    }, [id, variableKey, value, min, max]);
+        // Solo obtener el buffer actual
+        // El motor es actualizado de forma centralizada en fetchUpdate y fetchHistory
+        const currentPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
+        setPoints([...currentPoints]);
+    }, [id, variableKey, value, min, max, historyTick]);
 
-    const hasData = useMemo(() => SparklineEngine.hasRealData(id), [id, value]);
+    const hasData = useMemo(() => SparklineEngine.hasRealData(id), [id, value, historyTick]);
     const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
 
     const pathData = useMemo(() => {
         if (points.length === 0) return "";
         const width = 100;
         const height = 50;
+        // Ajuste de margen para visibilidad de Luxes y valores mínimos
+        const padding = 4; 
+        const safeHeight = height - (padding * 2);
         
         // Sincronizar con motor
         const sMin = Number(min) || 0;
@@ -841,10 +842,10 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) =>
         
         return points.map((val, i) => {
             const x = (i / (points.length - 1)) * width;
-            // Blindaje: fijar al borde si excede
+            // Blindaje: fijar al borde si excede (dentro del área segura)
             const cappedVal = Math.max(sMin, Math.min(sMax, val));
             const pct = (cappedVal - sMin) / range;
-            const y = height - (pct * height);
+            const y = (height - padding) - (pct * safeHeight);
             return (i === 0 ? 'M' : 'L') + " " + x + " " + y;
         }).join(' ');
     }, [points, min, max]);
@@ -876,7 +877,7 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value }) =>
         React.createElement('svg', { 
             key: 'svg',
             className: 'adtec-sparkline-svg', 
-            viewBox: '0 0 100 50', 
+            viewBox: '0 -5 100 60', 
             preserveAspectRatio: 'none',
             style: { height: '50px', flex: 1 }
         }, [
@@ -943,9 +944,12 @@ const DashboardApp = () => {
         toDate: '',
         timeRange: 'Ahora'
     });
-    const [connStatus, setConnStatus] = useState('OFFLINE');
-    const [connColor, setConnColor] = useState('#ef4444');
-    const [pulsesLost, setPulsesLost] = useState(0);
+    const [connStatus, setConnStatus] = useState('CONECTANDO...');
+    const [connColor, setConnColor] = useState('#f59e0b');
+    const [lastPacketTime, setLastPacketTime] = useState(0);
+    const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
+    const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
+    const [isLearning, setIsLearning] = useState(true);
 
     const BASE_URL = CONFIG.BASE_URL || "";
 
@@ -1025,21 +1029,36 @@ const DashboardApp = () => {
     const fetchUpdate = async () => {
         try {
             const res = await fetch(BASE_URL + '/api/last');
-            if (res.ok) {
-                const raw = await res.json();
-                const normalized = {};
-                for (const [k, v] of Object.entries(raw)) {
-                    if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
-                    else normalized[k] = v;
-                }
-                const data = normalized;
-                
-                // Validar que la data es real
-                const isValidData = data && data.timestamp && !data.detail && !data.error && data.timestamp !== '--';
+            if (!res.ok) throw new Error("API Offline");
+            
+            const raw = await res.json();
+            const normalized = {};
+            for (const [k, v] of Object.entries(raw)) {
+                if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                else normalized[k] = v;
+            }
+            const data = normalized;
+            
+            // Validar que la data es real
+            const hasData = data && data.timestamp && data.timestamp !== '--';
 
-                if (isValidData) {
+            if (hasData) {
+                const hardwareTs = new Date(data.timestamp).getTime();
+                const isNewData = data.timestamp !== (lastData && lastData.timestamp);
+
+                if (isNewData) {
+                    // --- NUEVA TELEMETRÍA DETECTADA ---
+                    if (lastPacketTime > 0) {
+                        const rawDelta = Math.abs(hardwareTs - lastPacketTime);
+                        // Media Móvil para suavizar Jitter y Techo de 10 min
+                        const newDelta = Math.min(600000, (currentDelta * 0.6) + (rawDelta * 0.4));
+                        setCurrentDelta(newDelta);
+                        setIsLearning(false);
+                    }
+                    
+                    setLastPacketTime(hardwareTs);
+                    setLastArrivalLocal(Date.now());
                     setLastData(data);
-                    setPulsesLost(0);
 
                     // Sincronización de Estado Deseado
                     setPendingCommands(prev => {
@@ -1048,13 +1067,11 @@ const DashboardApp = () => {
                         Object.keys(next).forEach(key => {
                             const realVal = data[key];
                             const desiredVal = next[key].value;
-                            
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
                                           (realVal === 0 && desiredVal === false) ||
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
-
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
                                 delete next[key];
                                 changed = true;
@@ -1063,20 +1080,22 @@ const DashboardApp = () => {
                         return changed ? next : prev;
                     });
 
-                    // Actualización Centralizada del Motor (Todos los widgets)
+                    // Actualización Centralizada del Motor
                     CONFIG.dashboard.widgets.forEach(w => {
                         const rawVal = data[w.key];
-                        // El motor filtra internamente el valor '--' y gestiona Mín/Máx diarios
                         SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, data.timestamp);
                     });
+
+                    // Estado reportado por el hardware
+                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
+                    const statusKey = connWidget?.statusKey || 'gsm_stored_state';
+                    const reportedState = String(data[statusKey] || "ONLINE").toUpperCase();
                     
-                    const reportedState = (data.gsm_stored_state || "ONLINE").toUpperCase();
-                    
-                    if (reportedState === "ONLINE") {
+                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
                         setConnStatus("SISTEMA ONLINE");
                         setConnColor("#10b981");
-                    } else if (reportedState === "BUSCANDO" || reportedState === "REG_OK") {
-                        setConnStatus(reportedState === "REG_OK" ? "SIN DATOS (SÓLO RED)" : "BUSCANDO RED...");
+                    } else if (reportedState === "BUSCANDO") {
+                        setConnStatus("BUSCANDO RED...");
                         setConnColor("#f59e0b");
                     } else if (reportedState === "OFFLINE") {
                         setConnStatus("ERROR: SIN CHIP");
@@ -1093,41 +1112,27 @@ const DashboardApp = () => {
                         });
                     }
                 } else {
-                    setPulsesLost(prev => {
-                        const next = prev + 1;
-                        if (next > 3) {
-                            setConnStatus("SISTEMA OFFLINE");
-                            setConnColor("#ef4444");
-                        } else if (next > 1) {
-                            setConnStatus("BUSCANDO...");
-                            setConnColor("#f59e0b");
-                        }
-                        return next;
-                    });
+                    // --- NO HAY DATOS NUEVOS, EVALUAR TIEMPO ---
+                    const elapsed = Date.now() - lastArrivalLocal;
+                    // Margen dinámico: Delta + 2s (o 10s si estamos aprendiendo)
+                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
+
+                    if (elapsed > (threshold * 2)) {
+                        setConnStatus("EQUIPO OFFLINE");
+                        setConnColor("#ef4444"); // Rojo
+                    } else if (elapsed > threshold) {
+                        setConnStatus("CONECTANDO...");
+                        setConnColor("#f59e0b"); // Naranja
+                    }
                 }
             } else {
-                setPulsesLost(prev => {
-                    const next = prev + 1;
-                    if (next > 3) {
-                        setConnStatus("SISTEMA OFFLINE");
-                        setConnColor("#ef4444");
-                    } else if (next > 1) {
-                        setConnStatus("BUSCANDO...");
-                        setConnColor("#f59e0b");
-                    }
-                    return next;
-                });
+                setConnStatus("SIN DATOS");
+                setConnColor("#ef4444"); // Rojo
             }
-        } catch(e) { 
-            console.warn("Fallo Telemetría:", e);
-            setPulsesLost(prev => {
-                const next = prev + 1;
-                if (next > 3) {
-                    setConnStatus("SISTEMA OFFLINE");
-                    setConnColor("#ef4444");
-                }
-                return next;
-            });
+        } catch(e) {
+            setConnStatus("API OFFLINE");
+            setConnColor("#ef4444");
+            console.error("Error actualización:", e);
         }
 
         try {
@@ -1588,6 +1593,7 @@ const DashboardApp = () => {
                                                     // Evitar que el fallback numVal ensucie el gráfico al inicio
                                                     value={valStr === '--' ? undefined : numVal} 
                                                     showShadow={w.sparklineShadow}
+                                                    historyTick={historyData.length}
                                                 />
                                             )}
                                         </>
@@ -1700,22 +1706,27 @@ const DashboardApp = () => {
                                     })()}
 
                                     {w.type === 'connection' && (() => {
-                                        const sigVal = parseFloat(getWidgetValue('gsm_signal') || getWidgetValue(w.key) || "0");
-                                        const isSystemOnline = connStatus.includes("ONLINE");
+                                        const sigKey = w.signalKey || w.key;
+                                        const sigVal = parseFloat(getWidgetValue(sigKey) || getWidgetValue('gsm_signal') || "0");
+                                        const isSystemOnline = connStatus.includes("ONLINE") || connStatus.includes("CONECTANDO");
+                                        
                                         return (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
                                                 <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '20px' }}>
-                                                    {[1, 2, 3, 4, 5].map(i => (
-                                                        React.createElement('div', {
+                                                    {[1, 2, 3, 4, 5].map(i => {
+                                                        const threshold = i * 6; // Rango 0-31 CSQ (aprox 6 por barra)
+                                                        const isBarActive = isSystemOnline && sigVal >= threshold;
+                                                        return React.createElement('div', {
                                                             key: i,
                                                             style: {
                                                                 width: '3px',
                                                                 height: (i * 4) + 'px',
-                                                                background: isSystemOnline && sigVal >= (i*20 - 15) ? 'var(--adtec-accent)' : 'rgba(255,255,255,0.1)',
-                                                                borderRadius: '1px'
+                                                                background: isBarActive ? 'var(--adtec-accent)' : 'rgba(255,255,255,0.1)',
+                                                                borderRadius: '1px',
+                                                                boxShadow: isBarActive ? '0 0 5px var(--adtec-accent)' : 'none'
                                                             }
-                                                        })
-                                                    ))}
+                                                        });
+                                                    })}
                                                 </div>
                                                 <div className="adtec-status-chip" style={{ margin: 0, background: connColor + '22', border: '1px solid ' + connColor + '44', color: connColor }}>
                                                     <span className="adtec-status-dot" style={{ background: connColor, boxShadow: '0 0 8px ' + connColor }} />
@@ -1727,7 +1738,7 @@ const DashboardApp = () => {
 
                                     {w.type === 'datetime' && (() => {
                                         const rawVal = getWidgetValue(w.key);
-                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full');
+                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', w.unit);
                                         const parts = formatted.split('|');
                                         const displayTime = parts[0];
                                         const displayDate = parts[1] || '';
