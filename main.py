@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -227,80 +227,45 @@ async def api_series(
     }
 
 # 4) /api/download/xlsx_range
-@app.get("/api/download/xlsx_range")
-async def download_xlsx_range(
-    channel: str = DEFAULT_CHANNEL,
-    from_ts: int = Query(...),
-    to_ts: int = Query(...)
-):
-    chunks = _iter_archive_chunks(from_ts, to_ts)
-    rows = []
-    
-    def process_rows(cursor_rows):
-        for r in cursor_rows:
-            try:
-                d = json.loads(r[2])
-                payload = d.get("kv", d)
-                payload["timestamp"] = r[0]
-                payload["_device"] = r[1]
-                rows.append(payload)
-            except: pass
-
-    # Cargar de Live
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        cur = conn.execute(f"SELECT ts_iso, device, payload_json FROM events WHERE channel='{channel}' AND ts BETWEEN {from_ts} AND {to_ts}")
-        process_rows(cur.fetchall())
-    except: pass
-    finally: conn.close()
-    
-    # Cargar de Archive
-    for path in chunks:
-        tmp_db = _ungzip_to_cache(path)
-        if tmp_db:
-            try:
-                conn_tmp = sqlite3.connect(tmp_db)
-                cur = conn_tmp.execute(f"SELECT ts_iso, device, payload_json FROM events WHERE channel='{channel}' AND ts BETWEEN {from_ts} AND {to_ts}")
-                process_rows(cur.fetchall())
-                conn_tmp.close()
-            except: pass
-            
-    if not rows: return JSONResponse({"status": "empty", "message": "Sin datos"}, status_code=404)
-
-    df_total = pd.DataFrame(rows)
-    df_total['timestamp'] = pd.to_datetime(df_total['timestamp']).dt.tz_localize('UTC').dt.tz_convert(PY_TZ)
-    
-    output = "reporte_rango.xlsx"
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_total['month'] = df_total['timestamp'].dt.strftime('%Y-%m')
-        for month, group in df_total.groupby('month'):
-            group.drop(columns=['month']).to_excel(writer, sheet_name=month, index=False)
-            
-    return FileResponse(output, filename=output)
-
 @app.get("/api/download/xlsx")
-async def download_xlsx(channel: str = DEFAULT_CHANNEL, limit: int = 5000):
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        query = f"SELECT ts_iso, device, payload_json FROM events WHERE channel='{channel}' ORDER BY ts DESC LIMIT {limit}"
-        df_raw = pd.read_sql_query(query, conn)
-        if df_raw.empty: return JSONResponse({"status": "empty", "message": "Sin datos"}, status_code=404)
-        
-        rows = []
-        for _, r in df_raw.iterrows():
-            d = json.loads(r['payload_json'])
-            payload = d.get("kv", d)
-            payload["timestamp"] = r['ts_iso']
-            payload["_device"] = r['device']
-            rows.append(payload)
-            
-        df = pd.DataFrame(rows)
-        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize('UTC').dt.tz_convert(PY_TZ)
-        
-        output = f"reporte_reciente_{channel}.xlsx"
-        df.to_excel(output, index=False)
-        return FileResponse(output, filename=output)
-    finally: conn.close()
+async def proxy_download_xlsx(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx"
+    qs = str(request.url.query)
+    async with httpx.AsyncClient(timeout=None) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+
+    headers = {}
+    ct = r.headers.get("content-type")
+    cd = r.headers.get("content-disposition")
+    if ct: headers["content-type"] = ct
+    if cd: headers["content-disposition"] = cd
+
+    return StreamingResponse(
+        r.aiter_bytes(),
+        status_code=r.status_code,
+        headers=headers,
+        media_type=ct or "application/octet-stream",
+    )
+
+@app.get("/api/download/xlsx_range")
+async def proxy_download_xlsx_range(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx_range"
+    qs = str(request.url.query)
+    async with httpx.AsyncClient(timeout=None) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+
+    headers = {}
+    ct = r.headers.get("content-type")
+    cd = r.headers.get("content-disposition")
+    if ct: headers["content-type"] = ct
+    if cd: headers["content-disposition"] = cd
+
+    return StreamingResponse(
+        r.aiter_bytes(),
+        status_code=r.status_code,
+        headers=headers,
+        media_type=ct or "application/octet-stream",
+    )
 
 @app.post("/api/alerts")
 async def api_alerts(payload: Dict[str, Any]):
