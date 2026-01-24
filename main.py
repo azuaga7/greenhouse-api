@@ -156,7 +156,8 @@ async def api_last():
     return {}
 
 # 2b) /api/data (PROXY: Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
-BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", f"http://{bridgeHost}")
+# Inserted bridge host at generation time to avoid undefined Python variable
+BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
 
 @app.get("/api/data")
 async def api_data(request: Request):
