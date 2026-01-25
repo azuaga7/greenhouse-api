@@ -991,9 +991,10 @@ const DashboardApp = () => {
 
     const fetchHistory = async () => {
         try {
-            const rType = chartConfig.timeRange === 'Ahora' ? 'live' : 
-                         chartConfig.timeRange === '24h' ? '24h' : 
-                         chartConfig.timeRange === '7d' ? '7d' : 'rango';
+// IMPORTANTE: aunque el chart esté en "Ahora", igual pedimos 24h para seed de widgets/sparks
+const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
+             chartConfig.timeRange === '24h' ? '24h' :
+             chartConfig.timeRange === '7d' ? '7d' : 'rango';
 
             const url = new URL(BASE_URL + '/api/data', window.location.origin);
             url.searchParams.append("range_type", rType);
@@ -1109,7 +1110,8 @@ const DashboardApp = () => {
                     // Estado reportado por el hardware
                     const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
                     const statusKey = connWidget?.statusKey || 'gsm_stored_state';
-                    const reportedState = String(data[statusKey] || "ONLINE").toUpperCase();
+                    const reportedState = String(flat[statusKey] ?? "ONLINE").toUpperCase();
+
                     
                     if (reportedState === "ONLINE" || reportedState === "REG_OK") {
                         setConnStatus("SISTEMA ONLINE");
