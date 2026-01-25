@@ -960,24 +960,6 @@ const DashboardApp = () => {
     const [isLearning, setIsLearning] = useState(true);
 
     const BASE_URL = CONFIG.BASE_URL || "";
-const normalizeFlat = (obj) => {
-    if (!obj || typeof obj !== 'object') return { timestamp: new Date().toISOString() };
-
-    const src = (obj.kv && typeof obj.kv === 'object') ? obj.kv : obj;
-
-    const out = {};
-    if (obj.timestamp) out.timestamp = obj.timestamp;
-
-    for (const [k, v] of Object.entries(src || {})) {
-        if (k === 'timestamp' || k === 'kv') continue;
-        const kk = (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
-        out[kk] = v;
-    }
-
-    if (!out.timestamp) out.timestamp = new Date().toISOString();
-    return out;
-};
-
 
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
@@ -1008,10 +990,9 @@ const normalizeFlat = (obj) => {
 
     const fetchHistory = async () => {
         try {
-// IMPORTANTE: aunque el chart esté en "Ahora", igual pedimos 24h para seed de widgets/sparks
-const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
-             chartConfig.timeRange === '24h' ? '24h' :
-             chartConfig.timeRange === '7d' ? '7d' : 'rango';
+            const rType = chartConfig.timeRange === 'Ahora' ? 'live' : 
+                         chartConfig.timeRange === '24h' ? '24h' : 
+                         chartConfig.timeRange === '7d' ? '7d' : 'rango';
 
             const url = new URL(BASE_URL + '/api/data', window.location.origin);
             url.searchParams.append("range_type", rType);
@@ -1023,30 +1004,30 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
             const res = await fetch(url);
             if (res.ok) {
                 const rawHistory = await res.json();
-
-                // Normalización global sin "kv." (array de puntos flat)
-                const history = Array.isArray(rawHistory) ? rawHistory.map(normalizeFlat) : [];
-                setHistoryData(history);
+                const fullHistory = Array.isArray(rawHistory) ? rawHistory.map(row => {
+                    const normalized = {};
+                    for (const [k, v] of Object.entries(row)) {
+                        if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                        else normalized[k] = v;
+                    }
+                    return normalized;
+                }) : [];
+                setHistoryData(fullHistory);
 
                 // Cargar historial en los Sparklines y Estadísticas Diarias al inicio
-                const todayStart = history.length > 0 ? (history[0].timestamp || null) : null;
-
+                const todayStart = SparklineEngine.getTodayStartISO();
+                
                 CONFIG.dashboard.widgets.forEach(w => {
                     if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
-                        // Buffer visual: últimos 100 puntos (extraer desde row.kv)
-                        const hDataBuffer = history.map(d => (d[w.key] ?? d['kv.' + w.key])).filter(v => v !== undefined && v !== null && v !== '--');
+                        // Buffer visual: últimos 100 puntos
+                        const hDataBuffer = fullHistory.map(d => d[w.key]).filter(v => v !== undefined && v !== null && v !== '--');
+                        
+                        // Estadísticas (Hoy): filtrar por fecha
+                        const hDataToday = fullHistory.filter(d => (d.timestamp || d.ts_iso) >= todayStart)
+                                                     .map(d => d[w.key])
+                                                     .filter(v => v !== undefined && v !== null && v !== '--');
 
-                        // Estadísticas (Hoy): filtrar por fecha comparando con first timestamp (compat tolerante)
-                        const hDataToday = (todayStart !== null)
-                            ? history.filter(d => (d.timestamp || '') >= todayStart).map(d => (d[w.key] ?? d['kv.' + w.key])).filter(v => v !== undefined && v !== null && v !== '--')
-                            : [];
-
-                        // Pasar el historial completo en formato {timestamp, kv} al motor
-                        try {
-                            SparklineEngine.setHistory(w.id, w.key, history, w.min, w.max);
-                        } catch (e) {
-                            console.warn('SparklineEngine.setHistory falló para', w.id, e);
-                        }
+                        SparklineEngine.setHistory(w.id, w.key, hDataBuffer, w.min, w.max, hDataToday);
                     }
                 });
             }
@@ -1059,17 +1040,19 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
             if (!res.ok) throw new Error("API Offline");
             
             const raw = await res.json();
-
-            // Normalización global sin "kv." (flat keys)
-const flat = normalizeFlat(raw);
-
-
+            const normalized = {};
+            for (const [k, v] of Object.entries(raw)) {
+                if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                else normalized[k] = v;
+            }
+            const data = normalized;
+            
             // Validar que la data es real
-            const hasData = flat && flat.timestamp && flat.timestamp !== '--';
+            const hasData = data && data.timestamp && data.timestamp !== '--';
 
             if (hasData) {
-                const hardwareTs = new Date(flat.timestamp).getTime();
-                const isNewData = flat.timestamp !== (lastData && lastData.timestamp);
+                const hardwareTs = new Date(data.timestamp).getTime();
+                const isNewData = data.timestamp !== (lastData && lastData.timestamp);
 
                 if (isNewData) {
                     // --- NUEVA TELEMETRÍA DETECTADA ---
@@ -1083,15 +1066,14 @@ const flat = normalizeFlat(raw);
                     
                     setLastPacketTime(hardwareTs);
                     setLastArrivalLocal(Date.now());
-                    // Mantener flat para compat visual dentro del template
-                    setLastData(flat);
+                    setLastData(data);
 
                     // Sincronización de Estado Deseado
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
                         Object.keys(next).forEach(key => {
-                            const realVal = flat[key];
+                            const realVal = data[key];
                             const desiredVal = next[key].value;
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
@@ -1106,17 +1088,16 @@ const flat = normalizeFlat(raw);
                         return changed ? next : prev;
                     });
 
-                    // Actualización Centralizada del Motor (usar valores ya normalizados)
+                    // Actualización Centralizada del Motor
                     CONFIG.dashboard.widgets.forEach(w => {
-                        const rawVal = flat[w.key] ?? flat['kv.' + w.key];
-                        SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, flat.timestamp);
+                        const rawVal = data[w.key];
+                        SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, data.timestamp);
                     });
 
                     // Estado reportado por el hardware
                     const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
                     const statusKey = connWidget?.statusKey || 'gsm_stored_state';
-                    const reportedState = String(flat[statusKey] ?? "ONLINE").toUpperCase();
-
+                    const reportedState = String(data[statusKey] || "ONLINE").toUpperCase();
                     
                     if (reportedState === "ONLINE" || reportedState === "REG_OK") {
                         setConnStatus("SISTEMA ONLINE");
@@ -1134,7 +1115,7 @@ const flat = normalizeFlat(raw);
 
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
-                            const next = [...prev, flat];
+                            const next = [...prev, data];
                             return next.length > 200 ? next.slice(-200) : next;
                         });
                     }
@@ -1223,8 +1204,8 @@ const flat = normalizeFlat(raw);
                 ? ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 : ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             
-            const v1Raw = parseFloat((d[chartConfig.primaryY] ?? (d.kv ? d.kv[chartConfig.primaryY] : d['kv.' + chartConfig.primaryY])));
-            const v2Raw = chartConfig.secondaryY ? parseFloat((d[chartConfig.secondaryY] ?? (d.kv ? d.kv[chartConfig.secondaryY] : d['kv.' + chartConfig.secondaryY]))) : NaN;
+            const v1Raw = parseFloat(d[chartConfig.primaryY]);
+            const v2Raw = chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : NaN;
 
             // BLINDAJE PUNTO 4: Chart.js tratará null como un hueco en la línea
             const v1 = v1Raw === -50.0 ? null : v1Raw;
@@ -1259,34 +1240,14 @@ const flat = normalizeFlat(raw);
     };
 
     useEffect(() => {
-        let mounted = true;
-        let intervalId = null;
+        fetchHistory();
+    }, [chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate]);
 
-        const startLoop = async () => {
-            try {
-                // Asegurarnos de cargar historial antes de hacer la primera actualización live
-                await fetchHistory();
-            } catch (e) {
-                console.warn('fetchHistory falló en arranque', e);
-            }
-            if (!mounted) return;
-
-            try {
-                await fetchUpdate();
-            } catch (e) {
-                console.warn('fetchUpdate inicial falló', e);
-            }
-
-            intervalId = setInterval(fetchUpdate, CONFIG.refreshInterval);
-        };
-
-        startLoop();
-
-        return () => {
-            mounted = false;
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate]);
+    useEffect(() => {
+        fetchUpdate();
+        const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
+        return () => clearInterval(interval);
+    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange]);
 
     useEffect(() => {
         setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
@@ -1579,16 +1540,7 @@ const flat = normalizeFlat(raw);
                                             </div>
                                         </div>
                                         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-                                            <DashboardChart widget={w} dataHistory={
-                                                historyData && historyData.length > 0 ? historyData.map(d => {
-                                                    const ts = new Date(d.timestamp);
-                                                    const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                                                    const raw = (d[w.key] ?? (d.kv ? d.kv[w.key] : d['kv.' + w.key]));
-                                                    const parsed = parseFloat(raw);
-                                                    const v = isNaN(parsed) ? null : (parsed === -50.0 ? null : parsed);
-                                                    return { t: label, v: v, v2: null, fullTimestamp: d.timestamp };
-                                                }) : []
-                                            } chartConfig={{ primaryY: w.key }} />
+                                            <DashboardChart widget={w} dataHistory={[]} chartConfig={{ primaryY: w.key }} />
                                         </div>
                                     </div>
                                 );

@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Query, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
+from fastapi import FastAPI, Query, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -52,6 +52,12 @@ def clean_for_json(obj):
     if isinstance(obj, float):
         if math.isnan(obj) or math.isinf(obj): return 0.0
     return obj
+
+# HELPERS: filtrar headers hop-by-hop y no reenviar content-length
+HOP_BY_HOP = {"connection","keep-alive","proxy-authenticate","proxy-authorization","te","trailers","transfer-encoding","upgrade"}
+
+def _filter_upstream_headers(hdrs):
+    return {k: v for k, v in hdrs.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
 
 # 1) ESTADO DE CONTROL Y ALERTAS
 CONTROL_STATE = {
@@ -131,29 +137,14 @@ async def api_ingreso(payload: Dict[str, Any]):
     return {"status": "ok"}
 
 @app.get("/api/last")
-async def api_last():
-    if DEFAULT_CHANNEL in LAST_CACHE:
-        return clean_for_json(LAST_CACHE[DEFAULT_CHANNEL])
-    
-    # Fallback a DB
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        c = conn.cursor()
-        c.execute("SELECT ts_iso, payload_json FROM events WHERE channel=? ORDER BY ts DESC LIMIT 1", (DEFAULT_CHANNEL,))
-        res = c.fetchone()
-        if res:
-            raw_payload = json.loads(res[1])
-            # Normalizar para el Dashboard
-            data = {"timestamp": res[0]}
-            if "kv" in raw_payload:
-                data.update(raw_payload["kv"])
-            else:
-                data.update(raw_payload)
-            LAST_CACHE[DEFAULT_CHANNEL] = data
-            return clean_for_json(data)
-    except: pass
-    finally: conn.close()
-    return {}
+async def api_last(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/last"
+    qs = str(request.url.query)
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
 # 2b) /api/data (PROXY: Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
 # Inserted bridge host at generation time to avoid undefined Python variable
@@ -163,68 +154,23 @@ BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
 async def api_data(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/data"
     qs = str(request.url.query)
-
     async with httpx.AsyncClient(timeout=30.0) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
-
-    # Si el bridge responde error/no-json, no romper
-    try:
-        data = r.json()
-    except Exception:
-        data = {"detail": r.text}
-
-    return JSONResponse(content=data, status_code=r.status_code)
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
 
 # 3) /api/series
 @app.get("/api/series")
-async def api_series(
-    channel: str = DEFAULT_CHANNEL,
-    key: str = Query(...),
-    from_ts: Optional[int] = None,
-    to_ts: Optional[int] = None,
-    from_iso: Optional[str] = None,
-    to_iso: Optional[str] = None,
-    source: str = "auto",
-    max_points: int = Query(1000, ge=1000, le=25000)
-):
-    if not key.startswith("kv."): key = f"kv.{key}"
-
-    now_ts = int(datetime.now(timezone.utc).timestamp())
-    if to_iso: 
-        try: to_ts = int(datetime.fromisoformat(to_iso.replace("Z", "").split("+")[0]).replace(tzinfo=timezone.utc).timestamp())
-        except: pass
-    if from_iso:
-        try: from_ts = int(datetime.fromisoformat(from_iso.replace("Z", "").split("+")[0]).replace(tzinfo=timezone.utc).timestamp())
-        except: pass
-    
-    if to_ts is None: to_ts = now_ts
-    if from_ts is None: from_ts = to_ts - 86400
-
-    if from_ts >= to_ts: raise HTTPException(status_code=400, detail="Rango inválido")
-
-    # Decidir origen
-    if source == "auto":
-        source = "live" if (to_ts >= (now_ts - LIVE_RETENTION_DAYS * 86400)) else "archive"
-
-    # Llamada al Bridge (Devuelve tupla: pts, I, n_in)
-    pts, I, n_in = _series_from_sqlite(DB_FILE if source == "live" else "AUTO", channel, key, from_ts, to_ts, max_points)
-    
-    # Adaptar para el Dashboard (inyectar key en los puntos)
-    for p in pts:
-        p[key] = p.get("avg")
-
-    return {
-        "source": source,
-        "channel": channel,
-        "key": key,
-        "from_ts": from_ts,
-        "to_ts": to_ts,
-        "bucket_I_sec": I,
-        "points_in": n_in,
-        "points_out": len(pts),
-        "points": pts
-    }
+async def api_series(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/series"
+    qs = str(request.url.query)
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
 # 4) /api/download/xlsx_range
 @app.get("/api/download/xlsx")
@@ -234,18 +180,11 @@ async def proxy_download_xlsx(request: Request):
     async with httpx.AsyncClient(timeout=None) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
 
-    headers = {}
-    ct = r.headers.get("content-type")
-    cd = r.headers.get("content-disposition")
-    if ct: headers["content-type"] = ct
-    if cd: headers["content-disposition"] = cd
-
-    return StreamingResponse(
-        r.aiter_bytes(),
-        status_code=r.status_code,
-        headers=headers,
-        media_type=ct or "application/octet-stream",
-    )
+    headers = _filter_upstream_headers(r.headers)
+    if r.headers.get("content-disposition"):
+        headers["content-disposition"] = r.headers.get("content-disposition")
+    media_type = r.headers.get("content-type")
+    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
 
 @app.get("/api/download/xlsx_range")
 async def proxy_download_xlsx_range(request: Request):
@@ -254,18 +193,11 @@ async def proxy_download_xlsx_range(request: Request):
     async with httpx.AsyncClient(timeout=None) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
 
-    headers = {}
-    ct = r.headers.get("content-type")
-    cd = r.headers.get("content-disposition")
-    if ct: headers["content-type"] = ct
-    if cd: headers["content-disposition"] = cd
-
-    return StreamingResponse(
-        r.aiter_bytes(),
-        status_code=r.status_code,
-        headers=headers,
-        media_type=ct or "application/octet-stream",
-    )
+    headers = _filter_upstream_headers(r.headers)
+    if r.headers.get("content-disposition"):
+        headers["content-disposition"] = r.headers.get("content-disposition")
+    media_type = r.headers.get("content-type")
+    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
 
 @app.post("/api/alerts")
 async def api_alerts(payload: Dict[str, Any]):
@@ -292,38 +224,28 @@ async def get_alerts(limit: int = 100):
     finally: conn.close()
 
 @app.get("/api/control_state")
-async def get_control_state(format: Optional[str] = None):
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        c = conn.cursor()
-        c.execute("SELECT state_json FROM control_state WHERE id=1")
-        res = c.fetchone()
-        state = json.loads(res[0]) if res else {"manual": False}
-        if format == "esp32":
-            parts = [f"MANUAL:{'ON' if state.get('manual') else 'OFF'}"]
-            for k, v in state.items():
-                if k == "manual": continue
-                val = "ON" if v is True else "OFF" if v is False else str(v)
-                parts.append(f"{k}:{val}")
-            return HTMLResponse(",".join(parts))
-        return state
-    except: return {"manual": False}
-    finally: conn.close()
+async def get_control_state(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/control_state"
+    qs = str(request.url.query)
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
 @app.post("/api/control_state")
-async def update_control_state(payload: Dict[str, Any]):
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        c = conn.cursor()
-        c.execute("SELECT state_json FROM control_state WHERE id=1")
-        res = c.fetchone()
-        state = json.loads(res[0]) if res else {"manual": False}
-        state.update(payload)
-        c.execute("UPDATE control_state SET state_json=?, updated_ts=?, updated_iso=? WHERE id=1", 
-                 (json.dumps(state), int(datetime.now(timezone.utc).timestamp()), datetime.now(timezone.utc).isoformat()))
-        conn.commit()
-        return state
-    finally: conn.close()
+async def update_control_state(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/control_state"
+    qs = str(request.url.query)
+    body = await request.body()
+    fwd_headers = {}
+    if "content-type" in request.headers:
+        fwd_headers["content-type"] = request.headers["content-type"]
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
 if __name__ == "__main__":
     import uvicorn
