@@ -509,7 +509,7 @@
                 let hMax = -Infinity;
 
                 const incoming = historyRows.map(row => {
-                    const raw = (row && row.kv) ? row.kv[variableKey] : (row ? row[variableKey] : undefined);
+                    const raw = (row && row.kv) ? (row.kv[variableKey] ?? row.kv['kv.' + variableKey]) : (row ? (row[variableKey] ?? row['kv.' + variableKey]) : undefined);
                     const num = parseFloat(raw);
                     const val = isNaN(num) ? sMin : Math.max(sMin, Math.min(sMax, num));
                     if (!isNaN(num)) {
@@ -960,6 +960,24 @@ const DashboardApp = () => {
     const [isLearning, setIsLearning] = useState(true);
 
     const BASE_URL = CONFIG.BASE_URL || "";
+const normalizeFlat = (obj) => {
+    if (!obj || typeof obj !== 'object') return { timestamp: new Date().toISOString() };
+
+    const src = (obj.kv && typeof obj.kv === 'object') ? obj.kv : obj;
+
+    const out = {};
+    if (obj.timestamp) out.timestamp = obj.timestamp;
+
+    for (const [k, v] of Object.entries(src || {})) {
+        if (k === 'timestamp' || k === 'kv') continue;
+        const kk = (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
+        out[kk] = v;
+    }
+
+    if (!out.timestamp) out.timestamp = new Date().toISOString();
+    return out;
+};
+
 
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
@@ -1005,21 +1023,22 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
             const res = await fetch(url);
             if (res.ok) {
                 const rawHistory = await res.json();
-                // Mantener el formato original: array de { timestamp, kv }
-                const history = Array.isArray(rawHistory) ? rawHistory : [];
+
+                // Normalización global sin "kv." (array de puntos flat)
+                const history = Array.isArray(rawHistory) ? rawHistory.map(normalizeFlat) : [];
                 setHistoryData(history);
 
                 // Cargar historial en los Sparklines y Estadísticas Diarias al inicio
-                const todayStart = history.length > 0 ? (history[0].timestamp || history[0].ts_iso || null) : null;
+                const todayStart = history.length > 0 ? (history[0].timestamp || null) : null;
 
                 CONFIG.dashboard.widgets.forEach(w => {
                     if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
                         // Buffer visual: últimos 100 puntos (extraer desde row.kv)
-                        const hDataBuffer = history.map(d => (d.kv ? d.kv[w.key] : undefined)).filter(v => v !== undefined && v !== null && v !== '--');
+                        const hDataBuffer = history.map(d => (d[w.key] ?? d['kv.' + w.key])).filter(v => v !== undefined && v !== null && v !== '--');
 
                         // Estadísticas (Hoy): filtrar por fecha comparando con first timestamp (compat tolerante)
                         const hDataToday = (todayStart !== null)
-                            ? history.filter(d => (d.timestamp || d.ts_iso) >= todayStart).map(d => (d.kv ? d.kv[w.key] : undefined)).filter(v => v !== undefined && v !== null && v !== '--')
+                            ? history.filter(d => (d.timestamp || '') >= todayStart).map(d => (d[w.key] ?? d['kv.' + w.key])).filter(v => v !== undefined && v !== null && v !== '--')
                             : [];
 
                         // Pasar el historial completo en formato {timestamp, kv} al motor
@@ -1041,22 +1060,9 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
             
             const raw = await res.json();
 
-            // Normalizar live únicamente aquí: el formato interno del dashboard será
-            // { timestamp: string, kv: { ... } }
-            let normalizedLive;
-            if (raw && raw.kv) {
-                normalizedLive = raw;
-            } else {
-                const kv = {};
-                for (const [k, v] of Object.entries(raw || {})) {
-                    if (k === 'timestamp') continue;
-                    kv[k] = v;
-                }
-                normalizedLive = { timestamp: raw && raw.timestamp ? raw.timestamp : new Date().toISOString(), kv };
-            }
+            // Normalización global sin "kv." (flat keys)
+const flat = normalizeFlat(raw);
 
-            // Plano para la UI/legacy: objeto aplanado con timestamp para no romper otras partes
-            const flat = { ...(normalizedLive.kv || {}), timestamp: normalizedLive.timestamp };
 
             // Validar que la data es real
             const hasData = flat && flat.timestamp && flat.timestamp !== '--';
@@ -1100,10 +1106,10 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
                         return changed ? next : prev;
                     });
 
-                    // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
+                    // Actualización Centralizada del Motor (usar valores ya normalizados)
                     CONFIG.dashboard.widgets.forEach(w => {
-                        const rawVal = (normalizedLive && normalizedLive.kv) ? normalizedLive.kv[w.key] : flat[w.key];
-                        SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, normalizedLive.timestamp);
+                        const rawVal = flat[w.key] ?? flat['kv.' + w.key];
+                        SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, flat.timestamp);
                     });
 
                     // Estado reportado por el hardware
@@ -1217,8 +1223,8 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
                 ? ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 : ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             
-            const v1Raw = parseFloat(d.kv ? d.kv[chartConfig.primaryY] : d[chartConfig.primaryY]);
-            const v2Raw = chartConfig.secondaryY ? parseFloat(d.kv ? d.kv[chartConfig.secondaryY] : d[chartConfig.secondaryY]) : NaN;
+            const v1Raw = parseFloat((d[chartConfig.primaryY] ?? (d.kv ? d.kv[chartConfig.primaryY] : d['kv.' + chartConfig.primaryY])));
+            const v2Raw = chartConfig.secondaryY ? parseFloat((d[chartConfig.secondaryY] ?? (d.kv ? d.kv[chartConfig.secondaryY] : d['kv.' + chartConfig.secondaryY]))) : NaN;
 
             // BLINDAJE PUNTO 4: Chart.js tratará null como un hueco en la línea
             const v1 = v1Raw === -50.0 ? null : v1Raw;
@@ -1577,7 +1583,7 @@ const rType = chartConfig.timeRange === 'Ahora' ? '24h' :
                                                 historyData && historyData.length > 0 ? historyData.map(d => {
                                                     const ts = new Date(d.timestamp);
                                                     const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                                                    const raw = d.kv ? d.kv[w.key] : d[w.key];
+                                                    const raw = (d[w.key] ?? (d.kv ? d.kv[w.key] : d['kv.' + w.key]));
                                                     const parsed = parseFloat(raw);
                                                     const v = isNaN(parsed) ? null : (parsed === -50.0 ? null : parsed);
                                                     return { t: label, v: v, v2: null, fullTimestamp: d.timestamp };
