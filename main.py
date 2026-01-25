@@ -143,19 +143,12 @@ async def api_last():
         res = c.fetchone()
         if res:
             raw_payload = json.loads(res[1])
-
-            # Normalización global sin "kv." (flat keys)
+            # Normalizar para el Dashboard
             data = {"timestamp": res[0]}
-
-            src = raw_payload.get("kv") if isinstance(raw_payload, dict) and isinstance(raw_payload.get("kv"), dict) else raw_payload
-
-            if isinstance(src, dict):
-                for k, v in src.items():
-                    if k == "timestamp":
-                        continue
-                    kk = k[3:] if isinstance(k, str) and k.startswith("kv.") else k
-                    data[kk] = v
-
+            if "kv" in raw_payload:
+                data.update(raw_payload["kv"])
+            else:
+                data.update(raw_payload)
             LAST_CACHE[DEFAULT_CHANNEL] = data
             return clean_for_json(data)
     except: pass
@@ -176,33 +169,11 @@ async def api_data(request: Request):
 
     # Si el bridge responde error/no-json, no romper
     try:
-        raw = r.json()
+        data = r.json()
     except Exception:
-        raw = {"detail": r.text}
+        data = {"detail": r.text}
 
-    # Normalización global sin "kv." para histórico
-    # - Si viene [{timestamp, kv:{kv.xxx}}] => [{timestamp, xxx}]
-    # - Si viene [{timestamp, kv.xxx}] => [{timestamp, xxx}]
-    if isinstance(raw, list):
-        out = []
-        for pt in raw:
-            if not isinstance(pt, dict):
-                continue
-            ts = pt.get("timestamp")
-            src = pt.get("kv") if isinstance(pt.get("kv"), dict) else pt
-            row = {}
-            if ts is not None:
-                row["timestamp"] = ts
-            if isinstance(src, dict):
-                for k, v in src.items():
-                    if k in ("timestamp", "kv"):
-                        continue
-                    kk = k[3:] if isinstance(k, str) and k.startswith("kv.") else k
-                    row[kk] = v
-            out.append(row)
-        return JSONResponse(content=out, status_code=r.status_code)
-
-    return JSONResponse(content=raw, status_code=r.status_code)
+    return JSONResponse(content=data, status_code=r.status_code)
 
 
 # 3) /api/series

@@ -509,7 +509,7 @@
                 let hMax = -Infinity;
 
                 const incoming = historyRows.map(row => {
-                    const raw = (row && row.kv) ? (row.kv[variableKey] ?? row.kv['kv.' + variableKey]) : (row ? (row[variableKey] ?? row['kv.' + variableKey]) : undefined);
+                    const raw = (row && row.kv) ? row.kv[variableKey] : (row ? row[variableKey] : undefined);
                     const num = parseFloat(raw);
                     const val = isNaN(num) ? sMin : Math.max(sMin, Math.min(sMax, num));
                     if (!isNaN(num)) {
