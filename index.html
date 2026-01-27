@@ -1182,7 +1182,14 @@ useEffect(() => {
                     // Estado reportado por el hardware
                     const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
                     const statusKey = connWidget?.statusKey || 'gsm_stored_state';
-                    const reportedState = String(flat[statusKey] ?? "ONLINE").toUpperCase();
+                    const rawReported = flat[statusKey];
+                    let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
+                    // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
+                    // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
+                    if (/^d{6,}$/.test(reportedState)) {
+                        reportedState = "ONLINE";
+                    }
+                    reportedState = reportedState.toUpperCase();
                     
                     if (reportedState === "ONLINE" || reportedState === "REG_OK") {
                         setConnStatus("SISTEMA ONLINE");
