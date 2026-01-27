@@ -199,50 +199,79 @@ async def proxy_download_xlsx_range(request: Request):
     media_type = r.headers.get("content-type")
     return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
 
+
 @app.post("/api/alerts")
-async def api_alerts(payload: Dict[str, Any]):
-    device = payload.get("device", DEFAULT_DEVICE)
-    alert_data = {
-        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "msg": payload.get("msg") or payload.get("mensaje", ""),
-        "type": payload.get("type") or "CRITICAL",
-        "value": payload.get("value") or 0,
-        "signal": payload.get("signal", ""),
-        "extra": payload.get("extra", {})
-    }
-    success = persist("alerts", device, alert_data)
-    return {"status": "ok" if success else "error"}
+async def api_alerts(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/alerts"
+    qs = str(request.url.query)
+    body = await request.body()
+
+    # reenviar content-type + headers de auditoría si vienen
+    fwd_headers = {}
+    if "content-type" in request.headers:
+        fwd_headers["content-type"] = request.headers["content-type"]
+    if "x-actor-id" in request.headers:
+        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
+    if "x-session-id" in request.headers:
+        fwd_headers["x-session-id"] = request.headers["x-session-id"]
+    if "x-forwarded-for" in request.headers:
+        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
+
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+
 
 @app.get("/api/alerts")
-async def get_alerts(limit: int = 100):
-    conn = sqlite3.connect(DB_FILE)
-    try:
-        df = pd.read_sql_query(f"SELECT payload_json FROM events WHERE channel='alerts' ORDER BY ts DESC LIMIT {limit}", conn)
-        alerts = [json.loads(r['payload_json']) for _, r in df.iterrows()]
-        return clean_for_json(alerts)
-    except: return []
-    finally: conn.close()
+async def get_alerts(request: Request):
+    url = f"{BRIDGE_HTTP_BASE}/api/alerts"
+    qs = str(request.url.query)
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.get(f"{url}?{qs}" if qs else url)
+
+    headers = _filter_upstream_headers(r.headers)
+    media_type = r.headers.get("content-type")
+    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+
+
 
 @app.get("/api/control_state")
 async def get_control_state(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/control_state"
     qs = str(request.url.query)
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
+
     headers = _filter_upstream_headers(r.headers)
     media_type = r.headers.get("content-type")
     return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+
 
 @app.post("/api/control_state")
 async def update_control_state(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/control_state"
     qs = str(request.url.query)
     body = await request.body()
+
+    # reenviar content-type + headers de auditoría si vienen
     fwd_headers = {}
     if "content-type" in request.headers:
         fwd_headers["content-type"] = request.headers["content-type"]
+    if "x-actor-id" in request.headers:
+        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
+    if "x-session-id" in request.headers:
+        fwd_headers["x-session-id"] = request.headers["x-session-id"]
+    if "x-forwarded-for" in request.headers:
+        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
+
     headers = _filter_upstream_headers(r.headers)
     media_type = r.headers.get("content-type")
     return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
