@@ -642,6 +642,11 @@ const normalizePoint = (raw) => {
 const LIVE_MAX_POINTS = 300;
 const HISTORY_PRELOAD_LIMIT = 5000;
 const LIVE_PRELOAD_LIMIT = 300;
+// Cache local para que el dashboard no "arranque vacío" si la red tarda
+const HISTORY_CACHE_LIMIT = 1500;
+const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
+// Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
+const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
 // Componente de Gráfico Optimizado (Zero-Flicker)
 const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     const canvasRef = useRef(null);
@@ -950,6 +955,8 @@ const DashboardApp = () => {
     const [alerts, setAlerts] = useState([]);
     const [controlState, setControlState] = useState({});
     const [pendingCommands, setPendingCommands] = useState({}); 
+    // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
+    const [sparkTick, setSparkTick] = useState(0);
     const [historyData, setHistoryData] = useState([]); 
     const [liveData, setLiveData] = useState([]); 
     const [seriesData, setSeriesData] = useState([]);
@@ -968,6 +975,33 @@ const DashboardApp = () => {
     const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
     const BASE_URL = CONFIG.BASE_URL || "";
+
+    // --- ACK local de alertas (no borra historial en el Bridge) ---
+    const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
+        try {
+            const v = Number(localStorage.getItem('adtec_alerts_seen_until_ms') || 0);
+            return Number.isFinite(v) ? v : 0;
+        } catch(e) { return 0; }
+    });
+    const setSeenUntil = (ms) => {
+        try { localStorage.setItem('adtec_alerts_seen_until_ms', String(ms)); } catch(e) {}
+        setAlertsSeenUntilMs(ms);
+    };
+    const getAlertMs = (a) => {
+        if (!a) return 0;
+        if (a.ts != null) return Number(a.ts) * 1000;
+        const iso = a.ts_iso || a.timestamp || a.time || a.date;
+        const t = iso ? new Date(iso).getTime() : 0;
+        return Number.isFinite(t) ? t : 0;
+    };
+
+    // Helpers: datetime-local (sin timezone explícito, usa local del browser)
+    const pad2dt = (n) => String(n).padStart(2, '0');
+    const toDatetimeLocal = (ts) => {
+        const d = (ts instanceof Date) ? ts : new Date(ts);
+        if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+        return d.getFullYear() + '-' + pad2dt(d.getMonth()+1) + '-' + pad2dt(d.getDate()) + 'T' + pad2dt(d.getHours()) + ':' + pad2dt(d.getMinutes());
+    };
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
     useEffect(() => {
@@ -992,6 +1026,20 @@ const DashboardApp = () => {
     }, []);
     const normalizeKey = (k) => (typeof k === "string" && k.startsWith("kv.")) ? k.slice(3) : k;
         const normalizeRow = (obj) => { const out = {}; for (const [k,v] of Object.entries(obj||{})) out[normalizeKey(k)] = v; return out; };
+
+	// Latching de fechas del chart: LIVE/24h/7d actualizan from/to con primer/último punto.
+	// Al entrar a Rango, se congela y el usuario edita.
+	const latchChartDates = useCallback((fromTsLike, toTsLike) => {
+		if (!fromTsLike || !toTsLike) return;
+		const fromL = toDatetimeLocal(fromTsLike);
+		const toL = toDatetimeLocal(toTsLike);
+		if (!fromL || !toL) return;
+		setChartConfig(prev => {
+			if (prev.timeRange === 'Rango') return prev;
+			if (prev.fromDate === fromL && prev.toDate === toL) return prev;
+			return { ...prev, fromDate: fromL, toDate: toL };
+		});
+	}, []);
         
 const mergeByTimestamp = (rowsA, rowsB) => {
     const map = new Map();
@@ -1088,14 +1136,140 @@ const fetchSeriesPrimary = async () => {
 useEffect(() => {
     fetchSeriesPrimary();
 }, [chartConfig.timeRange, chartConfig.primaryY, chartConfig.secondaryY, chartConfig.fromDate, chartConfig.toDate]);
+
+// --- Latch de fechas para que nunca queden vacías y para que RANGO arranque con valores editables ---
+useEffect(() => {
+    // En RANGO: congelar y, si está vacío, setear defaults (to=último o now, from=to-24h)
+    if (chartConfig.timeRange === 'Rango') {
+        if (!chartConfig.fromDate || !chartConfig.toDate) {
+            const toTs = (lastData && lastData.timestamp) ? lastData.timestamp : Date.now();
+            const toStr = toDatetimeLocal(toTs);
+            const fromStr = toDatetimeLocal((new Date(toTs).getTime()) - 86400000);
+            setChartConfig(prev => ({ ...prev, fromDate: prev.fromDate || fromStr, toDate: prev.toDate || toStr }));
+        }
+        return;
+    }
+    // Quick ranges: setear un fallback inmediato (luego se ajusta al primer/último punto real)
+    const nowMs = Date.now();
+    if (chartConfig.timeRange === 'Ahora') {
+        // si todavía no hay liveData, al menos "to" queda seteado
+        const toStr = toDatetimeLocal(nowMs);
+        const fromStr = toDatetimeLocal(nowMs - 300000); // 5m
+        setChartConfig(prev => ({ ...prev, fromDate: fromStr, toDate: toStr }));
+    } else if (chartConfig.timeRange === '24h') {
+        setChartConfig(prev => ({ ...prev, fromDate: toDatetimeLocal(nowMs - 86400000), toDate: toDatetimeLocal(nowMs) }));
+    } else if (chartConfig.timeRange === '7d') {
+        setChartConfig(prev => ({ ...prev, fromDate: toDatetimeLocal(nowMs - 7*86400000), toDate: toDatetimeLocal(nowMs) }));
+    }
+}, [chartConfig.timeRange]);
+
+// Ajuste fino: LIVE usa primer/último punto real
+useEffect(() => {
+    if (chartConfig.timeRange !== 'Ahora') return;
+    if (!liveData || liveData.length === 0) return;
+    const first = liveData[0]?.timestamp;
+    const last = liveData[liveData.length - 1]?.timestamp;
+    if (first && last) latchChartDates(first, last);
+}, [chartConfig.timeRange, liveData]);
+
+// Ajuste fino: 24h/7d usa primer/último punto de seriesData
+useEffect(() => {
+    if (chartConfig.timeRange !== '24h' && chartConfig.timeRange !== '7d') return;
+    if (!seriesData || seriesData.length === 0) return;
+    const first = seriesData[0]?.timestamp;
+    const last = seriesData[seriesData.length - 1]?.timestamp;
+    if (first && last) latchChartDates(first, last);
+}, [chartConfig.timeRange, seriesData]);
+    
+    // --- Precarga server-side de series para Sparklines (1 request, 24h / max_points) ---
+    const preloadSparklineHistory = async () => {
+        try {
+            const sparkWidgets = CONFIG.dashboard.widgets.filter(w => (w.showSparkline || w.type === 'gauge' || w.showMinMax));
+            if (!sparkWidgets || sparkWidgets.length === 0) return;
+
+            const keys = Array.from(new Set(sparkWidgets.map(w => normalizeKey(w.key)).filter(Boolean)));
+            if (keys.length === 0) return;
+
+            const u = new URL(BASE_URL + '/api/sparkline_series', window.location.origin);
+            u.searchParams.set('channel', 'ingreso');
+            u.searchParams.set('hours', String(CONFIG.sparklineHours || 24));
+            u.searchParams.set('max_points', String(CONFIG.sparklineMaxPoints || 120));
+            u.searchParams.set('keys', keys.join(','));
+
+            const res = await fetch(u);
+            if (!res.ok) return;
+            const js = await res.json();
+            const series = js && js.series ? js.series : {};
+            if (!series || typeof series !== 'object') return;
+
+            sparkWidgets.forEach(w => {
+                const wk = normalizeKey(w.key);
+                const pts = Array.isArray(series[wk]) ? series[wk] : [];
+                if (pts.length === 0) return;
+
+                const hDataBuffer = pts.map(p => p?.[1]).filter(v => v !== undefined && v !== null);
+                // Para min/max del día, usamos el mismo buffer (el motor ya calcula stats).
+                const hDataToday = hDataBuffer;
+
+                try {
+                    SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
+                } catch (e) {
+                    console.warn('SparklineEngine.setHistory (server series) falló para', w.id, e);
+                }
+            });
+        } catch (e) {
+            console.warn('preloadSparklineHistory falló', e);
+        }
+    };
+
     const fetchHistory = async () => {
         try {
+            // 0) Seed rápido desde cache local (evita dashboard "en blanco" al cargar)
+            if (!historyData || historyData.length === 0) {
+                try {
+                    const cached = localStorage.getItem(HISTORY_CACHE_KEY);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            const cachedRows = parsed.map(r => normalizeRow(r));
+                            setHistoryData(cachedRows);
+                            setLastData(cachedRows[cachedRows.length - 1]);
+                            if (chartConfig.timeRange === 'Ahora') {
+                                setLiveData(cachedRows.slice(-LIVE_PRELOAD_LIMIT));
+                            }
+                            // Cargar sparkline history con el cache (best-effort)
+                            const todayStart = cachedRows[0].timestamp || null;
+                            CONFIG.dashboard.widgets.forEach(w => {
+                                if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
+                                    const wk = normalizeKey(w.key);
+                                    const hDataBuffer = cachedRows.map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
+                                    const hDataToday = (todayStart !== null)
+                                        ? cachedRows.filter(d => (d.timestamp || d.ts_iso) >= todayStart).map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
+                                        : [];
+                                    try { SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday); } catch (e) {}
+                                }
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // ignore cache errors
+                }
+            }
+
             const url = new URL(BASE_URL + '/api/data', window.location.origin);
             url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
             const res = await fetch(url);
             if (!res.ok) return;
             const raw = await res.json();
             const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+
+            // 1) Guardar cache acotado
+            try {
+                const slice = fullHistory.slice(-HISTORY_CACHE_LIMIT);
+                localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(slice));
+            } catch (e) {
+                // ignore
+            }
             // Mantener el schema actual (array de filas normalizadas)
             setHistoryData(fullHistory);
             // Seed inicial: si hay histórico, mostrar el último valor (flat)
@@ -1124,6 +1298,9 @@ useEffect(() => {
                 const lastLive = fullHistory.slice(-LIVE_PRELOAD_LIMIT);
                 setLiveData(lastLive);
             }
+
+            // Precargar series server-side para Sparklines (historial profundo)
+            await preloadSparklineHistory();
         } catch(e) { console.error("Error historial:", e); }
     };
     const fetchUpdate = async () => {
@@ -1154,6 +1331,8 @@ useEffect(() => {
                     setLastArrivalLocal(Date.now());
                     // Mantener flat para compat visual dentro del template
                     setLastData(flat);
+	                    // Forzar refresco de sparklines en cada paquete nuevo
+	                    setSparkTick(t => t + 1);
                     // Sincronización de Estado Deseado
                     setPendingCommands(prev => {
                         const next = { ...prev };
@@ -1180,9 +1359,10 @@ useEffect(() => {
     SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
 });
                     // Estado reportado por el hardware
-                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
-                    const statusKey = connWidget?.statusKey || 'gsm_stored_state';
-                    const rawReported = flat[statusKey];
+	                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
+	                    // Prioridad: statusKey explícito > key del widget > fallback histórico
+	                    const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
+	                    const rawReported = getVal(flat, statusKey);
                     let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
                     // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
                     // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
@@ -1238,13 +1418,36 @@ useEffect(() => {
                 setControlState(await res.json());
             }
         } catch(e) { console.warn("Fallo Controles:", e); }
-        try {
-            const resA = await fetch(BASE_URL + '/api/alerts');
-            if (resA.ok) {
-                setAlerts(await resA.json());
-            }
-        } catch(e) { console.warn("Fallo Alertas:", e); }
     };
+
+	// Poll de alertas (separado del loop live para no spamear el Bridge)
+	const fetchAlerts = async () => {
+		try {
+			const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
+			u.searchParams.set('limit', '200');
+			const res = await fetch(u);
+			if (!res.ok) return;
+			const js = await res.json();
+			const arr = Array.isArray(js) ? js : [];
+			const normalized = arr.map(a => {
+				const ms = getAlertMs(a);
+				const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
+				return { ...a, timestamp, __ts_ms: ms };
+			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
+			setAlerts(normalized);
+		} catch(e) { console.warn("Fallo Alertas:", e); }
+	};
+
+	useEffect(() => {
+		let mounted = true;
+		const run = async () => {
+			if (!mounted) return;
+			await fetchAlerts();
+		};
+		run();
+		const id = setInterval(() => { fetchAlerts(); }, ALERTS_POLL_MS);
+		return () => { mounted = false; clearInterval(id); };
+	}, [BASE_URL, alertsSeenUntilMs]);
     const displayData = useMemo(() => {
         const isLive = chartConfig.timeRange === 'Ahora';
         let filtered = isLive ? liveData : seriesData;
@@ -1386,16 +1589,18 @@ useEffect(() => {
                                     </div>
                                     <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
                                 </div>
-                                <button 
-                                    onClick={async () => {
-                                        if (confirm('¿Limpiar todo el historial de alertas?')) {
-                                            await fetch(BASE_URL + '/api/alerts/clear', { method: 'POST' });
-                                            setAlerts([]);
-                                        }
-                                    }}
+							<button 
+								onClick={() => {
+									if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
+										const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
+										const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
+										setSeenUntil(maxMs);
+										setAlerts([]);
+									}
+								}}
                                     style={{ padding: '6px 15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
                                 >
-                                    LIMPIAR HISTORIAL
+								MARCAR COMO LEÍDAS
                                 </button>
                             </div>
                             {alerts.length === 0 ? (
@@ -1416,11 +1621,11 @@ useEffect(() => {
                                                 </div>
                                                 <div className="alert-card-msg">{a.msg}</div>
                                                 <div className="alert-card-detail">
-                                                    Valor: <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{formatValue(a.valor || a.value, 'fixed1', "")}</span>
-                                                    {(a.referencia !== undefined && a.referencia !== 0) && (
-                                                        <> | Ref: <span style={{ color: '#9ca3af' }}>{formatValue(a.referencia || a.ref, 'fixed1', "")}</span></>
-                                                    )}
-                                                    {a.signal && <> | Señal: <span style={{ color: 'var(--adtec-accent)' }}>{a.signal}</span></>}
+                                                    {Object.entries(a).map(([key, value]) => (
+                                                        <div key={key} style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                            {key}: <b>{String(value)}</b>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         </div>
@@ -1571,6 +1776,11 @@ useEffect(() => {
                                     </div>
                                 </div>
                             </div>
+	                            {/* Barra informativa: primer/último timestamp del modo actual */}
+	                            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.9, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+	                                <div><strong>Desde:</strong> {chartConfig.fromDate || '--'}</div>
+	                                <div><strong>Hasta:</strong> {chartConfig.toDate || '--'}</div>
+	                            </div>
                             <div style={{ height: '400px', background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 15 }}>
                                 <DashboardChart 
                                     widget={{ label: activeVarLabel }} 
@@ -1672,7 +1882,7 @@ useEffect(() => {
                                                     // Evitar que el fallback numVal ensucie el gráfico al inicio
                                                     value={valStr === '--' ? undefined : numVal} 
                                                     showShadow={w.sparklineShadow}
-                                                    historyTick={historyData.length}
+                                                    historyTick={sparkTick}
                                                 />
                                             )}
                                         </>
@@ -1809,17 +2019,21 @@ useEffect(() => {
                                         );
                                     })()}
                                     {w.type === 'datetime' && (() => {
-                                        const rawVal = getWidgetValue(w.key);
-                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', w.unit);
+	                                        const rawVal = getWidgetValue(w.key);
+	                                        // No pegar la unidad a la fecha. La unidad (p.ej. "hs") va solo junto a la HORA.
+	                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', "");
                                         const parts = formatted.split('|');
                                         const displayTime = parts[0];
                                         const displayDate = parts[1] || '';
+	                                        const timeUnit = (w.unit || '').trim();
                                         
                                         return (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
                                                 <span style={{ fontSize: '20px' }}>⏰</span>
                                                 <div>
-                                                    <div style={{ fontSize: '14px', color: 'var(--adtec-accent)', fontWeight: 800 }}>{displayTime}</div>
+	                                                    <div style={{ fontSize: '14px', color: 'var(--adtec-accent)', fontWeight: 800 }}>
+	                                                        {displayTime}{timeUnit ? ' ' + timeUnit : ''}
+	                                                    </div>
                                                     {displayDate && <div style={{ fontSize: '10px', color: '#9ca3af' }}>{displayDate}</div>}
                                                 </div>
                                             </div>

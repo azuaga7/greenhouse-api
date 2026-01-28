@@ -15,6 +15,10 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 import math
 import httpx
+import asyncio
+import time
+from urllib.parse import parse_qs
+
 
 # IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
 try:
@@ -38,6 +42,57 @@ LIVE_RETENTION_DAYS = 30
 
 # Memoria volátil para respuesta instantánea
 LAST_CACHE = {}
+
+# Cache volátil para series (evita hits repetidos al Bridge al cambiar de variables/intervalos)
+# key -> (t_mono, ttl_sec, status_code, content_bytes, headers_dict, media_type)
+SERIES_CACHE = {}
+SERIES_CACHE_MAX = int(os.environ.get('SERIES_CACHE_MAX', '500'))
+SERIES_TTL_DEFAULT = float(os.environ.get('SERIES_TTL_DEFAULT', '60'))
+
+def _cache_prune():
+    # Mantener tamaño acotado (drop de los más viejos)
+    if len(SERIES_CACHE) <= SERIES_CACHE_MAX:
+        return
+    items = sorted(SERIES_CACHE.items(), key=lambda kv: kv[1][0])  # por t_mono
+    for k, _v in items[: max(1, len(items) - SERIES_CACHE_MAX)]:
+        SERIES_CACHE.pop(k, None)
+
+def _cache_get(key: str):
+    it = SERIES_CACHE.get(key)
+    if not it:
+        return None
+    t_mono, ttl, status_code, content, headers, media_type = it
+    if (time.monotonic() - t_mono) > ttl:
+        SERIES_CACHE.pop(key, None)
+        return None
+    return status_code, content, headers, media_type
+
+def _cache_set(key: str, status_code: int, content: bytes, headers: dict, media_type: str, ttl: float):
+    SERIES_CACHE[key] = (time.monotonic(), float(ttl), int(status_code), content, headers, media_type)
+    _cache_prune()
+
+def _series_ttl_from_qs(qs: str) -> float:
+    # TTL más largo para rangos amplios; más corto para rangos pequeños.
+    try:
+        q = parse_qs(qs or '')
+        from_ts = int(q.get('from_ts', [0])[0]) if 'from_ts' in q else None
+        to_ts = int(q.get('to_ts', [0])[0]) if 'to_ts' in q else None
+        if from_ts is not None and to_ts is not None and to_ts >= from_ts:
+            span = to_ts - from_ts
+            if span >= 7 * 86400:
+                return 180.0
+            if span >= 86400:
+                return 120.0
+            if span >= 6 * 3600:
+                return 90.0
+            if span >= 3600:
+                return 60.0
+            return 15.0
+    except Exception:
+        pass
+    return SERIES_TTL_DEFAULT
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -166,11 +221,76 @@ async def api_data(request: Request):
 async def api_series(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/series"
     qs = str(request.url.query)
+    cache_key = f"/api/series?{qs}" if qs else "/api/series"
+    ttl = _series_ttl_from_qs(qs)
+    hit = _cache_get(cache_key)
+    if hit is not None:
+        status_code, content, headers, media_type = hit
+        return Response(content=content, status_code=status_code, headers=headers, media_type=media_type)
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
+
     headers = _filter_upstream_headers(r.headers)
     media_type = r.headers.get("content-type")
+    _cache_set(cache_key, r.status_code, r.content, headers, media_type, ttl)
     return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+
+
+@app.get("/api/sparkline_series")
+async def api_sparkline_series(
+    keys: str = Query(..., description="Lista de keys separadas por coma"),
+    hours: int = Query(24, ge=1, le=168),
+    max_points: int = Query(120, ge=10, le=1000),
+    channel: str = Query(DEFAULT_CHANNEL),
+    device: str = Query(DEFAULT_DEVICE),
+):
+    """Devuelve series (downsample) para múltiples keys en un solo request.
+
+    Pensado para precargar sparklines y evitar N requests al Bridge.
+    """
+    key_list = [k.strip() for k in (keys or "").split(",") if k.strip()]
+    if not key_list:
+        return JSONResponse(content={"channel": channel, "device": device, "hours": hours, "max_points": max_points, "series": {}})
+
+    now = int(datetime.now(timezone.utc).timestamp())
+    from_ts = now - int(hours) * 3600
+    ttl = 60.0 if hours >= 24 else 20.0
+
+    async def fetch_one(k: str):
+        qs = f"channel={channel}&device={device}&key={k}&from_ts={from_ts}&to_ts={now}&max_points={max_points}"
+        cache_key = f"/api/series?{qs}"
+        hit = _cache_get(cache_key)
+        if hit is not None:
+            _status, content, _headers, _media = hit
+            try:
+                js = json.loads(content.decode("utf-8"))
+                pts = js.get("points") if isinstance(js, dict) else None
+                return k, (pts if isinstance(pts, list) else [])
+            except Exception:
+                pass
+
+        url = f"{BRIDGE_HTTP_BASE}/api/series?{qs}"
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.get(url)
+
+        try:
+            js = r.json()
+            pts = js.get("points") if isinstance(js, dict) else None
+            pts = pts if isinstance(pts, list) else []
+        except Exception:
+            pts = []
+
+        headers = _filter_upstream_headers(r.headers)
+        media_type = r.headers.get("content-type")
+        _cache_set(cache_key, r.status_code, r.content, headers, media_type, ttl)
+        return k, pts
+
+    results = await asyncio.gather(*[fetch_one(k) for k in key_list])
+    series = {k: pts for (k, pts) in results}
+    return JSONResponse(content={"channel": channel, "device": device, "hours": hours, "max_points": max_points, "series": series})
+
+
 
 # 4) /api/download/xlsx_range
 @app.get("/api/download/xlsx")
