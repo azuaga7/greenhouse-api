@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -40,6 +40,40 @@ DEFAULT_CHANNEL = "ingreso"
 PY_TZ = ZoneInfo("America/Asuncion")
 LIVE_RETENTION_DAYS = 30
 
+
+# --- cache_api snapshot (uploaded from Bridge) ---
+CACHE_API_DIR = os.environ.get("CACHE_API_DIR", os.path.join(DATA_DIR, "cache_api"))
+CACHE_API_SNAPSHOT_GZ = os.path.join(CACHE_API_DIR, "snapshot.json.gz")
+CACHE_API_TMP_GZ = CACHE_API_SNAPSHOT_GZ + ".tmp"
+CACHE_API_TOKEN = os.environ.get("CACHE_API_TOKEN", "")
+os.makedirs(CACHE_API_DIR, exist_ok=True)
+
+@app.post("/cache_api/upload")
+async def cache_api_upload(request: Request):
+    # Optional auth: set CACHE_API_TOKEN in env and send X-Cache-Token header from Bridge
+    if CACHE_API_TOKEN:
+        if request.headers.get("X-Cache-Token") != CACHE_API_TOKEN:
+            raise HTTPException(status_code=401, detail="bad token")
+    body = await request.body()
+    if not body or len(body) < 20:
+        raise HTTPException(status_code=400, detail="empty payload")
+
+    with open(CACHE_API_TMP_GZ, "wb") as f:
+        f.write(body)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(CACHE_API_TMP_GZ, CACHE_API_SNAPSHOT_GZ)
+    return {"status": "ok", "bytes": len(body)}
+
+@app.get("/cache_api/snapshot.json.gz")
+def cache_api_snapshot():
+    if not os.path.exists(CACHE_API_SNAPSHOT_GZ):
+        raise HTTPException(status_code=404, detail="snapshot not found")
+    return FileResponse(
+        CACHE_API_SNAPSHOT_GZ,
+        media_type="application/gzip",
+        filename="snapshot.json.gz",
+    )
 # Memoria volátil para respuesta instantánea
 LAST_CACHE = {}
 

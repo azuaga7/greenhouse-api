@@ -957,6 +957,9 @@ const DashboardApp = () => {
     const [pendingCommands, setPendingCommands] = useState({}); 
     // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
     const [sparkTick, setSparkTick] = useState(0);
+    const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
+    const [cacheApiEtag, setCacheApiEtag] = useState(null);
+    const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
     const [liveData, setLiveData] = useState([]); 
     const [seriesData, setSeriesData] = useState([]);
@@ -1222,8 +1225,47 @@ useEffect(() => {
         }
     };
 
-    const fetchHistory = async () => {
+    
+// --- cache_api snapshot (day_stats + last + alerts) ---
+const decodeGzipJson = async (ab) => {
+    try {
+        if (typeof DecompressionStream === "undefined") return null;
+        const ds = new DecompressionStream("gzip");
+        const stream = new Response(ab).body.pipeThrough(ds);
+        return await new Response(stream).json();
+    } catch (e) {
+        console.warn("[cache_api] decode failed:", e);
+        return null;
+    }
+};
+
+const fetchCacheApiSnapshot = async (force = false) => {
+    try {
+        const now = Date.now();
+        if (!force && now - (cacheApiLastFetchRef.current || 0) < 55_000) return;
+        cacheApiLastFetchRef.current = now;
+
+        const headers = {};
+        if (cacheApiEtag) headers["If-None-Match"] = cacheApiEtag;
+
+        const resp = await fetch("/cache_api/snapshot.json.gz", { headers });
+        if (resp.status === 304) return;
+        if (!resp.ok) return;
+
+        const et = resp.headers.get("etag");
+        if (et) setCacheApiEtag(et);
+
+        const ab = await resp.arrayBuffer();
+        const json = await decodeGzipJson(ab);
+        if (json) setCacheApiSnapshot(json);
+    } catch (e) {
+        console.warn("[cache_api] fetch failed:", e);
+    }
+};
+
+const fetchHistory = async () => {
         try {
+            await fetchCacheApiSnapshot(true);
             // 0) Seed rápido desde cache local (evita dashboard "en blanco" al cargar)
             if (!historyData || historyData.length === 0) {
                 try {
@@ -1305,6 +1347,7 @@ useEffect(() => {
     };
     const fetchUpdate = async () => {
         try {
+            await fetchCacheApiSnapshot(false);
             const res = await fetch(BASE_URL + '/api/last');
             if (!res.ok) throw new Error("API Offline");
             
@@ -1844,10 +1887,11 @@ useEffect(() => {
                                         const max = w.max || 100;
                                         const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
                                         
-                                        // Mín/Máx reales del día desde el motor
-                                        const stats = SparklineEngine.getStats(w.id);
-                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
-                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+                                        // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
+const wk = normalizeKey(w.key);
+const ds = (cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null;
+const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
+const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
                                         return (
                                             <>
                                                 <div className="adtec-status-value" style={{ textAlign: 'center' }}>
@@ -2048,10 +2092,11 @@ useEffect(() => {
                                                 </div>
                                             );
                                         }
-                                        // Mín/Máx reales del día desde el motor (Unificado)
-                                        const stats = SparklineEngine.getStats(w.id);
-                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
-                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+                                        // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
+const wk = normalizeKey(w.key);
+const ds = (cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null;
+const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
+const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                                                 <div className="adtec-status-value" style={{ textAlign: 'center' }}>
