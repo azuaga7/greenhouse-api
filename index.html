@@ -958,6 +958,8 @@ const DashboardApp = () => {
     // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
     const [sparkTick, setSparkTick] = useState(0);
     const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
+    const [dayStatsLive, setDayStatsLive] = useState({}); // min/max runtime: seed snapshot then extend with live
+    const cacheApiDayFromRef = useRef(null);
     const [cacheApiEtag, setCacheApiEtag] = useState(null);
     const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
@@ -1029,6 +1031,49 @@ const DashboardApp = () => {
     }, []);
     const normalizeKey = (k) => (typeof k === "string" && k.startsWith("kv.")) ? k.slice(3) : k;
         const normalizeRow = (obj) => { const out = {}; for (const [k,v] of Object.entries(obj||{})) out[normalizeKey(k)] = v; return out; };
+
+// --- Min/Max runtime helpers (seed snapshot, extend with live extremes) ---
+const getSnapDayFromTs = (snap) => {
+    if (!snap) return null;
+    return (snap.day_from_ts ?? (snap.ranges && snap.ranges.day_from_ts) ?? null);
+};
+
+const pickMin = (a, b) => {
+    const A = (a === null || a === undefined) ? null : Number(a);
+    const B = (b === null || b === undefined) ? null : Number(b);
+    if (A === null && B === null) return null;
+    if (A === null) return Number.isFinite(B) ? B : null;
+    if (B === null) return Number.isFinite(A) ? A : null;
+    if (!Number.isFinite(A) && Number.isFinite(B)) return B;
+    if (!Number.isFinite(B) && Number.isFinite(A)) return A;
+    if (!Number.isFinite(A) && !Number.isFinite(B)) return null;
+    return Math.min(A, B);
+};
+
+const pickMax = (a, b) => {
+    const A = (a === null || a === undefined) ? null : Number(a);
+    const B = (b === null || b === undefined) ? null : Number(b);
+    if (A === null && B === null) return null;
+    if (A === null) return Number.isFinite(B) ? B : null;
+    if (B === null) return Number.isFinite(A) ? A : null;
+    if (!Number.isFinite(A) && Number.isFinite(B)) return B;
+    if (!Number.isFinite(B) && Number.isFinite(A)) return A;
+    if (!Number.isFinite(A) && !Number.isFinite(B)) return null;
+    return Math.max(A, B);
+};
+
+const isValidForMinMax = (key, v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return false;
+
+    // DHT22 muerto suele spamear 0.0: NO contaminar min/max del día
+    const k = String(key || "");
+    const isDht22 = /^dht22_/i.test(k) || k.toLowerCase().includes("dht22");
+    const isTempHum = /_(TEMP_OUT|HUM_OUT)$/i.test(k);
+    if (isDht22 && isTempHum && n === 0) return false;
+
+    return true;
+};
 
 	// Latching de fechas del chart: LIVE/24h/7d actualizan from/to con primer/último punto.
 	// Al entrar a Rango, se congela y el usuario edita.
@@ -1257,7 +1302,49 @@ const fetchCacheApiSnapshot = async (force = false) => {
 
         const ab = await resp.arrayBuffer();
         const json = await decodeGzipJson(ab);
-        if (json) setCacheApiSnapshot(json);
+if (json) {
+    setCacheApiSnapshot(json);
+
+    // Seed/merge day_stats into runtime min/max (will later extend with live extremes)
+    const dayFrom = getSnapDayFromTs(json);
+    const incoming = (json && json.day_stats) ? json.day_stats : null;
+
+    if (incoming && typeof incoming === "object") {
+        setDayStatsLive(prev => {
+            // Reset when day boundary changes
+            if (dayFrom !== null && dayFrom !== undefined && cacheApiDayFromRef.current !== dayFrom) {
+                cacheApiDayFromRef.current = dayFrom;
+                const out = {};
+                for (const [k, s] of Object.entries(incoming)) {
+                    const kk = normalizeKey(k);
+                    const mn = (s && s.min !== undefined) ? s.min : null;
+                    const mx = (s && s.max !== undefined) ? s.max : null;
+                    out[kk] = { min: (mn === null || mn === undefined) ? null : Number(mn), max: (mx === null || mx === undefined) ? null : Number(mx) };
+                }
+                return out;
+            }
+
+            // Merge without shrinking: keep extremes across snapshot + runtime
+            let changed = false;
+            const out = { ...(prev || {}) };
+            for (const [k, s] of Object.entries(incoming)) {
+                const kk = normalizeKey(k);
+                const mn = (s && s.min !== undefined) ? s.min : null;
+                const mx = (s && s.max !== undefined) ? s.max : null;
+
+                const prevEntry = out[kk] || { min: null, max: null };
+                const nextMin = pickMin(prevEntry.min, mn);
+                const nextMax = pickMax(prevEntry.max, mx);
+
+                if (!out[kk] || nextMin !== prevEntry.min || nextMax !== prevEntry.max) {
+                    out[kk] = { min: nextMin, max: nextMax };
+                    changed = true;
+                }
+            }
+            return changed ? out : prev;
+        });
+    }
+}
     } catch (e) {
         console.warn("[cache_api] fetch failed:", e);
     }
@@ -1462,6 +1549,46 @@ const fetchHistory = async () => {
             }
         } catch(e) { console.warn("Fallo Controles:", e); }
     };
+
+// --- Extend widget min/max with live values (only updates if live exceeds snapshot extremes) ---
+const minMaxKeys = useMemo(() => {
+    try {
+        return (CONFIG.dashboard.widgets || [])
+            .filter(w => w && w.showMinMax)
+            .map(w => normalizeKey(w.key))
+            .filter(Boolean);
+    } catch {
+        return [];
+    }
+}, []);
+
+useEffect(() => {
+    if (!lastData) return;
+    if (!dayStatsLive) return;
+
+    setDayStatsLive(prev => {
+        let changed = false;
+        const out = { ...(prev || {}) };
+
+        for (const k of minMaxKeys) {
+            // lastData ya viene normalizado (sin kv.)
+            const raw = lastData[k];
+            const v = (typeof raw === "string") ? Number(raw) : Number(raw);
+            if (!isValidForMinMax(k, v)) continue;
+
+            const prevEntry = out[k] || { min: null, max: null };
+            const nextMin = pickMin(prevEntry.min, v);
+            const nextMax = pickMax(prevEntry.max, v);
+
+            if (!out[k] || nextMin !== prevEntry.min || nextMax !== prevEntry.max) {
+                out[k] = { min: nextMin, max: nextMax };
+                changed = true;
+            }
+        }
+
+        return changed ? out : prev;
+    });
+}, [lastData, minMaxKeys]);
 
 	// Poll de alertas (separado del loop live para no spamear el Bridge)
 	const fetchAlerts = async () => {
@@ -1889,7 +2016,7 @@ const fetchHistory = async () => {
                                         
                                         // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
 const wk = normalizeKey(w.key);
-const ds = (cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null;
+const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
 const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
 const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
                                         return (
@@ -2094,7 +2221,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                         }
                                         // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
 const wk = normalizeKey(w.key);
-const ds = (cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null;
+const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
 const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
 const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
                                         return (

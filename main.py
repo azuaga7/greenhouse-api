@@ -18,6 +18,7 @@ import httpx
 import asyncio
 import time
 from urllib.parse import parse_qs
+from email.utils import formatdate, parsedate_to_datetime
 
 
 # IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
@@ -66,13 +67,39 @@ async def cache_api_upload(request: Request):
     return {"status": "ok", "bytes": len(body)}
 
 @app.get("/cache_api/snapshot.json.gz")
-def cache_api_snapshot():
+def cache_api_snapshot(request: Request):
     if not os.path.exists(CACHE_API_SNAPSHOT_GZ):
         raise HTTPException(status_code=404, detail="snapshot not found")
+
+    st = os.stat(CACHE_API_SNAPSHOT_GZ)
+    etag = f'"{st.st_mtime_ns:x}-{st.st_size:x}"'
+    last_mod = formatdate(st.st_mtime, usegmt=True)
+
+    inm = request.headers.get("if-none-match")
+    ims = request.headers.get("if-modified-since")
+
+    if inm and inm == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Last-Modified": last_mod})
+
+    if ims:
+        try:
+            dt = parsedate_to_datetime(ims)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if st.st_mtime <= dt.timestamp():
+                return Response(status_code=304, headers={"ETag": etag, "Last-Modified": last_mod})
+        except Exception:
+            pass
+
     return FileResponse(
         CACHE_API_SNAPSHOT_GZ,
         media_type="application/gzip",
         filename="snapshot.json.gz",
+        headers={
+            "ETag": etag,
+            "Last-Modified": last_mod,
+            "Cache-Control": "no-cache",
+        },
     )
 # Memoria volátil para respuesta instantánea
 LAST_CACHE = {}
