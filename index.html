@@ -2239,15 +2239,20 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                         );
                                     })()}
                                     {w.type === 'location' && (() => {
-                                        const coords = getWidgetValue(w.key);
-                                        const city = w.statusKey ? getWidgetValue(w.statusKey) : '';
-                                        return (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5, color: '#9ca3af' }}>
-                                                <span style={{ fontSize: 20 }}>📍</span>
-                                            <div>
-                                            <div style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{city || 'Ubicación Pro'}</div>
-                                            <div style={{ fontSize: 10, opacity: 0.6 }}>{coords || 'Detectando GPS...'}</div>
-                                            </div>
+                                        // leer RAW (sin parseFloat) para no cortar en la coma
+                                                const rawCoords = getVal(lastData, w.key);
+                                                const coords = (rawCoords === null || rawCoords === undefined) ? '' : String(rawCoords);
+
+                                                const city = w.statusKey ? getWidgetValue(w.statusKey) : '';
+
+                                                return (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5, color: '#9ca3af' }}>
+                                                    <span style={{ fontSize: 20 }}>📍</span>
+                                                <div>
+                                                <div style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{city || 'Ubicación Pro'}</div>
+                                                <div style={{ fontSize: 10, opacity: 0.6, wordBreak: 'break-all' }}>{coords || 'Detectando GPS...'}
+                                                </div>
+                                                </div>
                                             </div>
                                         );
                                     })()}
