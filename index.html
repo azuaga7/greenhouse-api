@@ -1501,38 +1501,46 @@ const fetchHistory = async () => {
                     }
                     reportedState = reportedState.toUpperCase();
                     
-                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-                        setConnStatus("SISTEMA ONLINE");
-                        setConnColor("#10b981");
-                    } else if (reportedState === "BUSCANDO") {
-                        setConnStatus("BUSCANDO RED...");
-                        setConnColor("#f59e0b");
-                    } else if (reportedState === "OFFLINE") {
-                        setConnStatus("ERROR: SIN CHIP");
-                        setConnColor("#ef4444");
-                    } else {
-                        setConnStatus(reportedState);
-                        setConnColor("#10b981");
-                    }
-                    if (chartConfig.timeRange === 'Ahora') {
-                        setLiveData(prev => {
-                            const next = [...prev, flat];
-                            return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;
-                        });
-                    }
-                } else {
-                    // --- NO HAY DATOS NUEVOS, EVALUAR TIEMPO ---
-                    const elapsed = Date.now() - lastArrivalLocal;
-                    // Margen dinámico: Delta + 2s (o 10s si estamos aprendiendo)
-                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
-                    if (elapsed > (threshold * 2)) {
-                        setConnStatus("EQUIPO OFFLINE");
-                        setConnColor("#ef4444"); // Rojo
-                    } else if (elapsed > threshold) {
-                        setConnStatus("CONECTANDO...");
-                        setConnColor("#f59e0b"); // Naranja
-                    }
-                }
+                    // --- NUEVA LÓGICA UNIFICADA ---
+const evaluateConnectionState = () => {
+    const now = Date.now();
+    const elapsed = now - lastArrivalLocal;
+    const threshold = currentDelta + (isLearning ? 10000 : 2000);
+    
+    // 1. Prioridad absoluta: tiempo sin datos
+    if (elapsed > (threshold * 2)) {
+        return { status: "EQUIPO OFFLINE", color: "#ef4444" };
+    }
+    
+    if (elapsed > threshold) {
+        return { status: "CONECTANDO...", color: "#f59e0b" };
+    }
+    
+    // 2. Si tenemos datos recientes, evaluar reportedState
+    if (reportedState === "OFFLINE") {
+        return { status: "ERROR: SIN CHIP", color: "#ef4444" };
+    }
+    if (reportedState === "BUSCANDO") {
+        return { status: "BUSCANDO RED...", color: "#f59e0b" };
+    }
+    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
+        return { status: "SISTEMA ONLINE", color: "#10b981" };
+    }
+    return { status: reportedState, color: "#10b981" };
+};
+
+// Aplicar estado unificado
+const state = evaluateConnectionState();
+setConnStatus(state.status);
+setConnColor(state.color);
+
+// Mantener live data (sin cambios)
+if (chartConfig.timeRange === 'Ahora') {
+    setLiveData(prev => {
+        const next = [...prev, flat];
+        return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;
+    });
+}
             } else {
                 setConnStatus("SIN DATOS");
                 setConnColor("#ef4444"); // Rojo
@@ -1726,29 +1734,8 @@ useEffect(() => {
                     </div>
                 ))}
             </div>
-            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
-                {currentTab.type !== 'charts' && (
-                    <div className="card-header">
-                        <div className="logo-section">
-                            <div className="logo-icon"><div className="logo-icon-inner">ADTEC</div></div>
-                            <span className="card-title">{currentTab.title}</span>
-                        </div>
-                        {currentTab.type === 'control' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
-                                <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
-                                    {controlState.manual ? 'MANUAL' : 'AUTO'}
-                                </span>
-                                <label className="switch" style={{ transform: 'scale(0.7)' }}>
-                                    <input type="checkbox" checked={!!controlState.manual} onChange={(e) => sendControl('manual', e.target.checked)} />
-                                    <span className="slider"></span>
-                                </label>
-                            </div>
-                        )}
-                        <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
-                    </div>
-                )}
-                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"}>
-                    {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
+            <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"} style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
+                {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
                     
                     {currentTab.type === 'alerts' ? (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '25px', overflowY: 'auto' }}>
@@ -1759,6 +1746,7 @@ useEffect(() => {
                                     </div>
                                     <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
                                 </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
 							<button 
 								onClick={() => {
 									if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
@@ -1772,6 +1760,8 @@ useEffect(() => {
                                 >
 								MARCAR COMO LEÍDAS
                                 </button>
+                                    <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
+                                </div>
                             </div>
                             {alerts.length === 0 ? (
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
@@ -1780,89 +1770,26 @@ useEffect(() => {
                                     <p style={{ fontSize: '12px' }}>No hay alertas registradas en este momento.</p>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    {[...alerts].sort((a, b) => {
-                                        // Ordenar por tipo: CRITICAL -> WARNING -> INFO -> STATE
-                                        const typeOrder = { 'CRITICAL': 0, 'WARNING': 1, 'INFO': 2, 'STATE': 3, 'ALERT': 4 };
-                                        const typeA = typeOrder[a.type] || 999;
-                                        const typeB = typeOrder[b.type] || 999;
-                                        if (typeA !== typeB) return typeA - typeB;
-                                        // Si mismo tipo, ordenar por timestamp (más reciente primero)
-                                        return new Date(b.timestamp) - new Date(a.timestamp);
-                                    }).map((a, i) => {
-                                        const typeColors = {
-                                            'CRITICAL': '#ef4444',
-                                            'WARNING': '#f59e0b', 
-                                            'INFO': '#3b82f6',
-                                            'STATE': '#8b5cf6',
-                                            'ALERT': '#6b7280'
-                                        };
-                                        const typeLabels = {
-                                            'CRITICAL': 'CRÍTICO',
-                                            'WARNING': 'ADVERTENCIA',
-                                            'INFO': 'INFORMACIÓN',
-                                            'STATE': 'ESTADO',
-                                            'ALERT': 'ALERTA'
-                                        };
-                                        const alertColor = typeColors[a.type] || '#6b7280';
-                                        const alertLabel = typeLabels[a.type] || 'ALERTA';
-                                        
-                                        // Extraer información del extra si existe
-                                        let module = '';
-                                        let value = '';
-                                        let limit = '';
-                                        
-                                        if (a.extra && typeof a.extra === 'object') {
-                                            module = a.extra.signal || '';
-                                            value = a.value !== undefined && a.value !== null ? String(a.value) : '';
-                                            limit = a.extra.ref !== undefined && a.extra.ref !== null ? String(a.extra.ref) : '';
-                                        }
-                                        
-                                        // Formatear la línea de detalles
-                                        let detailLine = '';
-                                        if (module) detailLine += 'Módulo: ' + module;
-                                        if (value) {
-                                            if (detailLine) detailLine += ' | ';
-                                            detailLine += 'Valor: ' + value;
-                                            // Agregar °C si es temperatura
-                                            if (module.toUpperCase().includes('TEMP') || module.toUpperCase().includes('VFD')) {
-                                                detailLine += '°C';
-                                            }
-                                        }
-                                        if (limit) {
-                                            if (detailLine) detailLine += ' | ';
-                                            detailLine += 'Límite: ' + limit;
-                                            // Agregar °C si es temperatura
-                                            if (module.toUpperCase().includes('TEMP') || module.toUpperCase().includes('VFD')) {
-                                                detailLine += '°C';
-                                            }
-                                        }
-                                        
-                                        return (
-                                        <div key={i} style={{ 
-                                            background: alertColor + '15', 
-                                            borderLeft: '4px solid ' + alertColor, 
-                                            padding: 15, 
-                                            borderRadius: 8 
-                                        }}>
-                                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, opacity: 0.7, marginBottom: 5 }}>
-                                              <span>{new Date(a.timestamp).toLocaleString('es-ES', { 
-                                                  year: 'numeric', 
-                                                  month: '2-digit', 
-                                                  day: '2-digit', 
-                                                  hour: '2-digit', 
-                                                  minute: '2-digit', 
-                                                  second: '2-digit' 
-                                              }).replace(',', '')}</span>
-                                              <span style={{ fontWeight: 800, color: alertColor }}>{alertLabel}</span>
-                                           </div>
-                                           <div style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>{a.msg}</div>
-                                           {detailLine && (
-                                               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{detailLine}</div>
-                                           )}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {[...alerts].reverse().map((a, i) => (
+                                        <div key={i} className="alert-card-item">
+                                            <div className="alert-card-side"></div>
+                                            <div className="alert-card-content">
+                                                <div className="alert-card-header">
+                                                    <span className="alert-card-tag">CRÍTICO</span>
+                                                    <span className="alert-card-time">{new Date(a.timestamp).toLocaleString('es-ES')}</span>
+                                                </div>
+                                                <div className="alert-card-msg">{a.msg}</div>
+                                                <div className="alert-card-detail">
+                                                    {Object.entries(a).map(([key, value]) => (
+                                                        <div key={key} style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                                                            {key}: <b>{String(value)}</b>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                    );
-                                })}
+                                    ))}
                                 </div>
                             )}
                         </div>
