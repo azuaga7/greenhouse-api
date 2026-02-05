@@ -327,6 +327,8 @@
             dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":816,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"widgets":[{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura del Invernadero","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":10,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura Exterior","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"x":10,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Pozo","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"x":240,"y":210,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270938829","type":"gauge","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","unit":"Hz","min":0,"max":70,"x":10,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","inverted":false,"showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"x":240,"y":410,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":500,"y":120,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":710,"y":600,"w":200,"h":85,"tabId":"1","format":"fixed1","hideKey":true},{"id":"w_1768271019292","type":"indicator","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","min":0,"max":100,"x":500,"y":450,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","min":0,"max":100,"x":500,"y":340,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","min":0,"max":100,"x":500,"y":230,"w":180,"h":80,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271034349","type":"text","label":"Uso Ventiladores Axiales","key":"vfd_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":450,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores 3 - 4","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":340,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores 1 - 2","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":230,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":700,"y":120,"w":200,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":30,"y":10,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Vent. 1","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":30,"y":140,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Vent. 2","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":30,"y":270,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271697991","type":"control-vfd","label":"Frecuencia Ventiladores Pared","key":"vfd_1_FREQ_OUT","target":"vfd_1","min":0,"max":100,"x":330,"y":110,"w":260,"h":280,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768272928661","type":"control-relay","label":"Estado de Ventiladores Axiales","key":"vfd_1_STATE_OUT","target":"vfd_1","min":0,"max":100,"x":30,"y":400,"w":220,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768842671728","type":"text","label":"Ultima Alerta","key":"sin_key","unit":"","min":0,"max":0,"x":10,"y":600,"w":680,"h":90,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","unit":"Hs","min":0,"max":0,"x":490,"y":10,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":10,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura del Invernadero","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Exterior","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"vfd_1_FREQ_OUT","label":"Frecuencia Ventiladores Pared","dataType":""},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"vfd_1_STATE_OUT","label":"Estado de Ventiladores Axiales","dataType":"STATE"},{"key":"vfd_1_RUNTIME_OUT","label":"Uso Ventiladores Axiales","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura de Pozo","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"vfd_1","label":"vfd_1","type":"ACT_VFD_MODBUS"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura del Invernadero","ds18b20_2_TEMP_OUT":"Temperatura Exterior","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","vfd_1_FREQ_OUT":"Frecuencia Ventiladores Pared","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","vfd_1_STATE_OUT":"Estado de Ventiladores Axiales","vfd_1_RUNTIME_OUT":"Uso Ventiladores Axiales","ds18b20_1_TEMP_OUT":"Temperatura de Pozo","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS"},
             refreshInterval: 1000,
+            alertsInterval: 10000,
+            BASE_URL: "",
             chartConfig: {
                 primaryY: '',
                 secondaryY: '',
@@ -986,10 +988,10 @@ const DashboardApp = () => {
         try {
             const v = Number(localStorage.getItem('adtec_alerts_seen_until_ms') || 0);
             return Number.isFinite(v) ? v : 0;
-        } catch(e) { return 0; }
+        } catch(error) { return 0; }
     });
     const setSeenUntil = (ms) => {
-        try { localStorage.setItem('adtec_alerts_seen_until_ms', String(ms)); } catch(e) {}
+        try { localStorage.setItem('adtec_alerts_seen_until_ms', String(ms)); } catch(error) {}
         setAlertsSeenUntilMs(ms);
     };
     const getAlertMs = (a) => {
@@ -1430,7 +1432,7 @@ const fetchHistory = async () => {
 
             // Precargar series server-side para Sparklines (historial profundo)
             await preloadSparklineHistory();
-        } catch(e) { console.error("Error historial:", e); }
+        } catch(error) { console.error("Error historial:", error); }
     };
     const fetchUpdate = async () => {
         try {
@@ -1461,8 +1463,8 @@ const fetchHistory = async () => {
                     setLastArrivalLocal(Date.now());
                     // Mantener flat para compat visual dentro del template
                     setLastData(flat);
-	                    // Forzar refresco de sparklines en cada paquete nuevo
-	                    setSparkTick(t => t + 1);
+                    // Forzar refresco de sparklines en cada paquete nuevo
+                    setSparkTick(t => t + 1);
                     // Sincronización de Estado Deseado
                     setPendingCommands(prev => {
                         const next = { ...prev };
@@ -1470,92 +1472,78 @@ const fetchHistory = async () => {
                         Object.keys(next).forEach(key => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
-                            const isMatch = (String(realVal) === String(desiredVal)) || 
-                                          (realVal === 1 && desiredVal === true) || 
-                                          (realVal === 0 && desiredVal === false) ||
-                                          (realVal === "ON" && desiredVal === true) ||
-                                          (realVal === "OFF" && desiredVal === false);
-                            if (isMatch || (Date.now() - next[key].ts > 30000)) {
+                            if (realVal === desiredVal) {
                                 delete next[key];
                                 changed = true;
                             }
                         });
                         return changed ? next : prev;
                     });
-                    // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
-                    CONFIG.dashboard.widgets.forEach(w => {
-    const wk = normKey(w.key);
-    const rawVal = getVal(flat, wk);
-    SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
-});
-                    // Estado reportado por el hardware
-	                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
-	                    // Prioridad: statusKey explícito > key del widget > fallback histórico
-	                    const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
-	                    const rawReported = getVal(flat, statusKey);
-                    let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
-                    // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
-                    // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
-                    if (/^d{6,}$/.test(reportedState)) {
-                        reportedState = "ONLINE";
-                    }
-                    reportedState = reportedState.toUpperCase();
+                }
+                
+                // --- NUEVA LÓGICA UNIFICADA ---
+                const evaluateConnectionState = () => {
+                    const now = Date.now();
+                    const elapsed = now - lastArrivalLocal;
+                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
                     
-                    // --- NUEVA LÓGICA UNIFICADA ---
-const evaluateConnectionState = () => {
-    const now = Date.now();
-    const elapsed = now - lastArrivalLocal;
-    const threshold = currentDelta + (isLearning ? 10000 : 2000);
-    
-    // 1. Prioridad absoluta: tiempo sin datos
-    if (elapsed > (threshold * 2)) {
-        return { status: "EQUIPO OFFLINE", color: "#ef4444" };
-    }
-    
-    if (elapsed > threshold) {
-        return { status: "CONECTANDO...", color: "#f59e0b" };
-    }
-    
-    // 2. Si tenemos datos recientes, evaluar reportedState
-    if (reportedState === "OFFLINE") {
-        return { status: "ERROR: SIN CHIP", color: "#ef4444" };
-    }
-    if (reportedState === "BUSCANDO") {
-        return { status: "BUSCANDO RED...", color: "#f59e0b" };
-    }
-    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-        return { status: "SISTEMA ONLINE", color: "#10b981" };
-    }
-    return { status: reportedState, color: "#10b981" };
-};
+                    // 1. Prioridad absoluta: tiempo sin datos
+                    if (elapsed > (threshold * 2)) {
+                        return { status: "EQUIPO OFFLINE", color: "#ef4444" };
+                    }
+                    
+                    if (elapsed > threshold) {
+                        return { status: "CONECTANDO...", color: "#f59e0b" };
+                    }
+                    
+                    // 2. Si tenemos datos recientes, evaluar reportedState
+                    const reportedState = flat.reportedState || flat.state || 'UNKNOWN';
+                    if (reportedState === "OFFLINE") {
+                        return { status: "ERROR: SIN CHIP", color: "#ef4444" };
+                    }
+                    if (reportedState === "BUSCANDO") {
+                        return { status: "BUSCANDO RED...", color: "#f59e0b" };
+                    }
+                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
+                        return { status: "SISTEMA ONLINE", color: "#10b981" };
+                    }
+                    return { status: reportedState, color: "#10b981" };
+                };
 
-// Aplicar estado unificado
-const state = evaluateConnectionState();
-setConnStatus(state.status);
-setConnColor(state.color);
-
-// Mantener live data (sin cambios)
-if (chartConfig.timeRange === 'Ahora') {
-    setLiveData(prev => {
-        const next = [...prev, flat];
-        return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;
-    });
-}
+                // Aplicar estado unificado
+                const state = evaluateConnectionState();
+                setConnStatus(state.status);
+                setConnColor(state.color);
             } else {
                 setConnStatus("SIN DATOS");
                 setConnColor("#ef4444"); // Rojo
             }
-        } catch(e) {
+            
+            // Mantener live data (sin cambios)
+            if (chartConfig.timeRange === 'Ahora') {
+                setLiveData(prev => {
+                    const next = [...prev, flat];
+                    return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;
+                });
+            }
+            
+            // Fetch control state
+            const res2 = await fetch(BASE_URL + '/api/control_state');
+            if (res2.ok) {
+                setControlState(await res2.json());
+            }
+        } catch(error) {
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
-            console.error("Error actualización:", e);
+            console.error("Error actualización:", error);
+            
+            try {
+                const res = await fetch(BASE_URL + '/api/control_state');
+                if (res.ok) {
+                    setControlState(await res.json());
+                }
+            } catch(error) { console.warn("Fallo Controles:", error); }
         }
-        try {
-            const res = await fetch(BASE_URL + '/api/control_state');
-            if (res.ok) {
-                setControlState(await res.json());
-            }
-        } catch(e) { console.warn("Fallo Controles:", e); }
     };
 
 // --- Extend widget min/max with live values (only updates if live exceeds snapshot extremes) ---
@@ -1613,7 +1601,7 @@ useEffect(() => {
 				return { ...a, timestamp, __ts_ms: ms };
 			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
 			setAlerts(normalized);
-		} catch(e) { console.warn("Fallo Alertas:", e); }
+		} catch(error) { console.warn("Fallo Alertas:", error); }
 	};
 
 	useEffect(() => {
@@ -1681,7 +1669,7 @@ useEffect(() => {
             if (res.ok) {
                 setControlState(prev => ({ ...prev, [key]: val }));
             }
-        } catch(e) { console.error("Error envío control:", e); }
+        } catch(error) { console.error("Error envío control:", error); }
     };
     useEffect(() => {
         let mounted = true;
@@ -2200,6 +2188,9 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </div>
                                         );
                                     })()}
+
+
+                                    
                                     {w.type === 'text' && (() => {
                                         if (w.label.toLowerCase().includes('red') || w.label.toLowerCase().includes('estado')) {
                                             return (
@@ -2253,7 +2244,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                     )}
                 </div>
             </div>
-        </div>
+        
     );
 };
 ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
