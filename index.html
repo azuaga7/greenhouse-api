@@ -615,55 +615,23 @@
   
             
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
-// --- Normalización global (API flat sin kv.) ---
-// Quita "kv." si existe
-const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
-// Lee valor tolerante: primero key limpia, luego prueba "kv."+key por compat
-const getVal = (obj, key) => {
-    if (!obj || !key) return undefined;
-    const nk = normKey(key);
-    if (obj[nk] !== undefined) return obj[nk];
-    const legacy = 'kv.' + nk;
-    if (obj[legacy] !== undefined) return obj[legacy];
-    return undefined;
-};
-// Normaliza cualquier payload a flat sin "kv."
-const normalizePoint = (raw) => {
-    if (!raw || typeof raw !== 'object') return raw;
-    const src = (raw.kv && typeof raw.kv === 'object') ? raw.kv : raw;
-    const out = {};
-    if (raw.timestamp) out.timestamp = raw.timestamp;
-    for (const k in src) {
-        if (k === 'timestamp') continue;
-        out[normKey(k)] = src[k];
-    }
-    if (!out.timestamp) out.timestamp = new Date().toISOString();
-    return out;
-};
-// POLLING / LIMITS (A)
-const LIVE_MAX_POINTS = 300;
-const HISTORY_PRELOAD_LIMIT = 5000;
-const LIVE_PRELOAD_LIMIT = 300;
-// Cache local para que el dashboard no "arranque vacío" si la red tarda
-const HISTORY_CACHE_LIMIT = 1500;
-const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
-// Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
-const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
+
 // Componente de Gráfico Optimizado (Zero-Flicker)
 const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     const canvasRef = useRef(null);
     const chartRef = useRef(null);
+
     // Obtener configuración de escala (min/max) y formato
     const getScaleSettings = (key) => {
         if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
-        const nk = normKey(key);
-const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
+        const w = CONFIG.dashboard.widgets.find(w => w.key === key);
         if (!w) return { min: undefined, max: undefined, format: undefined, unit: "" };
         
         // Si es estado digital, escala inicial 0-2
         if (w.format === 'bool_onoff' || w.type === 'indicator' || w.type === 'control-relay') {
             return { min: 0, max: 2, format: 'bool_onoff', unit: w.unit || "" };
         }
+
         const hasNoLimits = (w.min === 0 && w.max === 0) || (w.min === undefined && w.max === undefined);
         return { 
             min: hasNoLimits ? undefined : w.min, 
@@ -672,11 +640,14 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             unit: w.unit || ""
         };
     };
+
     useEffect(() => {
         if (!canvasRef.current || typeof Chart === 'undefined') return;
+
         const ctx = canvasRef.current.getContext('2d');
         const pS = getScaleSettings(chartConfig && chartConfig.primaryY);
         const sS = getScaleSettings(chartConfig && chartConfig.secondaryY);
+
         chartRef.current = new Chart(ctx, {
             type: 'line',
             data: {
@@ -797,23 +768,28 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
                 }
             }
         });
+
         return () => {
             if (chartRef.current) chartRef.current.destroy();
         };
     }, []);
+
     useEffect(() => {
         const chart = chartRef.current;
         if (!chart || !chartConfig || !chartConfig.primaryY) return;
         
         const pS = getScaleSettings(chartConfig.primaryY);
         const sS = getScaleSettings(chartConfig.secondaryY);
+
         // Actualizar nombres de variables
         const v1Label = CONFIG.labels[chartConfig.primaryY] || chartConfig.primaryY || 'Variable 1';
         const v2Label = CONFIG.labels[chartConfig.secondaryY] || chartConfig.secondaryY || 'Variable 2';
+
         const safeHistory = dataHistory || [];
         chart.data.labels = safeHistory.map(d => d.t);
         chart.data.datasets[0].data = safeHistory.map(d => d.v);
         chart.data.datasets[0].label = v1Label;
+
         if (chartConfig.secondaryY) {
             chart.data.datasets[1].data = dataHistory.map(d => d.v2);
             chart.data.datasets[1].label = v2Label;
@@ -823,19 +799,24 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             chart.data.datasets[1].hidden = true;
             chart.options.scales.y1.display = false;
         }
+
         // Actualizar límites dinámicamente con auto-escalado (suggested)
         chart.options.scales.y.suggestedMin = pS.min;
         chart.options.scales.y.suggestedMax = pS.max;
         chart.options.scales.y.ticks.callback = (val) => formatValue(val, pS.format, "");
+
         if (chartConfig && chartConfig.secondaryY) {
             chart.options.scales.y1.suggestedMin = sS.min;
             chart.options.scales.y1.suggestedMax = sS.max;
             chart.options.scales.y1.ticks.callback = (val) => formatValue(val, sS.format, "");
         }
+
         chart.update('none');
     }, [dataHistory, chartConfig]);
+
     return <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />;
 });
+
 // Componente de Minigráfico (Sparkline) - Motor Pro de 100 puntos
 const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
     // Estado local para asegurar dibujo sincronizado
@@ -843,14 +824,17 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
         const initial = SparklineEngine.getBuffer(id, variableKey, min, max);
         return [...initial];
     });
+
     useEffect(() => {
         // Solo obtener el buffer actual
         // El motor es actualizado de forma centralizada en fetchUpdate y fetchHistory
         const currentPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
         setPoints([...currentPoints]);
     }, [id, variableKey, value, min, max, historyTick]);
+
     const hasData = useMemo(() => SparklineEngine.hasRealData(id), [id, value, historyTick]);
     const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
+
     const pathData = useMemo(() => {
         if (points.length === 0) return "";
         const width = 100;
@@ -875,14 +859,17 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
             return (i === 0 ? 'M' : 'L') + " " + x + " " + y;
         }).join(' ');
     }, [points, min, max]);
+
     // Color de la línea: Degradado real por defecto. Azul de Diagnóstico SOLO si hubo datos y se perdieron.
     const strokeColor = (hasData && isDisconnected) ? "#3b82f6" : "url(#grad-final-" + id + ")";
+
     // Asegurar que las variables de color existan para el degradado
     const sparklineColors = {
         '--grad-start': inverted ? '#ef4444' : '#10b981',
         '--grad-mid': '#f59e0b',
         '--grad-end': inverted ? '#10b981' : '#ef4444'
     };
+
     return React.createElement('div', { 
         className: 'adtec-sparkline-container ' + (inverted ? 'gauge-gradient-inverted' : 'gauge-gradient-normal'),
         style: { 
@@ -951,23 +938,15 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
         ])
     ]);
 });
+
 const DashboardApp = () => {
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [alerts, setAlerts] = useState([]);
     const [controlState, setControlState] = useState({});
     const [pendingCommands, setPendingCommands] = useState({}); 
-    // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
-    const [sparkTick, setSparkTick] = useState(0);
-    const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
-    const [dayStatsLive, setDayStatsLive] = useState({}); // min/max runtime: seed snapshot then extend with live
-    const cacheApiDayFromRef = useRef(null);
-    const [cacheApiEtag, setCacheApiEtag] = useState(null);
-    const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
     const [liveData, setLiveData] = useState([]); 
-    const [seriesData, setSeriesData] = useState([]);
-    const [seriesLoading, setSeriesLoading] = useState(false);
     const [chartConfig, setChartConfig] = useState({
         ...CONFIG.chartConfig,
         filter: 'all',
@@ -981,36 +960,12 @@ const DashboardApp = () => {
     const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
     const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
+
     const BASE_URL = CONFIG.BASE_URL || "";
 
-    // --- ACK local de alertas (no borra historial en el Bridge) ---
-    const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
-        try {
-            const v = Number(localStorage.getItem('adtec_alerts_seen_until_ms') || 0);
-            return Number.isFinite(v) ? v : 0;
-        } catch(error) { return 0; }
-    });
-    const setSeenUntil = (ms) => {
-        try { localStorage.setItem('adtec_alerts_seen_until_ms', String(ms)); } catch(error) {}
-        setAlertsSeenUntilMs(ms);
-    };
-    const getAlertMs = (a) => {
-        if (!a) return 0;
-        if (a.ts != null) return Number(a.ts) * 1000;
-        const iso = a.ts_iso || a.timestamp || a.time || a.date;
-        const t = iso ? new Date(iso).getTime() : 0;
-        return Number.isFinite(t) ? t : 0;
-    };
-
-    // Helpers: datetime-local (sin timezone explícito, usa local del browser)
-    const pad2dt = (n) => String(n).padStart(2, '0');
-    const toDatetimeLocal = (ts) => {
-        const d = (ts instanceof Date) ? ts : new Date(ts);
-        if (!(d instanceof Date) || isNaN(d.getTime())) return '';
-        return d.getFullYear() + '-' + pad2dt(d.getMonth()+1) + '-' + pad2dt(d.getDate()) + 'T' + pad2dt(d.getHours()) + ':' + pad2dt(d.getMinutes());
-    };
     // Memoria persistente para ubicación (Latching)
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
+
     useEffect(() => {
         const currentLoc = getWidgetValueShared('gsm_location', lastData, CONFIG.dashboard.widgets);
         const currentCity = getWidgetValueShared('gsm_city_country', lastData, CONFIG.dashboard.widgets);
@@ -1022,433 +977,85 @@ const DashboardApp = () => {
             }));
         }
     }, [lastData]);
+
     const getWidgetValue = (key) => getWidgetValueShared(key, lastData, CONFIG.dashboard.widgets);
+
     const currentTab = useMemo(() => 
         CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0] || { width: 1000, height: 700 }
     , [activeTabId, CONFIG.dashboard.tabs]);
+
     useEffect(() => {
         if (!chartConfig.primaryY && CONFIG.dashboard.variables && CONFIG.dashboard.variables.length > 0) {
             setChartConfig(prev => ({ ...prev, primaryY: CONFIG.dashboard.variables[0].key }));
         }
     }, []);
-    const normalizeKey = (k) => (typeof k === "string" && k.startsWith("kv.")) ? k.slice(3) : k;
-        const normalizeRow = (obj) => { const out = {}; for (const [k,v] of Object.entries(obj||{})) out[normalizeKey(k)] = v; return out; };
 
-// --- Min/Max runtime helpers (seed snapshot, extend with live extremes) ---
-const getSnapDayFromTs = (snap) => {
-    if (!snap) return null;
-    return (snap.day_from_ts ?? (snap.ranges && snap.ranges.day_from_ts) ?? null);
-};
-
-const pickMin = (a, b) => {
-    const A = (a === null || a === undefined) ? null : Number(a);
-    const B = (b === null || b === undefined) ? null : Number(b);
-    if (A === null && B === null) return null;
-    if (A === null) return Number.isFinite(B) ? B : null;
-    if (B === null) return Number.isFinite(A) ? A : null;
-    if (!Number.isFinite(A) && Number.isFinite(B)) return B;
-    if (!Number.isFinite(B) && Number.isFinite(A)) return A;
-    if (!Number.isFinite(A) && !Number.isFinite(B)) return null;
-    return Math.min(A, B);
-};
-
-const pickMax = (a, b) => {
-    const A = (a === null || a === undefined) ? null : Number(a);
-    const B = (b === null || b === undefined) ? null : Number(b);
-    if (A === null && B === null) return null;
-    if (A === null) return Number.isFinite(B) ? B : null;
-    if (B === null) return Number.isFinite(A) ? A : null;
-    if (!Number.isFinite(A) && Number.isFinite(B)) return B;
-    if (!Number.isFinite(B) && Number.isFinite(A)) return A;
-    if (!Number.isFinite(A) && !Number.isFinite(B)) return null;
-    return Math.max(A, B);
-};
-
-const isValidForMinMax = (key, v) => {
-    const n = Number(v);
-    if (!Number.isFinite(n)) return false;
-
-    // DHT22 muerto suele spamear 0.0: NO contaminar min/max del día
-    const k = String(key || "");
-    const isDht22 = /^dht22_/i.test(k) || k.toLowerCase().includes("dht22");
-    const isTempHum = /_(TEMP_OUT|HUM_OUT)$/i.test(k);
-    if (isDht22 && isTempHum && n === 0) return false;
-
-    return true;
-};
-
-	// Latching de fechas del chart: LIVE/24h/7d actualizan from/to con primer/último punto.
-	// Al entrar a Rango, se congela y el usuario edita.
-	const latchChartDates = useCallback((fromTsLike, toTsLike) => {
-		if (!fromTsLike || !toTsLike) return;
-		const fromL = toDatetimeLocal(fromTsLike);
-		const toL = toDatetimeLocal(toTsLike);
-		if (!fromL || !toL) return;
-		setChartConfig(prev => {
-			if (prev.timeRange === 'Rango') return prev;
-			if (prev.fromDate === fromL && prev.toDate === toL) return prev;
-			return { ...prev, fromDate: fromL, toDate: toL };
-		});
-	}, []);
-        
-const mergeByTimestamp = (rowsA, rowsB) => {
-    const map = new Map();
-    for (const r of (rowsA || [])) {
-        if (!r || !r.timestamp) continue;
-        map.set(r.timestamp, { ...r });
-    }
-    for (const r of (rowsB || [])) {
-        if (!r || !r.timestamp) continue;
-        const prev = map.get(r.timestamp);
-        map.set(r.timestamp, prev ? { ...prev, ...r } : { ...r });
-    }
-    return Array.from(map.values()).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-};
-const fetchSeriesPrimary = async () => {
-    try {
-        const isLive = chartConfig.timeRange === 'Ahora';
-        if (!chartConfig.primaryY || isLive) {
-            setSeriesData([]);
-            return;
-        }
-
-        setSeriesLoading(true);
-
-        const y1 = normalizeKey(chartConfig.primaryY);
-        const y2 = chartConfig.secondaryY ? normalizeKey(chartConfig.secondaryY) : null;
-
-        const nowSec = Math.floor(Date.now() / 1000);
-        let fromTs = null, toTs = nowSec;
-
-        const isRange = chartConfig.timeRange === 'Rango';
-
-        // Determinar rango
-        if (chartConfig.timeRange === '24h') fromTs = nowSec - 86400;
-        else if (chartConfig.timeRange === '7d') fromTs = nowSec - (7 * 86400);
-        else if (isRange) {
-            // si no hay fechas, no pedimos series (evita from_ts=null)
-            if (!chartConfig.fromDate || !chartConfig.toDate) {
-                setSeriesData([]);
-                return;
-            }
-        }
-
-        const buildSeriesUrl = (key) => {
-            const u = new URL(BASE_URL + '/api/series', window.location.origin);
-            u.searchParams.set('channel', 'ingreso');
-            u.searchParams.set('key', key);
-            u.searchParams.set('max_points', '1000');
-
-            if (isRange) {
-                u.searchParams.set('from_iso', chartConfig.fromDate);
-                u.searchParams.set('to_iso', chartConfig.toDate);
-            } else {
-                // nunca enviar null
-                if (fromTs != null) u.searchParams.set('from_ts', String(fromTs));
-                u.searchParams.set('to_ts', String(toTs));
-            }
-            return u;
-        };
-
-        const fetchSeries = async (key) => {
-            const u = buildSeriesUrl(key);
-            const res = await fetch(u);
-            if (!res.ok) return [];
-            const js = await res.json();
-            const pts = Array.isArray(js?.points) ? js.points : [];
-            return pts.map(p => {
-                const ts = p?.[0];
-                const v = p?.[1];
-                return normalizeRow({ timestamp: new Date(ts * 1000).toISOString(), [key]: v });
-            });
-        };
-
-        const rows1 = await fetchSeries(y1);
-        let merged = rows1;
-
-        if (y2 && y2 !== y1) {
-            const rows2 = await fetchSeries(y2);
-            merged = mergeByTimestamp(rows1, rows2);
-        }
-
-        setSeriesData(merged);
-
-        // Debug opcional (no rompe si no lo usás)
-        window.__seriesData = merged;
-    } catch (e) {
-        console.warn('fetchSeriesPrimary falló', e);
-        setSeriesData([]);
-    } finally {
-        setSeriesLoading(false);
-    }
-};
-
-useEffect(() => {
-    fetchSeriesPrimary();
-}, [chartConfig.timeRange, chartConfig.primaryY, chartConfig.secondaryY, chartConfig.fromDate, chartConfig.toDate]);
-
-// --- Latch de fechas para que nunca queden vacías y para que RANGO arranque con valores editables ---
-useEffect(() => {
-    // En RANGO: congelar y, si está vacío, setear defaults (to=último o now, from=to-24h)
-    if (chartConfig.timeRange === 'Rango') {
-        if (!chartConfig.fromDate || !chartConfig.toDate) {
-            const toTs = (lastData && lastData.timestamp) ? lastData.timestamp : Date.now();
-            const toStr = toDatetimeLocal(toTs);
-            const fromStr = toDatetimeLocal((new Date(toTs).getTime()) - 86400000);
-            setChartConfig(prev => ({ ...prev, fromDate: prev.fromDate || fromStr, toDate: prev.toDate || toStr }));
-        }
-        return;
-    }
-    // Quick ranges: setear un fallback inmediato (luego se ajusta al primer/último punto real)
-    const nowMs = Date.now();
-    if (chartConfig.timeRange === 'Ahora') {
-        // si todavía no hay liveData, al menos "to" queda seteado
-        const toStr = toDatetimeLocal(nowMs);
-        const fromStr = toDatetimeLocal(nowMs - 300000); // 5m
-        setChartConfig(prev => ({ ...prev, fromDate: fromStr, toDate: toStr }));
-    } else if (chartConfig.timeRange === '24h') {
-        setChartConfig(prev => ({ ...prev, fromDate: toDatetimeLocal(nowMs - 86400000), toDate: toDatetimeLocal(nowMs) }));
-    } else if (chartConfig.timeRange === '7d') {
-        setChartConfig(prev => ({ ...prev, fromDate: toDatetimeLocal(nowMs - 7*86400000), toDate: toDatetimeLocal(nowMs) }));
-    }
-}, [chartConfig.timeRange]);
-
-// Ajuste fino: LIVE usa primer/último punto real
-useEffect(() => {
-    if (chartConfig.timeRange !== 'Ahora') return;
-    if (!liveData || liveData.length === 0) return;
-    const first = liveData[0]?.timestamp;
-    const last = liveData[liveData.length - 1]?.timestamp;
-    if (first && last) latchChartDates(first, last);
-}, [chartConfig.timeRange, liveData]);
-
-// Ajuste fino: 24h/7d usa primer/último punto de seriesData
-useEffect(() => {
-    if (chartConfig.timeRange !== '24h' && chartConfig.timeRange !== '7d') return;
-    if (!seriesData || seriesData.length === 0) return;
-    const first = seriesData[0]?.timestamp;
-    const last = seriesData[seriesData.length - 1]?.timestamp;
-    if (first && last) latchChartDates(first, last);
-}, [chartConfig.timeRange, seriesData]);
-    
-    // --- Precarga server-side de series para Sparklines (1 request, 24h / max_points) ---
-    const preloadSparklineHistory = async () => {
+    const fetchHistory = async () => {
         try {
-            const sparkWidgets = CONFIG.dashboard.widgets.filter(w => (w.showSparkline || w.type === 'gauge' || w.showMinMax));
-            if (!sparkWidgets || sparkWidgets.length === 0) return;
-
-            const keys = Array.from(new Set(sparkWidgets.map(w => normalizeKey(w.key)).filter(Boolean)));
-            if (keys.length === 0) return;
-
-            const u = new URL(BASE_URL + '/api/sparkline_series', window.location.origin);
-            u.searchParams.set('channel', 'ingreso');
-            u.searchParams.set('hours', String(CONFIG.sparklineHours || 24));
-            u.searchParams.set('max_points', String(CONFIG.sparklineMaxPoints || 120));
-            u.searchParams.set('keys', keys.join(','));
-
-            const res = await fetch(u);
-            if (!res.ok) return;
-            const js = await res.json();
-            const series = js && js.series ? js.series : {};
-            if (!series || typeof series !== 'object') return;
-
-            sparkWidgets.forEach(w => {
-                const wk = normalizeKey(w.key);
-                const pts = Array.isArray(series[wk]) ? series[wk] : [];
-                if (pts.length === 0) return;
-
-                const hDataBuffer = pts.map(p => p?.[1]).filter(v => v !== undefined && v !== null);
-                // Para min/max del día, usamos el mismo buffer (el motor ya calcula stats).
-                const hDataToday = hDataBuffer;
-
-                try {
-                    SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
-                } catch (e) {
-                    console.warn('SparklineEngine.setHistory (server series) falló para', w.id, e);
-                }
-            });
-        } catch (e) {
-            console.warn('preloadSparklineHistory falló', e);
-        }
-    };
-
-    
-// --- cache_api snapshot (day_stats + last + alerts) ---
-const decodeGzipJson = async (ab) => {
-    try {
-        if (typeof DecompressionStream === "undefined") return null;
-        const ds = new DecompressionStream("gzip");
-        const stream = new Response(ab).body.pipeThrough(ds);
-        return await new Response(stream).json();
-    } catch (e) {
-        console.warn("[cache_api] decode failed:", e);
-        return null;
-    }
-};
-
-const fetchCacheApiSnapshot = async (force = false) => {
-    try {
-        const now = Date.now();
-        if (!force && now - (cacheApiLastFetchRef.current || 0) < 55_000) return;
-        cacheApiLastFetchRef.current = now;
-
-        const headers = {};
-        if (cacheApiEtag) headers["If-None-Match"] = cacheApiEtag;
-
-        const resp = await fetch("/cache_api/snapshot.json.gz", { headers });
-        if (resp.status === 304) return;
-        if (!resp.ok) return;
-
-        const et = resp.headers.get("etag");
-        if (et) setCacheApiEtag(et);
-
-        const ab = await resp.arrayBuffer();
-        const json = await decodeGzipJson(ab);
-if (json) {
-    setCacheApiSnapshot(json);
-
-    // Seed/merge day_stats into runtime min/max (will later extend with live extremes)
-    const dayFrom = getSnapDayFromTs(json);
-    const incoming = (json && json.day_stats) ? json.day_stats : null;
-
-    if (incoming && typeof incoming === "object") {
-        setDayStatsLive(prev => {
-            // Reset when day boundary changes
-            if (dayFrom !== null && dayFrom !== undefined && cacheApiDayFromRef.current !== dayFrom) {
-                cacheApiDayFromRef.current = dayFrom;
-                const out = {};
-                for (const [k, s] of Object.entries(incoming)) {
-                    const kk = normalizeKey(k);
-                    const mn = (s && s.min !== undefined) ? s.min : null;
-                    const mx = (s && s.max !== undefined) ? s.max : null;
-                    out[kk] = { min: (mn === null || mn === undefined) ? null : Number(mn), max: (mx === null || mx === undefined) ? null : Number(mx) };
-                }
-                return out;
-            }
-
-            // Merge without shrinking: keep extremes across snapshot + runtime
-            let changed = false;
-            const out = { ...(prev || {}) };
-            for (const [k, s] of Object.entries(incoming)) {
-                const kk = normalizeKey(k);
-                const mn = (s && s.min !== undefined) ? s.min : null;
-                const mx = (s && s.max !== undefined) ? s.max : null;
-
-                const prevEntry = out[kk] || { min: null, max: null };
-                const nextMin = pickMin(prevEntry.min, mn);
-                const nextMax = pickMax(prevEntry.max, mx);
-
-                if (!out[kk] || nextMin !== prevEntry.min || nextMax !== prevEntry.max) {
-                    out[kk] = { min: nextMin, max: nextMax };
-                    changed = true;
-                }
-            }
-            return changed ? out : prev;
-        });
-    }
-}
-    } catch (e) {
-        console.warn("[cache_api] fetch failed:", e);
-    }
-};
-
-const fetchHistory = async () => {
-        try {
-            await fetchCacheApiSnapshot(true);
-            // 0) Seed rápido desde cache local (evita dashboard "en blanco" al cargar)
-            if (!historyData || historyData.length === 0) {
-                try {
-                    const cached = localStorage.getItem(HISTORY_CACHE_KEY);
-                    if (cached) {
-                        const parsed = JSON.parse(cached);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            const cachedRows = parsed.map(r => normalizeRow(r));
-                            setHistoryData(cachedRows);
-                            setLastData(cachedRows[cachedRows.length - 1]);
-                            if (chartConfig.timeRange === 'Ahora') {
-                                setLiveData(cachedRows.slice(-LIVE_PRELOAD_LIMIT));
-                            }
-                            // Cargar sparkline history con el cache (best-effort)
-                            const todayStart = cachedRows[0].timestamp || null;
-                            CONFIG.dashboard.widgets.forEach(w => {
-                                if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
-                                    const wk = normalizeKey(w.key);
-                                    const hDataBuffer = cachedRows.map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
-                                    const hDataToday = (todayStart !== null)
-                                        ? cachedRows.filter(d => (d.timestamp || d.ts_iso) >= todayStart).map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
-                                        : [];
-                                    try { SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday); } catch (e) {}
-                                }
-                            });
-                        }
-                    }
-                } catch (e) {
-                    // ignore cache errors
-                }
-            }
+            const rType = chartConfig.timeRange === 'Ahora' ? 'live' : 
+                         chartConfig.timeRange === '24h' ? '24h' : 
+                         chartConfig.timeRange === '7d' ? '7d' : 'rango';
 
             const url = new URL(BASE_URL + '/api/data', window.location.origin);
-            url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
+            url.searchParams.append("range_type", rType);
+            if (rType === 'rango') {
+                if (chartConfig.fromDate) url.searchParams.append("from_date", chartConfig.fromDate);
+                if (chartConfig.toDate) url.searchParams.append("to_date", chartConfig.toDate);
+            }
+
             const res = await fetch(url);
-            if (!res.ok) return;
-            const raw = await res.json();
-            const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
-
-            // 1) Guardar cache acotado
-            try {
-                const slice = fullHistory.slice(-HISTORY_CACHE_LIMIT);
-                localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(slice));
-            } catch (e) {
-                // ignore
-            }
-            // Mantener el schema actual (array de filas normalizadas)
-            setHistoryData(fullHistory);
-            // Seed inicial: si hay histórico, mostrar el último valor (flat)
-            if (fullHistory.length > 0) {
-                const last = fullHistory[fullHistory.length - 1];
-                setLastData(last);
-            }
-            // Cargar historial en los Sparklines y estadísticas usando fullHistory
-            const todayStart = fullHistory.length > 0 ? (fullHistory[0].timestamp || null) : null;
-            CONFIG.dashboard.widgets.forEach(w => {
-                if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
-                    const wk = normalizeKey(w.key);
-                    const hDataBuffer = fullHistory.map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
-                    const hDataToday = (todayStart !== null)
-                        ? fullHistory.filter(d => (d.timestamp || d.ts_iso) >= todayStart).map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
-                        : [];
-                    try {
-                        SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
-                    } catch (e) {
-                        console.warn('SparklineEngine.setHistory falló para', w.id, e);
+            if (res.ok) {
+                const rawHistory = await res.json();
+                const fullHistory = Array.isArray(rawHistory) ? rawHistory.map(row => {
+                    const normalized = {};
+                    for (const [k, v] of Object.entries(row)) {
+                        if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                        else normalized[k] = v;
                     }
-                }
-            });
-            // Si estamos en modo LIVE, inicializar liveData con los últimos puntos
-            if (chartConfig.timeRange === 'Ahora') {
-                const lastLive = fullHistory.slice(-LIVE_PRELOAD_LIMIT);
-                setLiveData(lastLive);
-            }
+                    return normalized;
+                }) : [];
+                setHistoryData(fullHistory);
 
-            // Precargar series server-side para Sparklines (historial profundo)
-            await preloadSparklineHistory();
-        } catch(error) { console.error("Error historial:", error); }
+                // Cargar historial en los Sparklines y Estadísticas Diarias al inicio
+                const todayStart = SparklineEngine.getTodayStartISO();
+                
+                CONFIG.dashboard.widgets.forEach(w => {
+                    if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
+                        // Buffer visual: últimos 100 puntos
+                        const hDataBuffer = fullHistory.map(d => d[w.key]).filter(v => v !== undefined && v !== null && v !== '--');
+                        
+                        // Estadísticas (Hoy): filtrar por fecha
+                        const hDataToday = fullHistory.filter(d => (d.timestamp || d.ts_iso) >= todayStart)
+                                                     .map(d => d[w.key])
+                                                     .filter(v => v !== undefined && v !== null && v !== '--');
+
+                        SparklineEngine.setHistory(w.id, w.key, hDataBuffer, w.min, w.max, hDataToday);
+                    }
+                });
+            }
+        } catch(e) { console.error("Error historial:", e); }
     };
+
     const fetchUpdate = async () => {
         try {
-            await fetchCacheApiSnapshot(false);
             const res = await fetch(BASE_URL + '/api/last');
             if (!res.ok) throw new Error("API Offline");
             
             const raw = await res.json();
-            // Nuevo: normalizar live a flat sin kv.
-            const flat = normalizeRow(raw);
-            const normalizedLive = flat;
+            const normalized = {};
+            for (const [k, v] of Object.entries(raw)) {
+                if (k.startsWith("kv.")) normalized[k.slice(3)] = v;
+                else normalized[k] = v;
+            }
+            const data = normalized;
+            
             // Validar que la data es real
-            const hasData = flat && flat.timestamp && flat.timestamp !== '--';
+            const hasData = data && data.timestamp && data.timestamp !== '--';
+
             if (hasData) {
-                const hardwareTs = new Date(flat.timestamp).getTime();
-                const isNewData = flat.timestamp !== (lastData && lastData.timestamp);
+                const hardwareTs = new Date(data.timestamp).getTime();
+                const isNewData = data.timestamp !== (lastData && lastData.timestamp);
+
                 if (isNewData) {
                     // --- NUEVA TELEMETRÍA DETECTADA ---
                     if (lastPacketTime > 0) {
@@ -1461,163 +1068,122 @@ const fetchHistory = async () => {
                     
                     setLastPacketTime(hardwareTs);
                     setLastArrivalLocal(Date.now());
-                    // Mantener flat para compat visual dentro del template
-                    setLastData(flat);
-                    // Forzar refresco de sparklines en cada paquete nuevo
-                    setSparkTick(t => t + 1);
+                    setLastData(data);
+
                     // Sincronización de Estado Deseado
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
                         Object.keys(next).forEach(key => {
-                            const realVal = flat[key];
+                            const realVal = data[key];
                             const desiredVal = next[key].value;
-                            if (realVal === desiredVal) {
+                            const isMatch = (String(realVal) === String(desiredVal)) || 
+                                          (realVal === 1 && desiredVal === true) || 
+                                          (realVal === 0 && desiredVal === false) ||
+                                          (realVal === "ON" && desiredVal === true) ||
+                                          (realVal === "OFF" && desiredVal === false);
+                            if (isMatch || (Date.now() - next[key].ts > 30000)) {
                                 delete next[key];
                                 changed = true;
                             }
                         });
                         return changed ? next : prev;
                     });
-                }
-                
-                // --- NUEVA LÓGICA UNIFICADA ---
-                const evaluateConnectionState = () => {
-                    const now = Date.now();
-                    const elapsed = now - lastArrivalLocal;
-                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
-                    
-                    // 1. Prioridad absoluta: tiempo sin datos
-                    if (elapsed > (threshold * 2)) {
-                        return { status: "EQUIPO OFFLINE", color: "#ef4444" };
-                    }
-                    
-                    if (elapsed > threshold) {
-                        return { status: "CONECTANDO...", color: "#f59e0b" };
-                    }
-                    
-                    // 2. Si tenemos datos recientes, evaluar reportedState
-                    const reportedState = flat.reportedState || flat.state || 'UNKNOWN';
-                    if (reportedState === "OFFLINE") {
-                        return { status: "ERROR: SIN CHIP", color: "#ef4444" };
-                    }
-                    if (reportedState === "BUSCANDO") {
-                        return { status: "BUSCANDO RED...", color: "#f59e0b" };
-                    }
-                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-                        return { status: "SISTEMA ONLINE", color: "#10b981" };
-                    }
-                    return { status: reportedState, color: "#10b981" };
-                };
 
-                // Aplicar estado unificado
-                const state = evaluateConnectionState();
-                setConnStatus(state.status);
-                setConnColor(state.color);
+                    // Actualización Centralizada del Motor
+                    CONFIG.dashboard.widgets.forEach(w => {
+                        const rawVal = data[w.key];
+                        SparklineEngine.update(w.id, w.key, rawVal, w.min || 0, w.max || 100, data.timestamp);
+                    });
+
+                    // Estado reportado por el hardware
+                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
+                    const statusKey = connWidget?.statusKey || 'gsm_stored_state';
+                    const reportedState = String(data[statusKey] || "ONLINE").toUpperCase();
+                    
+                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
+                        setConnStatus("SISTEMA ONLINE");
+                        setConnColor("#10b981");
+                    } else if (reportedState === "BUSCANDO") {
+                        setConnStatus("BUSCANDO RED...");
+                        setConnColor("#f59e0b");
+                    } else if (reportedState === "OFFLINE") {
+                        setConnStatus("ERROR: SIN CHIP");
+                        setConnColor("#ef4444");
+                    } else {
+                        setConnStatus(reportedState);
+                        setConnColor("#10b981");
+                    }
+
+                    if (chartConfig.timeRange === 'Ahora') {
+                        setLiveData(prev => {
+                            const next = [...prev, data];
+                            return next.length > 200 ? next.slice(-200) : next;
+                        });
+                    }
+                } else {
+                    // --- NO HAY DATOS NUEVOS, EVALUAR TIEMPO ---
+                    const elapsed = Date.now() - lastArrivalLocal;
+                    // Margen dinámico: Delta + 2s (o 10s si estamos aprendiendo)
+                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
+
+                    if (elapsed > (threshold * 2)) {
+                        setConnStatus("EQUIPO OFFLINE");
+                        setConnColor("#ef4444"); // Rojo
+                    } else if (elapsed > threshold) {
+                        setConnStatus("CONECTANDO...");
+                        setConnColor("#f59e0b"); // Naranja
+                    }
+                }
             } else {
                 setConnStatus("SIN DATOS");
                 setConnColor("#ef4444"); // Rojo
             }
-            
-            // Mantener live data (sin cambios)
-            if (chartConfig.timeRange === 'Ahora') {
-                setLiveData(prev => {
-                    const next = [...prev, flat];
-                    return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;
-                });
-            }
-            
-            // Fetch control state
-            const res2 = await fetch(BASE_URL + '/api/control_state');
-            if (res2.ok) {
-                setControlState(await res2.json());
-            }
-        } catch(error) {
+        } catch(e) {
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
-            console.error("Error actualización:", error);
-            
-            try {
-                const res = await fetch(BASE_URL + '/api/control_state');
-                if (res.ok) {
-                    setControlState(await res.json());
-                }
-            } catch(error) { console.warn("Fallo Controles:", error); }
+            console.error("Error actualización:", e);
         }
+
+        try {
+            const res = await fetch(BASE_URL + '/api/control_state');
+            if (res.ok) {
+                setControlState(await res.json());
+            }
+        } catch(e) { console.warn("Fallo Controles:", e); }
+
+        try {
+            const resA = await fetch(BASE_URL + '/api/alerts');
+            if (resA.ok) {
+                setAlerts(await resA.json());
+            }
+        } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
-// --- Extend widget min/max with live values (only updates if live exceeds snapshot extremes) ---
-const minMaxKeys = useMemo(() => {
-    try {
-        return (CONFIG.dashboard.widgets || [])
-            .filter(w => w && w.showMinMax)
-            .map(w => normalizeKey(w.key))
-            .filter(Boolean);
-    } catch {
-        return [];
-    }
-}, []);
-
-useEffect(() => {
-    if (!lastData) return;
-    if (!dayStatsLive) return;
-
-    setDayStatsLive(prev => {
-        let changed = false;
-        const out = { ...(prev || {}) };
-
-        for (const k of minMaxKeys) {
-            // lastData ya viene normalizado (sin kv.)
-            const raw = lastData[k];
-            const v = (typeof raw === "string") ? Number(raw) : Number(raw);
-            if (!isValidForMinMax(k, v)) continue;
-
-            const prevEntry = out[k] || { min: null, max: null };
-            const nextMin = pickMin(prevEntry.min, v);
-            const nextMax = pickMax(prevEntry.max, v);
-
-            if (!out[k] || nextMin !== prevEntry.min || nextMax !== prevEntry.max) {
-                out[k] = { min: nextMin, max: nextMax };
-                changed = true;
-            }
-        }
-
-        return changed ? out : prev;
-    });
-}, [lastData, minMaxKeys]);
-
-	// Poll de alertas (separado del loop live para no spamear el Bridge)
-	const fetchAlerts = async () => {
-		try {
-			const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
-			u.searchParams.set('limit', '200');
-			const res = await fetch(u);
-			if (!res.ok) return;
-			const js = await res.json();
-			const arr = Array.isArray(js) ? js : [];
-			const normalized = arr.map(a => {
-				const ms = getAlertMs(a);
-				const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
-				return { ...a, timestamp, __ts_ms: ms };
-			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
-			setAlerts(normalized);
-		} catch(error) { console.warn("Fallo Alertas:", error); }
-	};
-
-	useEffect(() => {
-		let mounted = true;
-		const run = async () => {
-			if (!mounted) return;
-			await fetchAlerts();
-		};
-		run();
-		const id = setInterval(() => { fetchAlerts(); }, ALERTS_POLL_MS);
-		return () => { mounted = false; clearInterval(id); };
-	}, [BASE_URL, alertsSeenUntilMs]);
     const displayData = useMemo(() => {
         const isLive = chartConfig.timeRange === 'Ahora';
-        let filtered = isLive ? liveData : seriesData;
+        let filtered = isLive ? liveData : historyData;
+        const now = new Date().getTime();
+
         if (!isLive) {
+            // 1. Filtro de Tiempo (Rango Rápido)
+            if (chartConfig.timeRange === '24h') {
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+                filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= oneDayAgo);
+            } else if (chartConfig.timeRange === '7d') {
+                const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+                filtered = historyData.filter(d => new Date(d.timestamp).getTime() >= sevenDaysAgo);
+            } else if (chartConfig.timeRange === 'Rango') {
+                if (chartConfig.fromDate && chartConfig.toDate) {
+                    const start = new Date(chartConfig.fromDate).getTime();
+                    const end = new Date(chartConfig.toDate).getTime();
+                    filtered = historyData.filter(d => {
+                        const ts = new Date(d.timestamp).getTime();
+                        return ts >= start && ts <= end;
+                    });
+                }
+            }
+
             // 2. Filtro Horario (Día / Noche)
             if (chartConfig.filter === 'day') {
                 filtered = filtered.filter(d => {
@@ -1631,6 +1197,7 @@ useEffect(() => {
                 });
             }
         }
+
         const finalData = Array.isArray(filtered) ? filtered : [];
         return finalData.map(d => {
             if (!d) return { t: '', v: null, v2: null, fullTimestamp: null };
@@ -1639,13 +1206,13 @@ useEffect(() => {
                 ? ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 : ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
             
-            const y1 = normKey(chartConfig.primaryY);
-            const y2 = chartConfig.secondaryY ? normKey(chartConfig.secondaryY) : null;
-            const v1Raw = parseFloat(getVal(d, y1));
-            const v2Raw = y2 ? parseFloat(getVal(d, y2)) : NaN;
+            const v1Raw = parseFloat(d[chartConfig.primaryY]);
+            const v2Raw = chartConfig.secondaryY ? parseFloat(d[chartConfig.secondaryY]) : NaN;
+
             // BLINDAJE PUNTO 4: Chart.js tratará null como un hueco en la línea
             const v1 = v1Raw === -50.0 ? null : v1Raw;
             const v2 = v2Raw === -50.0 ? null : v2Raw;
+
             return {
                 t: label,
                 v: v1,
@@ -1653,7 +1220,8 @@ useEffect(() => {
                 fullTimestamp: d.timestamp
             };
         }); // No filtramos, para permitir huecos (null) en Chart.js
-    }, [chartConfig, seriesData, liveData]);
+    }, [chartConfig, historyData, liveData]);
+
     const sendControl = async (key, val) => {
         try {
             // Marcar como pendiente de inmediato
@@ -1661,6 +1229,7 @@ useEffect(() => {
                 ...prev, 
                 [key]: { value: val, ts: Date.now() } 
             }));
+
             const res = await fetch(BASE_URL + '/api/control_state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1669,38 +1238,27 @@ useEffect(() => {
             if (res.ok) {
                 setControlState(prev => ({ ...prev, [key]: val }));
             }
-        } catch(error) { console.error("Error envío control:", error); }
+        } catch(e) { console.error("Error envío control:", e); }
     };
+
     useEffect(() => {
-        let mounted = true;
-        let intervalId = null;
-        const startLoop = async () => {
-            try {
-                // Asegurarnos de cargar historial antes de hacer la primera actualización live
-                await fetchHistory();
-            } catch (e) {
-                console.warn('fetchHistory falló en arranque', e);
-            }
-            if (!mounted) return;
-            try {
-                await fetchUpdate();
-            } catch (e) {
-                console.warn('fetchUpdate inicial falló', e);
-            }
-            intervalId = setInterval(fetchUpdate, (CONFIG.refreshInterval ?? 1000));
-        };
-        startLoop();
-        return () => {
-            mounted = false;
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, []);
+        fetchHistory();
+    }, [chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate]);
+
+    useEffect(() => {
+        fetchUpdate();
+        const interval = setInterval(fetchUpdate, CONFIG.refreshInterval);
+        return () => clearInterval(interval);
+    }, [chartConfig.primaryY, chartConfig.secondaryY, chartConfig.timeRange]);
+
     useEffect(() => {
         setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
     }, [activeTabId]);
+
     const activeVarLabel = useMemo(() => {
         return CONFIG.labels[chartConfig.primaryY] || chartConfig.primaryY;
     }, [chartConfig.primaryY]);
+
     return (
         <div className="adtec-dashboard-root">
             <div className="tabs-nav">
@@ -1722,8 +1280,31 @@ useEffect(() => {
                     </div>
                 ))}
             </div>
-            <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"} style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
-                {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
+
+            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
+                {currentTab.type !== 'charts' && (
+                    <div className="card-header">
+                        <div className="logo-section">
+                            <div className="logo-icon"><div className="logo-icon-inner">ADTEC</div></div>
+                            <span className="card-title">{currentTab.title}</span>
+                        </div>
+                        {currentTab.type === 'control' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
+                                <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
+                                    {controlState.manual ? 'MANUAL' : 'AUTO'}
+                                </span>
+                                <label className="switch" style={{ transform: 'scale(0.7)' }}>
+                                    <input type="checkbox" checked={!!controlState.manual} onChange={(e) => sendControl('manual', e.target.checked)} />
+                                    <span className="slider"></span>
+                                </label>
+                            </div>
+                        )}
+                        <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
+                    </div>
+                )}
+
+                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"}>
+                    {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
                     
                     {currentTab.type === 'alerts' ? (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '25px', overflowY: 'auto' }}>
@@ -1734,23 +1315,19 @@ useEffect(() => {
                                     </div>
                                     <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-							<button 
-								onClick={() => {
-									if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
-										const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
-										const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
-										setSeenUntil(maxMs);
-										setAlerts([]);
-									}
-								}}
+                                <button 
+                                    onClick={async () => {
+                                        if (confirm('¿Limpiar todo el historial de alertas?')) {
+                                            await fetch(BASE_URL + '/api/alerts/clear', { method: 'POST' });
+                                            setAlerts([]);
+                                        }
+                                    }}
                                     style={{ padding: '6px 15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
                                 >
-								MARCAR COMO LEÍDAS
+                                    LIMPIAR HISTORIAL
                                 </button>
-                                    <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
-                                </div>
                             </div>
+
                             {alerts.length === 0 ? (
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
                                     <span style={{ fontSize: '48px', marginBottom: '15px' }}>🟢</span>
@@ -1769,11 +1346,11 @@ useEffect(() => {
                                                 </div>
                                                 <div className="alert-card-msg">{a.msg}</div>
                                                 <div className="alert-card-detail">
-                                                    {Object.entries(a).map(([key, value]) => (
-                                                        <div key={key} style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                            {key}: <b>{String(value)}</b>
-                                                        </div>
-                                                    ))}
+                                                    Valor: <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{formatValue(a.valor || a.value, 'fixed1', "")}</span>
+                                                    {(a.referencia !== undefined && a.referencia !== 0) && (
+                                                        <> | Ref: <span style={{ color: '#9ca3af' }}>{formatValue(a.referencia || a.ref, 'fixed1', "")}</span></>
+                                                    )}
+                                                    {a.signal && <> | Señal: <span style={{ color: 'var(--adtec-accent)' }}>{a.signal}</span></>}
                                                 </div>
                                             </div>
                                         </div>
@@ -1815,6 +1392,7 @@ useEffect(() => {
                                     <a href={BASE_URL + "/api/download/xlsx?channel=ingreso"} style={{ padding: '5px 10px', borderRadius: 6, background: 'var(--adtec-accent)', color: 'black', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>XLSX</a>
                                 </div>
                             </div>
+
                             <div style={{ background: 'rgba(255,255,255,0.03)', padding: 15, borderRadius: 12, border: '1px solid rgba(148, 163, 184, 0.1)', marginBottom: 20 }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 15 }}>
                                     <div className="form-group">
@@ -1872,6 +1450,7 @@ useEffect(() => {
                                         </div>
                                     </div>
                                 </div>
+
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr', gap: 15 }}>
                                     <div className="form-group">
                                         <label style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 5, display: 'block', fontWeight: 600 }}>Desde</label>
@@ -1924,11 +1503,6 @@ useEffect(() => {
                                     </div>
                                 </div>
                             </div>
-	                            {/* Barra informativa: primer/último timestamp del modo actual */}
-	                            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.9, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-	                                <div><strong>Desde:</strong> {chartConfig.fromDate || '--'}</div>
-	                                <div><strong>Hasta:</strong> {chartConfig.toDate || '--'}</div>
-	                            </div>
                             <div style={{ height: '400px', background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 15 }}>
                                 <DashboardChart 
                                     widget={{ label: activeVarLabel }} 
@@ -1945,6 +1519,7 @@ useEffect(() => {
                             const valStr = getWidgetValue(w.key);
                             const val = parseFloat(valStr);
                             const style = { left: w.x, top: w.y, width: w.w, height: w.h, position: 'absolute' };
+
                             if (w.type === 'label') {
                                 return (
                                     <div key={w.id} className="adtec-label-widget" style={{ ...style, color: w.color || 'white', fontSize: w.fontSize || 14, fontWeight: 'bold' }}>
@@ -1952,6 +1527,7 @@ useEffect(() => {
                                     </div>
                                 );
                             }
+
                             if (w.type === 'chart' || w.type === 'summary-chart') {
                                 return (
                                     <div key={w.id} className="adtec-status-item" style={style}>
@@ -1966,48 +1542,43 @@ useEffect(() => {
                                             </div>
                                         </div>
                                         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-                                            <DashboardChart widget={w} dataHistory={
-                                                historyData && historyData.length > 0 ? historyData.map(d => {
-                                                    const ts = new Date(d.timestamp);
-                                                    const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                                                    const raw = getVal(d, normKey(w.key));
-                                                    const parsed = parseFloat(raw);
-                                                    const v = isNaN(parsed) ? null : (parsed === -50.0 ? null : parsed);
-                                                    return { t: label, v: v, v2: null, fullTimestamp: d.timestamp };
-                                                }) : []
-                                            } chartConfig={{ primaryY: w.key }} />
+                                            <DashboardChart widget={w} dataHistory={[]} chartConfig={{ primaryY: w.key }} />
                                         </div>
                                     </div>
                                 );
                             }
+
                             return (
                                 <div key={w.id} className="adtec-status-item" style={style}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                                             <h3 style={{ flex: 1, wordBreak: 'break-word', lineHeight: '1.1' }}>{w.label}</h3>
                                         {!w.hideKey && <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af', flexShrink: 0 }}>{w.key}</span>}
                                     </div>
+
                                     {w.type === 'gauge' && (() => {
                                         const numVal = isNaN(parseFloat(valStr)) ? (w.min || 0) : parseFloat(valStr);
                                         const min = w.min || 0;
                                         const max = w.max || 100;
                                         const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
                                         
-                                        // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
-const wk = normalizeKey(w.key);
-const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
-const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
-const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
+                                        // Mín/Máx reales del día desde el motor
+                                        const stats = SparklineEngine.getStats(w.id);
+                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+
                                         return (
                                             <>
                                                 <div className="adtec-status-value" style={{ textAlign: 'center' }}>
                                                     {valStr.replace(w.unit || '', '')} 
                                                     <span style={{ fontSize: '12px', fontWeight: 400, opacity: 0.6 }}>{w.unit}</span>
                                                 </div>
+
                                                 {w.showMinMax && (
                                                     <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', marginTop: '-2px', marginBottom: '10px', fontWeight: 500 }}>
                                                         Mín: {minDay} {w.unit} · Máx: {maxDay} {w.unit}
                                                     </div>
                                                 )}
+
                                             {(w.showBar ?? true) && (
                                                 <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted), marginTop: w.showMinMax ? '0px' : '5px' }}>
                                                     <div 
@@ -2021,6 +1592,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                     />
                                                 </div>
                                             )}
+
                                             {w.showSparkline && (
                                                 <Sparkline 
                                                     id={w.id} 
@@ -2031,12 +1603,13 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                     // Evitar que el fallback numVal ensucie el gráfico al inicio
                                                     value={valStr === '--' ? undefined : numVal} 
                                                     showShadow={w.sparklineShadow}
-                                                    historyTick={sparkTick}
+                                                    historyTick={historyData.length}
                                                 />
                                             )}
                                         </>
                                     );
                                     })()}
+
                                     {w.type === 'indicator' && (() => {
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
                                         return (
@@ -2046,11 +1619,13 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </div>
                                         );
                                     })()}
+
                                     {w.type === 'control-relay' && (() => {
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
                                         const isManual = !!controlState.manual;
                                         const pending = pendingCommands[w.target];
                                         const isPending = pending !== undefined;
+
                                         return (
                                             <>
                                                 <div className={"adtec-status-chip " + (isOn ? "on" : "off")} style={{ marginBottom: 10, alignSelf: 'flex-start' }}>
@@ -2088,11 +1663,13 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </>
                                         );
                                     })()}
+
                                     {w.type === 'control-vfd' && (() => {
                                         const freq = parseFloat(controlState[w.target] || 0);
                                         const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
                                         const isManual = !!controlState.manual;
                                         const pending = pendingCommands[w.target + '_state'];
+
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginTop: 5, alignItems: 'center', width: '100%' }}>
                                                 <div className={"vfd-dial " + (isOn ? "on" : "")}>
@@ -2137,6 +1714,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </div>
                                         );
                                     })()}
+
                                     {w.type === 'connection' && (() => {
                                         const sigKey = w.signalKey || w.key;
                                         const sigVal = parseFloat(getWidgetValue(sigKey) || getWidgetValue('gsm_signal') || "0");
@@ -2167,30 +1745,25 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </div>
                                         );
                                     })()}
+
                                     {w.type === 'datetime' && (() => {
-	                                        const rawVal = getWidgetValue(w.key);
-	                                        // No pegar la unidad a la fecha. La unidad (p.ej. "hs") va solo junto a la HORA.
-	                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', "");
+                                        const rawVal = getWidgetValue(w.key);
+                                        const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', w.unit);
                                         const parts = formatted.split('|');
                                         const displayTime = parts[0];
                                         const displayDate = parts[1] || '';
-	                                        const timeUnit = (w.unit || '').trim();
                                         
                                         return (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
                                                 <span style={{ fontSize: '20px' }}>⏰</span>
                                                 <div>
-	                                                    <div style={{ fontSize: '14px', color: 'var(--adtec-accent)', fontWeight: 800 }}>
-	                                                        {displayTime}{timeUnit ? ' ' + timeUnit : ''}
-	                                                    </div>
+                                                    <div style={{ fontSize: '14px', color: 'var(--adtec-accent)', fontWeight: 800 }}>{displayTime}</div>
                                                     {displayDate && <div style={{ fontSize: '10px', color: '#9ca3af' }}>{displayDate}</div>}
                                                 </div>
                                             </div>
                                         );
                                     })()}
 
-
-                                    
                                     {w.type === 'text' && (() => {
                                         if (w.label.toLowerCase().includes('red') || w.label.toLowerCase().includes('estado')) {
                                             return (
@@ -2200,11 +1773,12 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                 </div>
                                             );
                                         }
-                                        // Mín/Máx del día (separado del sparkline): cache_api.snapshot.day_stats
-const wk = normalizeKey(w.key);
-const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
-const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
-const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
+
+                                        // Mín/Máx reales del día desde el motor (Unificado)
+                                        const stats = SparklineEngine.getStats(w.id);
+                                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+
                                         return (
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                                                 <div className="adtec-status-value" style={{ textAlign: 'center' }}>
@@ -2219,20 +1793,16 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                             </div>
                                         );
                                     })()}
+
                                     {w.type === 'location' && (() => {
-                                        // leer RAW (sin parseFloat) para no cortar en la coma
-                                                const rawCoords = getVal(lastData, w.key);
-                                                const coords = (rawCoords === null || rawCoords === undefined) ? '' : String(rawCoords);
-
-                                                const city = w.statusKey ? getWidgetValue(w.statusKey) : '';
-
-                                                return (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5, color: '#9ca3af' }}>
-                                                    <span style={{ fontSize: 20 }}>📍</span>
+                                        const displayCity = lastValidLocation.city !== '--' ? lastValidLocation.city : 'Ubicación Pro';
+                                        const displayCoords = lastValidLocation.coord !== '--' ? lastValidLocation.coord : 'Detectando GPS...';
+                                        return (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 5, color: '#9ca3af' }}>
+                                                <span style={{ fontSize: 20 }}>📍</span>
                                                 <div>
-                                                <div style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{city || 'Ubicación Pro'}</div>
-                                                <div style={{ fontSize: 10, opacity: 0.6, wordBreak: 'break-all' }}>{coords || 'Detectando GPS...'}
-                                                </div>
+                                                    <div style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{displayCity}</div>
+                                                    <div style={{ fontSize: 10, opacity: 0.6 }}>{displayCoords}</div>
                                                 </div>
                                             </div>
                                         );
@@ -2244,9 +1814,10 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                     )}
                 </div>
             </div>
-        
+        </div>
     );
 };
+
 ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
 
             
