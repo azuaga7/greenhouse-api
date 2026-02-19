@@ -1517,10 +1517,10 @@ const fetchHistory = async () => {
                     //     setConnColor("#10b981");
                     // }
                     
-                    // NUEVA LÓGICA UNIFICADA
-                    const connState = determineConnectionState(flat, lastArrivalLocal, currentDelta, isLearning);
-                    setConnStatus(connState.status);
-                    setConnColor(connState.color);
+                    // NUEVA LÓGICA UNIFICADA (COMENTADA - MOVIENDO AFUERA)
+                    // const connState = determineConnectionState(flat, lastArrivalLocal, currentDelta, isLearning);
+                    // setConnStatus(connState.status);
+                    // setConnColor(connState.color);
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
                             const next = [...prev, flat];
@@ -1541,14 +1541,25 @@ const fetchHistory = async () => {
                     // }
                 }
             } else {
-                setConnStatus("SIN DATOS");
-                setConnColor("#ef4444"); // Rojo
+                // SIN DATOS (COMENTADO - USANDO LÓGICA UNIFICADA)
+                // setConnStatus("SIN DATOS");
+                // setConnColor("#ef4444"); // Rojo
             }
         } catch(e) {
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
             console.error("Error actualización:", e);
         }
+        
+        // LÓGICA UNIFICADA DE CONEXIÓN - ÚNICA AUTORIDAD
+        try {
+            const connState = determineConnectionState(hasData ? flat : null, lastArrivalLocal, currentDelta, isLearning);
+            setConnStatus(connState.status);
+            setConnColor(connState.color);
+        } catch(e) {
+            console.error("Error en lógica unificada:", e);
+        }
+        
         try {
             const res = await fetch(BASE_URL + '/api/control_state');
             if (res.ok) {
