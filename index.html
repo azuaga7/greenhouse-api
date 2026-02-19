@@ -979,7 +979,7 @@ const DashboardApp = () => {
     const [connColor, setConnColor] = useState('#f59e0b');
     const [lastPacketTime, setLastPacketTime] = useState(0);
     const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
-    const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
+    const [currentDelta, setCurrentDelta] = useState(10000); // 10 seg inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
     const BASE_URL = CONFIG.BASE_URL || "";
 
@@ -1444,8 +1444,9 @@ const fetchHistory = async () => {
             // Nuevo: normalizar live a flat sin kv.
             const flat = normalizeRow(raw);
             const normalizedLive = flat;
-            // Validar que la data es real
-            const hasData = flat && flat.timestamp && flat.timestamp !== '--';
+            // Validar que la data es real y reciente (máx 1 minuto)
+            const hasData = flat && flat.timestamp && flat.timestamp !== '--' && 
+                           (Date.now() - new Date(flat.timestamp).getTime()) < 60000;
             if (hasData) {
                 const hardwareTs = new Date(flat.timestamp).getTime();
                 const isNewData = flat.timestamp !== (lastData && lastData.timestamp);
@@ -1544,6 +1545,9 @@ const fetchHistory = async () => {
                 // SIN DATOS (COMENTADO - USANDO LÓGICA UNIFICADA)
                 // setConnStatus("SIN DATOS");
                 // setConnColor("#ef4444"); // Rojo
+                
+                // NUEVO: Actualizar lastArrivalLocal aunque no haya datos para que elapsed avance
+                setLastArrivalLocal(Date.now());
             }
         } catch(e) {
             setConnStatus("API OFFLINE");
@@ -1553,6 +1557,11 @@ const fetchHistory = async () => {
         
         // LÓGICA UNIFICADA DE CONEXIÓN - ÚNICA AUTORIDAD
         try {
+            // NUEVO: Siempre actualizar lastArrivalLocal para que elapsed avance correctamente
+            if (!hasData) {
+                setLastArrivalLocal(Date.now());
+            }
+            
             const connState = determineConnectionState(hasData ? flat : null, lastArrivalLocal, currentDelta, isLearning);
             setConnStatus(connState.status);
             setConnColor(connState.color);
