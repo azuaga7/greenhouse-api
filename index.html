@@ -1486,42 +1486,6 @@ const fetchHistory = async () => {
                         return changed ? next : prev;
                     });
                     // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
-                    CONFIG.dashboard.widgets.forEach(w => {
-    const wk = normKey(w.key);
-    const rawVal = getVal(flat, wk);
-    SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
-});
-                    // Estado reportado por el hardware (COMENTADO - USANDO NUEVA LÓGICA)
-                    // const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
-                    // // Prioridad: statusKey explícito > key del widget > fallback histórico
-                    // const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
-                    // const rawReported = getVal(flat, statusKey);
-                    // let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
-                    // // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
-                    // // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
-                    // if (/^d{6,}$/.test(reportedState)) {
-                    //     reportedState = "ONLINE";
-                    // }
-                    // reportedState = reportedState.toUpperCase();
-                    
-                    // if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-                    //     setConnStatus("SISTEMA ONLINE");
-                    //     setConnColor("#10b981");
-                    // } else if (reportedState === "BUSCANDO") {
-                    //     setConnStatus("BUSCANDO RED...");
-                    //     setConnColor("#f59e0b");
-                    // } else if (reportedState === "OFFLINE") {
-                    //     setConnStatus("ERROR: SIN CHIP");
-                    //     setConnColor("#ef4444");
-                    // } else {
-                    //     setConnStatus(reportedState);
-                    //     setConnColor("#10b981");
-                    // }
-                    
-                    // NUEVA LÓGICA UNIFICADA (COMENTADA - MOVIENDO AFUERA)
-                    // const connState = determineConnectionState(flat, lastArrivalLocal, currentDelta, isLearning);
-                    // setConnStatus(connState.status);
-                    // setConnColor(connState.color);
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
                             const next = [...prev, flat];
@@ -1529,46 +1493,28 @@ const fetchHistory = async () => {
                         });
                     }
                 } else {
-                    // --- NO HAY DATOS NUEVOS, EVALUAR TIEMPO (COMENTADO - INCLUIDO EN NUEVA LÓGICA) ---
-                    // const elapsed = Date.now() - lastArrivalLocal;
-                    // // Margen dinámico: Delta + 2s (o 10s si estamos aprendiendo)
-                    // const threshold = currentDelta + (isLearning ? 10000 : 2000);
-                    // if (elapsed > (threshold * 2)) {
-                    //     setConnStatus("EQUIPO OFFLINE");
-                    //     setConnColor("#ef4444"); // Rojo
-                    // } else if (elapsed > threshold) {
-                    //     setConnStatus("CONECTANDO...");
-                    //     setConnColor("#f59e0b"); // Naranja
-                    // }
+                    setConnStatus("SIN DATOS");
+                    setConnColor("#ef4444"); // Rojo
+                    
+                    // NUEVO: Actualizar lastArrivalLocal aunque no haya datos para que elapsed avance
+                    setLastArrivalLocal(Date.now());
                 }
-            } else {
-                // SIN DATOS (COMENTADO - USANDO LÓGICA UNIFICADA)
-                // setConnStatus("SIN DATOS");
-                // setConnColor("#ef4444"); // Rojo
                 
-                // NUEVO: Actualizar lastArrivalLocal aunque no haya datos para que elapsed avance
-                setLastArrivalLocal(Date.now());
-            }
+                // LÓGICA DE TIEMPO PARA DETECTAR OFFLINE
+                const elapsed = Date.now() - lastArrivalLocal;
+                const threshold = currentDelta + (isLearning ? 10000 : 2000);
+                if (elapsed > (threshold * 2)) {
+                    setConnStatus("EQUIPO OFFLINE");
+                    setConnColor("#ef4444"); // Rojo
+                } else if (elapsed > threshold) {
+                    setConnStatus("CONECTANDO...");
+                    setConnColor("#f59e0b"); // Naranja
+                }
         } catch(e) {
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
             console.error("Error actualización:", e);
         }
-        
-        // LÓGICA UNIFICADA DE CONEXIÓN - ÚNICA AUTORIDAD
-        try {
-            // NUEVO: Siempre actualizar lastArrivalLocal para que elapsed avance correctamente
-            if (!hasData) {
-                setLastArrivalLocal(Date.now());
-            }
-            
-            const connState = determineConnectionState(hasData ? flat : null, lastArrivalLocal, currentDelta, isLearning);
-            setConnStatus(connState.status);
-            setConnColor(connState.color);
-        } catch(e) {
-            console.error("Error en lógica unificada:", e);
-        }
-        
         try {
             const res = await fetch(BASE_URL + '/api/control_state');
             if (res.ok) {
@@ -1703,7 +1649,6 @@ useEffect(() => {
         } catch(e) { console.error("Error envío control:", e); }
     };
     useEffect(() => {
-        let mounted = true;
         let intervalId = null;
         const startLoop = async () => {
             try {
@@ -1712,7 +1657,6 @@ useEffect(() => {
             } catch (e) {
                 console.warn('fetchHistory falló en arranque', e);
             }
-            if (!mounted) return;
             try {
                 await fetchUpdate();
             } catch (e) {
@@ -1722,7 +1666,6 @@ useEffect(() => {
         };
         startLoop();
         return () => {
-            mounted = false;
             if (intervalId) clearInterval(intervalId);
         };
     }, []);
@@ -2296,47 +2239,6 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
         </div>
     );
 };
-
-    // Función unificada para determinar el estado de conexión
-    const determineConnectionState = (flat, lastArrivalLocal, currentDelta, isLearning) => {
-        // 1. PRIORIDAD 1: Datos de hardware si existen y son válidos
-        if (flat) {
-            const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
-            const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
-            const rawReported = getVal(flat, statusKey);
-            
-            if (rawReported !== undefined && rawReported !== null) {
-                let reportedState = String(rawReported);
-                
-                // Si es número largo, ignorar (no es estado válido)
-                if (!/^d{6,}$/.test(reportedState)) {
-                    reportedState = reportedState.toUpperCase();
-                    
-                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-                        return { status: "SISTEMA ONLINE", color: "#10b981", hasData: true };
-                    } else if (reportedState === "BUSCANDO") {
-                        return { status: "BUSCANDO RED...", color: "#f59e0b", hasData: true };
-                    } else if (reportedState === "OFFLINE") {
-                        return { status: "EQUIPO OFFLINE", color: "#ef4444", hasData: true };
-                    }
-                }
-            }
-        }
-        
-        // 2. PRIORIDAD 2: Lógica de tiempo (si no hay hardware válido)
-        const elapsed = Date.now() - lastArrivalLocal;
-        const threshold = currentDelta + (isLearning ? 10000 : 2000);
-        
-        if (elapsed > (threshold * 2)) {
-            return { status: "EQUIPO OFFLINE", color: "#ef4444", hasData: false };
-        } else if (elapsed > threshold) {
-            return { status: "CONECTANDO...", color: "#f59e0b", hasData: false };
-        }
-        
-        // 3. PRIORIDAD 3: Default (si está en tiempo normal sin hardware)
-        return { status: "CONECTANDO...", color: "#f59e0b", hasData: false };
-    };
-
 ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
 
             
