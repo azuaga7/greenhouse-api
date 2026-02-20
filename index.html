@@ -979,7 +979,7 @@ const DashboardApp = () => {
     const [connColor, setConnColor] = useState('#f59e0b');
     const [lastPacketTime, setLastPacketTime] = useState(0);
     const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
-    const [currentDelta, setCurrentDelta] = useState(10000); // 10 seg inicial (Aprendizaje)
+    const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
     const BASE_URL = CONFIG.BASE_URL || "";
 
@@ -1444,9 +1444,8 @@ const fetchHistory = async () => {
             // Nuevo: normalizar live a flat sin kv.
             const flat = normalizeRow(raw);
             const normalizedLive = flat;
-            // Validar que la data es real y reciente (máx 1 minuto)
-            const hasData = flat && flat.timestamp && flat.timestamp !== '--' && 
-                           (Date.now() - new Date(flat.timestamp).getTime()) < 60000;
+            // Validar que la data es real
+            const hasData = flat && flat.timestamp && flat.timestamp !== '--';
             if (hasData) {
                 const hardwareTs = new Date(flat.timestamp).getTime();
                 const isNewData = flat.timestamp !== (lastData && lastData.timestamp);
@@ -1486,6 +1485,37 @@ const fetchHistory = async () => {
                         return changed ? next : prev;
                     });
                     // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
+                    CONFIG.dashboard.widgets.forEach(w => {
+    const wk = normKey(w.key);
+    const rawVal = getVal(flat, wk);
+    SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
+});
+                    // Estado reportado por el hardware
+	                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
+	                    // Prioridad: statusKey explícito > key del widget > fallback histórico
+	                    const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
+	                    const rawReported = getVal(flat, statusKey);
+                    let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
+                    // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
+                    // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
+                    if (/^d{6,}$/.test(reportedState)) {
+                        reportedState = "ONLINE";
+                    }
+                    reportedState = reportedState.toUpperCase();
+                    
+                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
+                        setConnStatus("SISTEMA ONLINE");
+                        setConnColor("#10b981");
+                    } else if (reportedState === "BUSCANDO") {
+                        setConnStatus("BUSCANDO RED...");
+                        setConnColor("#f59e0b");
+                    } else if (reportedState === "OFFLINE") {
+                        setConnStatus("ERROR: SIN CHIP");
+                        setConnColor("#ef4444");
+                    } else {
+                        setConnStatus(reportedState);
+                        setConnColor("#10b981");
+                    }
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
                             const next = [...prev, flat];
@@ -1493,23 +1523,22 @@ const fetchHistory = async () => {
                         });
                     }
                 } else {
-                    setConnStatus("SIN DATOS");
-                    setConnColor("#ef4444"); // Rojo
-                    
-                    // NUEVO: Actualizar lastArrivalLocal aunque no haya datos para que elapsed avance
-                    setLastArrivalLocal(Date.now());
+                    // --- NO HAY DATOS NUEVOS, EVALUAR TIEMPO ---
+                    const elapsed = Date.now() - lastArrivalLocal;
+                    // Margen dinámico: Delta + 2s (o 10s si estamos aprendiendo)
+                    const threshold = currentDelta + (isLearning ? 10000 : 2000);
+                    if (elapsed > (threshold * 2)) {
+                        setConnStatus("EQUIPO OFFLINE");
+                        setConnColor("#ef4444"); // Rojo
+                    } else if (elapsed > threshold) {
+                        setConnStatus("CONECTANDO...");
+                        setConnColor("#f59e0b"); // Naranja
+                    }
                 }
-                
-                // LÓGICA DE TIEMPO PARA DETECTAR OFFLINE
-                const elapsed = Date.now() - lastArrivalLocal;
-                const threshold = currentDelta + (isLearning ? 10000 : 2000);
-                if (elapsed > (threshold * 2)) {
-                    setConnStatus("EQUIPO OFFLINE");
-                    setConnColor("#ef4444"); // Rojo
-                } else if (elapsed > threshold) {
-                    setConnStatus("CONECTANDO...");
-                    setConnColor("#f59e0b"); // Naranja
-                }
+            } else {
+                setConnStatus("SIN DATOS");
+                setConnColor("#ef4444"); // Rojo
+            }
         } catch(e) {
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
@@ -1649,6 +1678,7 @@ useEffect(() => {
         } catch(e) { console.error("Error envío control:", e); }
     };
     useEffect(() => {
+        let mounted = true;
         let intervalId = null;
         const startLoop = async () => {
             try {
@@ -1657,6 +1687,7 @@ useEffect(() => {
             } catch (e) {
                 console.warn('fetchHistory falló en arranque', e);
             }
+            if (!mounted) return;
             try {
                 await fetchUpdate();
             } catch (e) {
@@ -1666,6 +1697,7 @@ useEffect(() => {
         };
         startLoop();
         return () => {
+            mounted = false;
             if (intervalId) clearInterval(intervalId);
         };
     }, []);
