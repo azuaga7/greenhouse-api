@@ -1495,7 +1495,7 @@ const fetchHistory = async () => {
 	                    // Prioridad: statusKey explícito > key del widget > fallback histórico
 	                    const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
 	                    const rawReported = getVal(flat, statusKey);
-                    let reportedState = (rawReported === undefined || rawReported === null) ? "ONLINE" : String(rawReported);
+                    let reportedState = (rawReported === undefined || rawReported === null) ? "DESCONECTADO" : String(rawReported);
                     // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
                     // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
                     if (/^d{6,}$/.test(reportedState)) {
