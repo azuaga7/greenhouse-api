@@ -651,6 +651,7 @@ const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
 
 // Diccionario de tipos de alerta con colores característicos
+// Mapeo exacto desde desplegable Alert Manager → valores API
 const ALERT_TYPES = {
   'CRITICAL': { 
     label: 'CRÍTICO', 
@@ -1828,7 +1829,7 @@ useEffect(() => {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '0 25px 25px 25px' }}>
-                                    {[...alerts].reverse().map((a, i) => {
+                                    {alerts.map((a, i) => {
                                         const alertType = ALERT_TYPES[a.type] || DEFAULT_ALERT_TYPE;
                                         
                                         return (
