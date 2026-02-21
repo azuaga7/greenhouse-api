@@ -1796,11 +1796,9 @@ useEffect(() => {
                                                 </div>
                                                 <div className="alert-card-msg">{a.msg}</div>
                                                 <div className="alert-card-detail">
-                                                    {Object.entries(a).map(([key, value]) => (
-                                                        <div key={key} style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                                                            {key}: <b>{String(value)}</b>
-                                                        </div>
-                                                    ))}
+                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                        Valor: <b>{String(a.value || '--')}</b> | Límite: <b>{String(a.ref || '--')}</b> | Señal de Procedencia: <b>{String(a.signal ? a.signal.split('.')[0] : '--')}</b>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
