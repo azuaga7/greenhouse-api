@@ -649,6 +649,48 @@ const HISTORY_CACHE_LIMIT = 1500;
 const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 // Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
 const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
+
+// Diccionario de tipos de alerta con colores característicos
+const ALERT_TYPES = {
+  'ALERT_CRITICAL': { 
+    label: 'CRÍTICO', 
+    color: '#dc2626',
+    bgColor: '#dc262615', 
+    borderColor: '#dc262644'
+  },
+  'ALERT_WARNING': { 
+    label: 'ADVERTENCIA', 
+    color: '#d97706',
+    bgColor: '#d9770615', 
+    borderColor: '#d9770644'
+  },
+  'ALERT_INFO': { 
+    label: 'INFO', 
+    color: '#2563eb',
+    bgColor: '#2563eb15', 
+    borderColor: '#2563eb44'
+  },
+  'ALERT_STATE': { 
+    label: 'CAMBIO ESTADO', 
+    color: '#7c3aed',
+    bgColor: '#7c3aed15', 
+    borderColor: '#7c3aed44'
+  },
+  'ALERT_ONLY': { 
+    label: 'ALERTA', 
+    color: '#6b7280',
+    bgColor: '#6b728015', 
+    borderColor: '#6b728044'
+  }
+};
+
+// Tipo por defecto para alertas no reconocidas
+const DEFAULT_ALERT_TYPE = {
+  label: 'SIN TIPO',
+  color: '#0891b2',      // Cyan distintivo
+  bgColor: '#0891b215',  // Fondo cyan transparente
+  borderColor: '#0891b244' // Borde cyan
+};
 // Componente de Gráfico Optimizado (Zero-Flicker)
 const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
     const canvasRef = useRef(null);
@@ -1786,12 +1828,23 @@ useEffect(() => {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '0 25px 25px 25px' }}>
-                                    {[...alerts].reverse().map((a, i) => (
-                                        <div key={i} className="alert-card-item">
-                                            <div className="alert-card-side"></div>
+                                    {[...alerts].reverse().map((a, i) => {
+                                        const alertType = ALERT_TYPES[a.type] || DEFAULT_ALERT_TYPE;
+                                        
+                                        return (
+                                        <div key={i} className="alert-card-item" style={{
+                                            borderLeft: `4px solid ${alertType.color}`,
+                                            background: alertType.bgColor,
+                                            border: `1px solid ${alertType.borderColor}`
+                                        }}>
                                             <div className="alert-card-content">
                                                 <div className="alert-card-header">
-                                                    <span className="alert-card-tag">CRÍTICO</span>
+                                                    <span className="alert-card-tag" style={{
+                                                        background: alertType.color,
+                                                        color: 'white'
+                                                    }}>
+                                                        {alertType.label}
+                                                    </span>
                                                     <span className="alert-card-time">{new Date(a.timestamp).toLocaleString('es-ES')}</span>
                                                 </div>
                                                 <div className="alert-card-msg">{a.msg}</div>
@@ -1802,7 +1855,8 @@ useEffect(() => {
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    );
+                                    })}
                                 </div>
                             )}
                         </>
