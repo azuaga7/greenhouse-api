@@ -858,16 +858,27 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
                         borderWidth: 1,
                         callbacks: {
                             title: (items) => {
-                                const item = items[0];
-                                const rawData = dataHistory[item.dataIndex];
-                                if (!rawData || !rawData.fullTimestamp) return item.label;
-                                return fmtPYDate(rawData.fullTimestamp) + ' ' + fmtPYTime(rawData.fullTimestamp);
+                                const item = items && items[0];
+                                if (!item) return '';
+                                // IMPORTANT: usar el MISMO valor que se ve en el eje X (item.label)
+                                // porque dataIndex/lookup puede desalinearse si hay filtros o datasets.
+                                const label = (item.label ?? '').toString();
+                                // En rangos (no-live) label ya incluye fecha+hora (dd/mm hh:mm) => úsalo tal cual
+                                if (/(d{1,2})/(d{1,2})/.test(label)) return label;
+
+                                // En LIVE el label suele ser solo hora; ahí sí agregamos la fecha PY del punto
+                                const rawData = (dataHistory && dataHistory[item.dataIndex]) ? dataHistory[item.dataIndex] : null;
+                                if (rawData && rawData.fullTimestamp) {
+                                    const ts = asDate(rawData.fullTimestamp);
+                                    return fmtPYDate(ts) + ' ' + label;
+                                }
+                                return label;
                             },
                             label: (item) => {
                                 const label = item.dataset.label || '';
                                 const value = item.formattedValue;
                                 const unitKey = (item.datasetIndex === 0 ? (chartConfig && chartConfig.primaryY) : (chartConfig && chartConfig.secondaryY));
-                                const widgetFound = CONFIG.dashboard.widgets.find(w => w.key === unitKey);
+                                const widgetFound = CONFIG.dashboard.widgets.find(w => normKey(w.key) === normKey(unitKey));
                                 const unit = (widgetFound && widgetFound.unit) || '';
                                 return label + ': ' + value + ' ' + unit;
                             }
