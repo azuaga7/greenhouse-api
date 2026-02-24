@@ -615,6 +615,14 @@
   
             
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
+// --- Time helpers ---
+// Convierte epoch seconds->ms cuando recibe números (heurística):
+// si ts < 1e12 asumimos segundos; si ts >= 1e12 asumimos ms.
+const toMs = (ts) => {
+  const n = (typeof ts === 'number') ? ts : (typeof ts === 'string' && ts.trim() !== '' ? Number(ts) : NaN);
+  if (Number.isFinite(n)) return (n < 1e12) ? n * 1000 : n;
+  return ts; // ISO string u otro: dejar para Date()
+};
 // --- Normalización global (API flat sin kv.) ---
 // Quita "kv." si existe
 const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
@@ -1078,7 +1086,7 @@ const DashboardApp = () => {
     // Helpers: datetime-local (sin timezone explícito, usa local del browser)
     const pad2dt = (n) => String(n).padStart(2, '0');
     const toDatetimeLocal = (ts) => {
-        const d = (ts instanceof Date) ? ts : new Date(ts);
+        const d = (ts instanceof Date) ? ts : new Date(toMs(ts));
         if (!(d instanceof Date) || isNaN(d.getTime())) return '';
         return d.getFullYear() + '-' + pad2dt(d.getMonth()+1) + '-' + pad2dt(d.getDate()) + 'T' + pad2dt(d.getHours()) + ':' + pad2dt(d.getMinutes());
     };
@@ -1175,7 +1183,7 @@ const mergeByTimestamp = (rowsA, rowsB) => {
         const prev = map.get(r.timestamp);
         map.set(r.timestamp, prev ? { ...prev, ...r } : { ...r });
     }
-    return Array.from(map.values()).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return Array.from(map.values()).sort((a, b) => new Date(toMs(a.timestamp)).getTime() - new Date(toMs(b.timestamp)).getTime());
 };
 const fetchSeriesPrimary = async () => {
     try {
@@ -1232,7 +1240,7 @@ const fetchSeriesPrimary = async () => {
             return pts.map(p => {
                 const ts = p?.[0];
                 const v = p?.[1];
-                return normalizeRow({ timestamp: new Date(ts * 1000).toISOString(), [key]: v });
+                return normalizeRow({ timestamp: new Date(toMs(ts)).toISOString(), [key]: v });
             });
         };
 
@@ -1267,7 +1275,7 @@ useEffect(() => {
         if (!chartConfig.fromDate || !chartConfig.toDate) {
             const toTs = (lastData && lastData.timestamp) ? lastData.timestamp : Date.now();
             const toStr = toDatetimeLocal(toTs);
-            const fromStr = toDatetimeLocal((new Date(toTs).getTime()) - 86400000);
+            const fromStr = toDatetimeLocal((new Date(toMs(toTs)).getTime()) - 86400000);
             setChartConfig(prev => ({ ...prev, fromDate: prev.fromDate || fromStr, toDate: prev.toDate || toStr }));
         }
         return;
@@ -1713,7 +1721,7 @@ useEffect(() => {
         const finalData = Array.isArray(filtered) ? filtered : [];
         return finalData.map(d => {
             if (!d) return { t: '', v: null, v2: null, fullTimestamp: null };
-            const ts = new Date(d.timestamp);
+            const ts = new Date(toMs(d.timestamp));
             const label = isLive 
                 ? ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
                 : ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -2078,7 +2086,7 @@ useEffect(() => {
                                         <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
                                             <DashboardChart widget={w} dataHistory={
                                                 historyData && historyData.length > 0 ? historyData.map(d => {
-                                                    const ts = new Date(d.timestamp);
+                                                    const ts = new Date(toMs(d.timestamp));
                                                     const label = ts.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }) + ' ' + ts.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                                                     const raw = getVal(d, normKey(w.key));
                                                     const parsed = parseFloat(raw);
