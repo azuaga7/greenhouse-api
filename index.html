@@ -1045,6 +1045,16 @@ const DashboardApp = () => {
     const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
     const [liveData, setLiveData] = useState([]); 
+    // Mantener rango visible LIVE para XLSX (igual a lo que se ve en el gráfico)
+    useEffect(() => {
+        if (!liveData || liveData.length === 0) {
+            setLiveFirstIso(null);
+            setLiveLastIso(null);
+            return;
+        }
+        setLiveFirstIso(liveData[0]?.timestamp ?? null);
+        setLiveLastIso(liveData[liveData.length - 1]?.timestamp ?? null);
+    }, [liveData]);
     const [seriesData, setSeriesData] = useState([]);
     const [seriesLoading, setSeriesLoading] = useState(false);
     const [chartConfig, setChartConfig] = useState({
@@ -1054,6 +1064,8 @@ const DashboardApp = () => {
         toDate: '',
         timeRange: 'Ahora'
     });
+    const [liveFirstIso, setLiveFirstIso] = useState(null);
+    const [liveLastIso, setLiveLastIso] = useState(null);
     const [connStatus, setConnStatus] = useState('CONECTANDO...');
     const [connColor, setConnColor] = useState('#f59e0b');
     const [lastPacketTime, setLastPacketTime] = useState(0);
@@ -1786,6 +1798,47 @@ useEffect(() => {
     const activeVarLabel = useMemo(() => {
         return CONFIG.labels[chartConfig.primaryY] || chartConfig.primaryY;
     }, [chartConfig.primaryY]);
+
+    // XLSX debe descargar EXACTAMENTE el rango visible en el gráfico
+    const XLSX_URL = useMemo(() => {
+        const site = CONFIG?.siteName || 'Cerrito';
+
+        let fromIso = null;
+        let toIso = null;
+
+        const tr = chartConfig.timeRange;
+
+        if (tr === 'Ahora') {
+            // LIVE: usar el rango real del buffer visible
+            fromIso = liveFirstIso;
+            toIso = liveLastIso;
+        } else if (tr === 'Rango') {
+            // RANGO: usar selector
+            fromIso = chartConfig.fromDate || null;
+            toIso = chartConfig.toDate || null;
+        } else {
+            // 24h / 7d: calcular rango relativo a "ahora" (coincide con /api/series)
+            const nowSec = Math.floor(Date.now() / 1000);
+            let fromTs = null;
+            if (tr === '24h') fromTs = nowSec - 86400;
+            else if (tr === '7d') fromTs = nowSec - (7 * 86400);
+            if (fromTs != null) {
+                try {
+                    const fromD = new Date(fromTs * 1000);
+                    const toD = new Date(nowSec * 1000);
+                    fromIso = fromD.toISOString();
+                    toIso = toD.toISOString();
+                } catch (e) {
+                    fromIso = null; toIso = null;
+                }
+            }
+        }
+
+        if (!fromIso || !toIso) return null;
+
+        const base = BASE_URL;
+        return base + '/api/download/xlsx_range?site=' + encodeURIComponent(site) + '&from_iso=' + encodeURIComponent(fromIso) + '&to_iso=' + encodeURIComponent(toIso);
+    }, [BASE_URL, chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate, liveFirstIso, liveLastIso]);
     return (
         <div className="adtec-dashboard-root">
             <div className="tabs-nav">
@@ -1928,7 +1981,7 @@ useEffect(() => {
                                         }))}
                                         style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(148,163,184,0.1)', cursor: 'pointer', fontSize: 10 }}
                                     >Reset filtros</button>
-                                    <a href={BASE_URL + "/api/download/xlsx?channel=ingreso"} style={{ padding: '5px 10px', borderRadius: 6, background: 'var(--adtec-accent)', color: 'black', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>XLSX</a>
+                                    <a href={XLSX_URL ?? "#"} onClick={(e)=>{ if(!XLSX_URL) e.preventDefault(); }} style={{ padding: '5px 10px', borderRadius: 6, background: 'var(--adtec-accent)', color: 'black', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>XLSX</a>
                                 </div>
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.03)', padding: 15, borderRadius: 12, border: '1px solid rgba(148, 163, 184, 0.1)', marginBottom: 20 }}>
@@ -2075,7 +2128,7 @@ useEffect(() => {
                                             <h3 style={{ flex: 1, wordBreak: 'break-word', lineHeight: '1.1' }}>{w.label}</h3>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                                 {!w.hideKey && <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af' }}>{w.key}</span>}
-                                                <a href={BASE_URL + "/api/download/xlsx?channel=ingreso"} title="Descargar XLSX" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+                                                <a href={XLSX_URL ?? "#"} onClick={(e)=>{ if(!XLSX_URL) e.preventDefault(); }} title="Descargar XLSX" style={{ color: '#94a3b8', textDecoration: 'none' }}>
                                                     <i data-lucide="download" style={{ width: 14, height: 14 }}></i>
                                                 </a>
                                                 <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--adtec-accent)' }}>{valStr}</span>
