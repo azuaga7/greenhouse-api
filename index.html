@@ -864,7 +864,7 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
                                 // porque dataIndex/lookup puede desalinearse si hay filtros o datasets.
                                 const label = (item.label ?? '').toString();
                                 // En rangos (no-live) label ya incluye fecha+hora (dd/mm hh:mm) => úsalo tal cual
-                                if (/(d{1,2})/(d{1,2})/.test(label)) return label;
+                                if (label.includes("/")) return label;
 
                                 // En LIVE el label suele ser solo hora; ahí sí agregamos la fecha PY del punto
                                 const rawData = (dataHistory && dataHistory[item.dataIndex]) ? dataHistory[item.dataIndex] : null;
