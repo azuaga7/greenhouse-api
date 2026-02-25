@@ -1928,36 +1928,45 @@ useEffect(() => {
                                     <p style={{ fontSize: '12px' }}>No hay alertas registradas en este momento.</p>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '0 25px 25px 25px' }}>
-                                    {alerts.map((a, i) => {
-                                        const alertType = ALERT_TYPES[a.type] || DEFAULT_ALERT_TYPE;
-                                        
-                                        return (
-                                        <div key={i} className="alert-card-item" style={{
-                                            borderLeft: `4px solid ${alertType.color}`,
-                                            background: alertType.bgColor,
-                                            border: `1px solid ${alertType.borderColor}`
-                                        }}>
-                                            <div className="alert-card-content">
-                                                <div className="alert-card-header">
-                                                    <span className="alert-card-tag" style={{
-                                                        background: alertType.color,
-                                                        color: 'white'
-                                                    }}>
-                                                        {alertType.label}
-                                                    </span>
-                                                    <span className="alert-card-time">{new Date(a.timestamp).toLocaleString('es-ES')}</span>
-                                                </div>
-                                                <div className="alert-card-msg">{a.msg}</div>
-                                                <div className="alert-card-detail">
-                                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                                        Valor: <b>{String(a.value || '--')}</b> | Límite: <b>{String(a.ref || '--')}</b> | Señal de Procedencia: <b>{String(a.signal ? a.signal.split('.')[0] : '--')}</b>
-                                                    </span>
+                                <div style={{ display: 'flex', flexDirection: 'column', margin: '0 25px 25px 25px' }}>
+                                    <div style={{ 
+                                        maxHeight: '400px', 
+                                        overflowY: 'auto', 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        gap: '12px',
+                                        paddingRight: '8px'
+                                    }}>
+                                        {alerts.map((a, i) => {
+                                            const alertType = ALERT_TYPES[a.type] || DEFAULT_ALERT_TYPE;
+                                            
+                                            return (
+                                            <div key={i} className="alert-card-item" style={{
+                                                borderLeft: `4px solid ${alertType.color}`,
+                                                background: alertType.bgColor,
+                                                border: `1px solid ${alertType.borderColor}`
+                                            }}>
+                                                <div className="alert-card-content">
+                                                    <div className="alert-card-header">
+                                                        <span className="alert-card-tag" style={{
+                                                            background: alertType.color,
+                                                            color: 'white'
+                                                        }}>
+                                                            {alertType.label}
+                                                        </span>
+                                                        <span className="alert-card-time">{new Date(a.timestamp).toLocaleString('es-ES')}</span>
+                                                    </div>
+                                                    <div className="alert-card-msg">{a.msg}</div>
+                                                    <div className="alert-card-detail">
+                                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                                            Valor: <b>{String(a.value || '--')}</b> | Límite: <b>{String(a.ref || '--')}</b> | Señal de Procedencia: <b>{String(a.signal ? a.signal.split('.')[0] : '--')}</b>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
-                                    })}
+                                        );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </>
