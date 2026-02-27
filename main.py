@@ -191,8 +191,16 @@ if os.path.exists("libs"):
     app.mount("/libs", StaticFiles(directory="libs"), name="libs")
 
 @app.get("/", response_class=HTMLResponse)
-async def index():
-    if os.path.exists("index.html"):
+async def index(request: Request):
+    # Detectar dispositivo móvil
+    user_agent = request.headers.get("User-Agent", "").lower()
+    is_mobile = any(device in user_agent for device in ["android", "iphone", "ipad", "mobile"])
+    
+    # Fallback automático: mobile.html para móviles, index.html para desktop
+    if is_mobile and os.path.exists("mobile.html"):
+        with open("mobile.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    elif os.path.exists("index.html"):
         with open("index.html", "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>ADTEC Bridge API</h1>")
