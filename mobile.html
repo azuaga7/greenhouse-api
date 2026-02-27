@@ -365,10 +365,23 @@ const MobileDashboardApp = () => {
         return () => clearInterval(interval);
     }, [BASE_URL]);
 
+    // --- Normalización global (API flat sin kv.) ---
+// Quita "kv." si existe
+const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
+// Lee valor tolerante: primero key limpia, luego prueba "kv."+key por compat
+const getVal = (obj, key) => {
+    if (!obj || !key) return undefined;
+    const nk = normKey(key);
+    if (obj[nk] !== undefined) return obj[nk];
+    const legacy = 'kv.' + nk;
+    if (obj[legacy] !== undefined) return obj[legacy];
+    return undefined;
+};
+
     // Get widget value
     const getWidgetValue = (key) => {
         if (!key || key === 'sin_key') return '--';
-        const val = lastData && lastData[key];
+        const val = getVal(lastData, key);
         if (val === undefined || val === null) return '--';
         return String(val);
     };
@@ -617,10 +630,16 @@ const MobileDashboardApp = () => {
     // Filter widgets for current tab
     const currentTabWidgets = (CONFIG.dashboard.widgets || []).filter(w => {
         const firstTabId = (CONFIG.dashboard.tabs || [])[0]?.id || '0';
-        return w.tabId === '0' || (!w.tabId && firstTabId === '0');
+        return w.tabId === '0' || (!w.tabId && firstTabId === '0') || w.tabId === firstTabId;
     });
 
     const currentTab = (CONFIG.dashboard.tabs || [])[0];
+
+    // Debug: Log para verificar widgets
+    console.log('Mobile Dashboard - Total widgets:', CONFIG.dashboard.widgets?.length || 0);
+    console.log('Mobile Dashboard - Current tab widgets:', currentTabWidgets.length);
+    console.log('Mobile Dashboard - Current tab:', currentTab);
+    console.log('Mobile Dashboard - Last data keys:', Object.keys(lastData));
 
     return React.createElement('div', {
         className: 'mobile-dashboard-container',
