@@ -14,241 +14,293 @@
 
     <style>
         
-    /* Estilos Mobile Dashboard */
-    .mobile-dashboard-container {
-      width: 375px;
-      height: 812px;
-      background: #1a1a1a;
-      border-radius: 40px;
-      border: 12px solid #2a2a2a;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-      position: relative;
-      margin: 20px auto;
-      display: flex;
-      flex-direction: column;
+    :root { 
+        --adtec-accent: #38bdf8; 
+        --bg: #020617; 
+        --surface: rgba(15, 23, 42, 0.8); 
+        --border: rgba(148, 163, 184, 0.2); 
+        --success: #22c55e; 
+        --warn: #fbbf24; 
+        --danger: #ef4444;
+        --text: #f8fafc; 
+        --text-muted: #94a3b8;
     }
     
-    .mobile-header {
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-      padding: 12px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    .mobile-header-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #f8fafc;
-      font-size: 16px;
-      font-weight: 700;
-    }
-    
-    .mobile-tab-header {
-      background: rgba(255,255,255,0.05);
-      padding: 8px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .mobile-tab-name {
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .mobile-tab-icons {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .mobile-tab-icon {
-      width: 32px;
-      height: 32px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-    
-    .mobile-tab-icon.active {
-      background: rgba(56, 189, 248, 0.2);
-      border: 1px solid #38bdf8;
-    }
-    
-    .mobile-main-content {
-      flex: 1;
-      display: flex;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .mobile-phone-frame {
-      flex: 1;
-      background: #0f0f0f;
-      padding: 16px;
-      overflow: hidden;
-    }
-    
-    .mobile-screen {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      border-radius: 20px;
-      padding: 16px;
-      overflow: hidden;
-    }
-    
-    .mobile-widgets-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      height: 100%;
-      overflow-y: auto;
-    }
-    
-    .mobile-widget {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      min-height: 80px;
-    }
-    
-    .mobile-widget.selected {
-      border-color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-    }
-    
-    .mobile-widget-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    
-    .mobile-widget-title {
-      color: #f8fafc;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .mobile-widget-key {
-      color: #94a3b8;
-      font-size: 9px;
-      font-family: monospace;
-    }
-    
-    .mobile-widget-value {
-      color: #38bdf8;
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-    
-    .mobile-widget-unit {
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 400;
-    }
-    
-    .mobile-gauge-bar {
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
-    
-    .mobile-gauge-fill {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.3s ease;
-    }
-    
-    .mobile-status-chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 10px;
-      font-weight: 600;
-    }
-    
-    .mobile-status-chip.on {
-      background: rgba(16, 185, 129, 0.2);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .mobile-status-chip.off {
-      background: rgba(148, 163, 184, 0.2);
-      color: #64748b;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-    }
-    
-    .mobile-status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-    
-    .mobile-chart-container {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      min-height: 120px;
-    }
-    
-    .mobile-alerts-container {
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      min-height: 120px;
-    }
-    
-    .section-label {
-      background: transparent !important;
-      border: none !important;
-      color: #38bdf8 !important;
-    }
-    
-    /* Responsive para pantallas más pequeñas */
-    @media (max-width: 400px) {
-      .mobile-dashboard-container {
+    .adtec-dashboard-root {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         width: 100%;
-        height: 100vh;
-        border-radius: 0;
-        border: none;
-        margin: 0;
-      }
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #020617 0, #020617 45%, #000 100%);
+        color: #e5e7eb;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-  
+
+    /* LA TARJETA MAESTRA: Copia exacta del Editor */
+    .adtec-card { 
+        background: linear-gradient(145deg, rgba(15,23,42,0.97), rgba(15,23,42,0.7));
+        border-radius: 16px; 
+        padding: 25px; 
+        position: relative; 
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        box-shadow: 0 18px 45px rgba(15,23,42,0.9);
+        display: flex; 
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .card-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 20px; 
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2); 
+        padding-bottom: 15px; 
+    }
+    
+    .logo-section { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { 
+        width: 30px; height: 30px; 
+        background: #fbbf24; 
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+    }
+    .logo-icon-inner { font-size: 9px; font-weight: 900; color: black; letter-spacing: -0.5px; }
+    .card-title { font-weight: 600; font-size: 18px; letter-spacing: 0.05em; color: #f8fafc; margin: 0; }
+
+    .tabs-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; width: 100%; justify-content: center; }
+    .tab-btn { 
+        padding: 10px 20px; cursor: pointer; border-radius: 10px; font-size: 12px; font-weight: 700;
+        transition: all 0.2s; color: var(--text-muted); border: 1px solid transparent;
+        display: flex; align-items: center; gap: 10px; white-space: nowrap; text-transform: uppercase;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .tab-btn.active { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.2); color: var(--adtec-accent); }
+
+    .card-body { 
+        position: relative; background: rgba(0,0,0,0.2); border-radius: 12px; 
+        border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden; flex: 1;
+        display: flex; flex-direction: column;
+    }
+    .card-body-flat { 
+        position: relative; flex: 1; display: flex; flex-direction: column;
+    }
+    .grid-bg { 
+        position: absolute; inset: 0; 
+        background-image: radial-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px); 
+        background-size: 30px 30px; opacity: 0.5; pointer-events: none;
+    }
+
+    .widgets-area { position: relative; width: 100%; height: 100%; z-index: 1; flex: 1; }
+
+    /* LOS WIDGETS: Copia exacta del Editor */
+    .adtec-status-item { 
+        position: absolute; padding: 12px 14px; border-radius: 12px;
+        background: radial-gradient(circle at top, rgba(15,118,110,0.15), rgba(15,23,42,0.96));
+        border: 1px solid rgba(45,212,191,0.2);
+        display: flex; flex-direction: column; gap: 4px;
+        transition: all 0.3s ease; backdrop-filter: blur(5px);
+    }
+    .adtec-status-item h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; margin: 0; font-weight: 700; }
+    .adtec-status-value { font-size: 20px; font-weight: 700; color: var(--adtec-accent); }
+    .adtec-status-sub { font-size: 10px; color: #9ca3af; }
+    
+    .adtec-temp-bar { 
+        width: 100%; height: 6px; background: rgba(15,23,42,0.8); 
+        border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 4px; 
+        overflow: hidden; margin-top: 5px; position: relative; 
+    }
+    .adtec-temp-bar-fill { 
+        height: 100%; width: 0%; background: var(--adtec-accent);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+
+    .adtec-status-chip { 
+        display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; 
+        border-radius: 999px; font-size: 10px; font-weight: 700; margin-top: auto; 
+        border: 1px solid rgba(148, 163, 184, 0.3); text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .adtec-status-chip.on { background: rgba(34,197,94,0.1); color: #22c55e; border-color: rgba(34,197,94,0.4); }
+    .adtec-status-chip.warn { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.4); }
+    .adtec-status-chip.off { background: rgba(239,68,68,0.1); color: #ef4444; border-color: rgba(239,68,68,0.4); }
+    
+    .adtec-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; }
+    .adtec-status-dot.on { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+    .adtec-status-dot.warn { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+    .adtec-status-dot.off { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+    .vfd-btn { 
+        flex: 1; padding: 6px; border-radius: 4px; 
+        border: 1px solid rgba(255,255,255,0.1); color: white; 
+        font-weight: 800; font-size: 10px; cursor: pointer; 
+        transition: all 0.2s; background: rgba(255,255,255,0.05);
+        text-transform: uppercase; letter-spacing: 0.05em;
+        display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .vfd-btn:hover { background: rgba(255,255,255,0.1); }
+    .vfd-btn:active { transform: scale(0.98); }
+    .vfd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .vfd-btn.start { background: rgba(34, 197, 94, 0.2); color:rgb(214, 245, 245); border-color: #22c55e; }
+    .vfd-btn.stop { background: rgba(239, 68, 68, 0.2); color:rgb(255, 204, 204); border-color: #ef4444; }
+
+    .adtec-security-banner {
+        margin-top: 25px; padding: 15px 20px; 
+        background: rgba(250,204,21,0.05); border-radius: 10px; 
+        border: 1px solid rgba(250,204,21,0.2); display: flex; 
+        gap: 15px; alignItems: center;
+    }
+    .adtec-security-banner p { margin: 0; fontSize: 11px; color: #fbbf24; lineHeight: 1.5; }
+
+
+    .vfd-dial {
+        width: 100px; height: 100px; border-radius: 50%; border: 6px solid #1e293b; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.2); transition: all 0.3s ease; position: relative;
+    }
+    .vfd-dial.on { border-top-color: var(--adtec-accent); box-shadow: 0 0 15px rgba(56,189,248,0.2); }
+    .vfd-dial-value { font-size: 18px; font-weight: 900; color: white; }
+    .vfd-dial.on .vfd-dial-value { color: var(--adtec-accent); }
+    .vfd-dial-unit { font-size: 8px; color: #9ca3af; }
+
+    .switch { position: relative; display: inline-block; width: 38px; height: 22px; transform: scale(0.7); }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { 
+        position: absolute; cursor: pointer; inset: 0; 
+        background-color: rgba(148, 163, 184, 0.2); transition: .2s; border-radius: 22px; 
+    }
+    .slider:before { 
+        position: absolute; content: ""; height: 16px; width: 16px; 
+        left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; 
+    }
+    input:checked + .slider { background-color: var(--adtec-accent); }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    .gsm-bars { display: flex; gap: 2px; align-items: flex-end; height: 20px; }
+    .gsm-bar { width: 3px; background: rgba(255,255,255,0.1); border-radius: 1px; }
+    .gsm-bar.active { background: var(--adtec-accent); box-shadow: 0 0 8px var(--adtec-accent); }
+
+    .adtec-label-widget {
+        pointer-events: none; white-space: pre-wrap; font-family: 'Segoe UI', sans-serif;
+        display: flex; align-items: center; justify-content: center; text-align: center;
+    }
+
+    .adtec-sparkline-container {
+        width: 100%;
+        height: 45px;
+        margin-top: 12px;
+        overflow: visible;
+        position: relative;
+    }
+    /* Punto 2: Removido para usar motor real */
+    .adtec-sparkline-svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .adtec-sparkline-path {
+        fill: none;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .alert-badge {
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        animation: pulse 2s infinite;
+        font-weight: 800;
+        z-index: 10;
+    }
+
+    .alert-card-item {
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 12px;
+        display: flex;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        transition: transform 0.2s;
+    }
+    
+    .alert-card-side {
+        width: 6px;
+        background: #ef4444;
+        flex-shrink: 0;
+    }
+
+    .alert-card-content {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .alert-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .alert-card-tag {
+        background: #ef4444;
+        color: white;
+        font-size: 9px;
+        font-weight: 900;
+        padding: 2px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.05em;
+    }
+
+    .alert-card-time {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    .alert-card-msg {
+        font-size: 16px;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .alert-card-detail {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Definición Global de Degradados por Porcentaje */
+    .gauge-gradient-normal {
+        --grad-start: var(--gauge-pct-0, #10b981);
+        --grad-mid: var(--gauge-pct-50, #f59e0b);
+        --grad-end: var(--gauge-pct-100, #ef4444);
+    }
+
+    .gauge-gradient-inverted {
+        --grad-start: var(--gauge-pct-100, #ef4444);
+        --grad-mid: var(--gauge-pct-50, #f59e0b);
+        --grad-end: var(--gauge-pct-0, #10b981);
+    }
+
         body { 
             margin: 0; 
             padding: 0; 
@@ -345,26 +397,6 @@ const MobileDashboardApp = () => {
     const [lastData, setLastData] = useState({});
     const [BASE_URL] = useState(CONFIG.BASE_URL || "");
 
-    // Fetch data from API
-    const fetchUpdate = async () => {
-        try {
-            const response = await fetch(BASE_URL + '/api/data');
-            if (response.ok) {
-                const data = await response.json();
-                setLastData(data);
-            }
-        } catch (error) {
-            console.warn("Error fetching data:", error);
-        }
-    };
-
-    // Initialize polling
-    useEffect(() => {
-        fetchUpdate();
-        const interval = setInterval(fetchUpdate, 1000);
-        return () => clearInterval(interval);
-    }, [BASE_URL]);
-
     // --- Normalización global (API flat sin kv.) ---
 // Quita "kv." si existe
 const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
@@ -377,6 +409,48 @@ const getVal = (obj, key) => {
     if (obj[legacy] !== undefined) return obj[legacy];
     return undefined;
 };
+
+// --- Normalización de fila (EXACTAMENTE como Desktop) ---
+const normalizeRow = (raw) => {
+    if (!raw || typeof raw !== 'object') return raw;
+    const src = (raw.kv && typeof raw.kv === 'object') ? raw.kv : raw;
+    const out = {};
+    if (raw.timestamp) out.timestamp = raw.timestamp;
+    for (const k in src) {
+        if (k === 'timestamp') continue;
+        out[normKey(k)] = src[k];
+    }
+    if (!out.timestamp) out.timestamp = new Date().toISOString();
+    return out;
+};
+
+    // Initialize polling - EXACTAMENTE como Desktop
+    useEffect(() => {
+        fetchUpdate();
+        const interval = setInterval(fetchUpdate, 1000);
+        return () => clearInterval(interval);
+    }, [BASE_URL]);
+
+    // Fetch update - EXACTAMENTE como Desktop
+    const fetchUpdate = async () => {
+        try {
+            const response = await fetch(BASE_URL + '/api/last');
+            if (!response.ok) throw new Error("API Offline");
+            
+            const raw = await response.json();
+            // Nuevo: normalizar live a flat sin kv. (EXACTAMENTE como Desktop)
+            const flat = normalizeRow(raw);
+            const normalizedLive = flat;
+            
+            // Validar que la data es real (EXACTAMENTE como Desktop)
+            const hasData = flat && flat.timestamp && flat.timestamp !== '--';
+            if (hasData) {
+                setLastData(flat);  // ← Usa datos normalizados como Desktop
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
 
     // Get widget value
     const getWidgetValue = (key) => {
@@ -412,7 +486,7 @@ const getVal = (obj, key) => {
         return val + unit;
     };
 
-    // Render widget
+    // Render widget - Using dashboardStyles classes
     const renderMobileWidget = (w) => {
         const valStr = getWidgetValue(w.key);
         const val = parseFloat(valStr);
@@ -421,94 +495,67 @@ const getVal = (obj, key) => {
         switch (w.type) {
             case 'label':
                 return React.createElement('div', {
-                    className: 'mobile-widget section-label',
+                    className: 'adtec-label-widget',
                     style: {
                         width: '100%',
                         height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                        color: '#38bdf8',
-                        textAlign: 'center',
-                        padding: 8
+                        fontSize: '14px',
+                        color: 'var(--adtec-accent)',
+                        textAlign: 'center'
                     }
                 }, w.label);
 
             case 'gauge':
                 const gaugeValue = Math.max(0, Math.min(100, ((val - (w.min || 0)) / Math.max(1, (w.max || 100) - (w.min || 0))) * 100));
                 return React.createElement('div', {
-                    className: 'mobile-widget',
+                    className: 'adtec-status-item',
                     style: {
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 8,
-                        padding: 12,
                         display: 'flex',
                         flexDirection: 'column',
-                        minHeight: 80
+                        minHeight: '80px'
                     }
                 }, [
-                    React.createElement('div', {
+                    React.createElement('h3', {
                         style: {
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: 8
+                            fontSize: '10px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            color: '#9ca3af',
+                            margin: '0',
+                            fontWeight: '700'
                         }
-                    }, [
-                        React.createElement('div', {
-                            style: {
-                                color: '#f8fafc',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: 0.5
-                            }
-                        }, w.label),
-                        React.createElement('div', {
-                            style: {
-                                color: '#94a3b8',
-                                fontSize: 9,
-                                fontFamily: 'monospace'
-                            }
-                        }, w.key)
-                    ]),
+                    }, w.label),
                     React.createElement('div', {
+                        className: 'adtec-status-value',
                         style: {
-                            color: '#38bdf8',
-                            fontSize: 18,
-                            fontWeight: 700,
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: 'var(--adtec-accent)',
                             display: 'flex',
                             alignItems: 'baseline',
-                            gap: 4
+                            gap: '4px'
                         }
                     }, [
                         valStr.replace(w.unit || '', ''),
                         React.createElement('span', {
                             style: {
                                 color: '#94a3b8',
-                                fontSize: 12,
-                                fontWeight: 400
+                                fontSize: '12px',
+                                fontWeight: '400'
                             }
                         }, w.unit)
                     ]),
                     React.createElement('div', {
+                        className: 'adtec-temp-bar',
                         style: {
-                            height: 4,
-                            background: 'rgba(255,255,255,0.1)',
-                            borderRadius: 2,
-                            marginTop: 8,
-                            overflow: 'hidden'
+                            height: '4px',
+                            marginTop: '8px'
                         }
                     }, React.createElement('div', {
+                        className: 'adtec-temp-bar-fill',
                         style: {
-                            height: '100%',
-                            borderRadius: 2,
                             width: gaugeValue + '%',
-                            background: 'linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%)',
-                            transition: 'width 0.3s ease'
+                            background: 'linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%)'
                         }
                     }))
                 ]);
@@ -516,63 +563,39 @@ const getVal = (obj, key) => {
             case 'indicator':
                 const isOn = valStr === 'ON' || valStr === '1' || valStr === '1.0' || valStr === 'TRUE' || valStr === 'ACTIVO';
                 return React.createElement('div', {
-                    className: 'mobile-widget',
+                    className: 'adtec-status-item',
                     style: {
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 8,
-                        padding: 12,
                         display: 'flex',
                         flexDirection: 'column',
-                        minHeight: 80
+                        minHeight: '80px'
                     }
                 }, [
-                    React.createElement('div', {
+                    React.createElement('h3', {
                         style: {
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: 8
+                            fontSize: '10px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            color: '#9ca3af',
+                            margin: '0',
+                            fontWeight: '700'
+                        }
+                    }, w.label),
+                    React.createElement('div', {
+                        className: 'adtec-status-value',
+                        style: {
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: 'var(--adtec-accent)'
+                        }
+                    }, valStr),
+                    React.createElement('div', {
+                        className: 'adtec-status-chip ' + (isOn ? 'on' : 'off'),
+                        style: {
+                            marginTop: 'auto'
                         }
                     }, [
                         React.createElement('div', {
-                            style: {
-                                color: '#f8fafc',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: 0.5
-                            }
-                        }, w.label),
-                        React.createElement('div', {
-                            style: {
-                                color: '#94a3b8',
-                                fontSize: 9,
-                                fontFamily: 'monospace'
-                            }
-                        }, w.key)
-                    ]),
-                    React.createElement('div', {
-                        style: {
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '4px 8px',
-                            borderRadius: 12,
-                            fontSize: 10,
-                            fontWeight: 600,
-                            background: isOn ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)',
-                            color: isOn ? '#10b981' : '#64748b',
-                            border: '1px solid ' + (isOn ? 'rgba(16, 185, 129, 0.3)' : 'rgba(148, 163, 184, 0.3)')
-                        }
-                    }, [
-                        React.createElement('div', {
-                            style: {
-                                width: 6,
-                                height: 6,
-                                borderRadius: '50%',
-                                background: 'currentColor'
-                            }
+                            className: 'adtec-status-dot ' + (isOn ? 'on' : 'off')
                         }),
                         React.createElement('span', {}, isOn ? 'ACTIVO' : 'INACTIVO')
                     ])
@@ -580,215 +603,192 @@ const getVal = (obj, key) => {
 
             default:
                 return React.createElement('div', {
-                    className: 'mobile-widget',
+                    className: 'adtec-status-item',
                     style: {
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 8,
-                        padding: 12,
                         display: 'flex',
                         flexDirection: 'column',
-                        minHeight: 80
+                        minHeight: '80px'
                     }
                 }, [
-                    React.createElement('div', {
+                    React.createElement('h3', {
                         style: {
+                            fontSize: '10px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                            color: '#9ca3af',
+                            margin: '0',
+                            fontWeight: '700'
+                        }
+                    }, w.label),
+                    React.createElement('div', {
+                        className: 'adtec-status-value',
+                        style: {
+                            fontSize: '18px',
+                            fontWeight: '700',
+                            color: 'var(--adtec-accent)',
                             display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: 8
+                            alignItems: 'baseline',
+                            gap: '4px'
                         }
                     }, [
-                        React.createElement('div', {
-                            style: {
-                                color: '#f8fafc',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: 0.5
-                            }
-                        }, w.label),
-                        React.createElement('div', {
+                        valStr.replace(w.unit || '', ''),
+                        React.createElement('span', {
                             style: {
                                 color: '#94a3b8',
-                                fontSize: 9,
-                                fontFamily: 'monospace'
+                                fontSize: '12px',
+                                fontWeight: '400'
                             }
-                        }, w.key)
-                    ]),
-                    React.createElement('div', {
-                        style: {
-                            color: '#38bdf8',
-                            fontSize: 18,
-                            fontWeight: 700
-                        }
-                    }, valStr)
+                        }, w.unit)
+                    ])
                 ]);
         }
     };
 
-    // Filter widgets for current tab
-    const currentTabWidgets = (CONFIG.dashboard.widgets || []).filter(w => {
-        const firstTabId = (CONFIG.dashboard.tabs || [])[0]?.id || '0';
-        return w.tabId === '0' || (!w.tabId && firstTabId === '0') || w.tabId === firstTabId;
-    });
-
-    const currentTab = (CONFIG.dashboard.tabs || [])[0];
+    // Filter widgets for current tab - EXACTAMENTE como Desktop
+    const currentTab = (CONFIG.dashboard.tabs || [])[0];  // Primer tab por defecto
+    const currentTabWidgets = (CONFIG.dashboard.widgets || []).filter(w => 
+        String(w.tabId) === String(currentTab?.id || '1')
+    );
 
     // Debug: Log para verificar widgets
     console.log('Mobile Dashboard - Total widgets:', CONFIG.dashboard.widgets?.length || 0);
     console.log('Mobile Dashboard - Current tab widgets:', currentTabWidgets.length);
     console.log('Mobile Dashboard - Current tab:', currentTab);
     console.log('Mobile Dashboard - Last data keys:', Object.keys(lastData));
+    console.log('Mobile Dashboard - Sample last data:', lastData);
+    
+    // Debug: Mostrar algunos widget keys
+    if (currentTabWidgets.length > 0) {
+        console.log('Mobile Dashboard - Widget keys:', currentTabWidgets.slice(0, 3).map(w => w.key));
+        console.log('Mobile Dashboard - Sample widget values:', currentTabWidgets.slice(0, 3).map(w => ({
+            key: w.key,
+            value: getWidgetValue(w.key),
+            label: w.label
+        })));
+    }
 
     return React.createElement('div', {
-        className: 'mobile-dashboard-container',
+        className: 'adtec-dashboard-root',
         style: {
-            width: 375,
-            height: 812,
-            background: '#1a1a1a',
-            borderRadius: 40,
-            border: '12px solid #2a2a2a',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            overflow: 'hidden',
-            position: 'relative',
-            margin: '20px auto',
-            display: 'flex',
-            flexDirection: 'column'
+            padding: '10px',
+            minHeight: '100vh'
         }
     }, [
-        // Header
+        // Mobile Card Container
         React.createElement('div', {
+            className: 'adtec-card',
             style: {
-                background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-                padding: '12px 20px',
-                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                width: '375px',
+                height: '812px',
+                margin: '20px auto',
+                borderRadius: '40px',
+                border: '12px solid #2a2a2a',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                overflow: 'hidden',
+                position: 'relative',
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                flexDirection: 'column'
             }
         }, [
+            // Header
             React.createElement('div', {
+                className: 'card-header',
                 style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    color: '#f8fafc',
-                    fontSize: 16,
-                    fontWeight: 700
+                    background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+                    padding: '12px 20px',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)'
+                }
+            }, [
+                React.createElement('div', {
+                    className: 'logo-section'
+                }, [
+                    React.createElement('div', {
+                        className: 'logo-icon'
+                    }, React.createElement('div', {
+                        className: 'logo-icon-inner'
+                    }, 'ADTEC')),
+                    React.createElement('h3', {
+                        className: 'card-title',
+                        style: { margin: 0, fontSize: '16px' }
+                    }, 'Mobile Dashboard')
+                ])
+            ]),
+
+            // Tab Navigation
+            React.createElement('div', {
+                className: 'tabs-nav',
+                style: {
+                    background: 'rgba(255,255,255,0.05)',
+                    padding: '8px 20px',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)'
                 }
             }, [
                 React.createElement('div', {
                     style: {
-                        width: 24,
-                        height: 24,
-                        borderRadius: 6,
-                        background: '#facc15'
+                        color: '#94a3b8',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px'
                     }
-                }, React.createElement('div', {
-                    style: {
-                        fontSize: 8,
-                        color: '#000',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }
-                }, 'ADTEC')),
-                React.createElement('h3', {
-                    style: { margin: 0, color: '#f8fafc', fontSize: 16 }
-                }, 'Mobile Dashboard')
-            ])
-        ]),
-
-        // Tab Navigation
-        React.createElement('div', {
-            style: {
-                background: 'rgba(255,255,255,0.05)',
-                padding: '8px 20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
-            }
-        }, [
-            React.createElement('div', {
-                style: {
-                    color: '#94a3b8',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: 1
-                }
-            }, currentTab?.name || 'Dashboard'),
-            React.createElement('div', {
-                style: {
-                    display: 'flex',
-                    gap: 8
-                }
-            }, (CONFIG.dashboard.tabs || []).map((tab) => 
+                }, currentTab?.name || 'Dashboard'),
                 React.createElement('div', {
-                    key: tab.id,
+                    className: 'tabs-nav',
                     style: {
-                        width: 32,
-                        height: 32,
-                        background: 'rgba(255,255,255,0.1)',
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        fontSize: 16
+                        gap: '8px',
+                        justifyContent: 'flex-end'
                     }
-                }, tab.icon || '📊')
-            ))
-        ]),
+                }, (CONFIG.dashboard.tabs || []).map((tab) => 
+                    React.createElement('div', {
+                        key: tab.id,
+                        className: 'tab-btn',
+                        style: {
+                            width: '32px',
+                            height: '32px',
+                            padding: '0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px'
+                        }
+                    }, tab.icon || '📊')
+                ))
+            ]),
 
-        // Main Content Area
-        React.createElement('div', {
-            style: {
-                flex: 1,
-                display: 'flex',
-                position: 'relative',
-                overflow: 'hidden'
-            }
-        }, React.createElement('div', {
-            style: {
-                flex: 1,
-                background: '#0f0f0f',
-                padding: 16,
-                overflow: 'hidden'
-            }
-        }, React.createElement('div', {
-            style: {
-                width: '100%',
-                height: '100%',
-                background: '#000',
-                borderRadius: 20,
-                padding: 16,
-                overflow: 'hidden'
-            }
-        }, React.createElement('div', {
-            style: {
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-                height: '100%',
-                overflowY: 'auto'
-            }
-        }, currentTabWidgets.map((widget) => 
+            // Main Content Area
             React.createElement('div', {
-                key: widget.id,
+                className: 'card-body',
                 style: {
-                    gridColumn: widget.width === 2 ? 'span 2' : 'span 1',
-                    gridRow: widget.height === 2 ? 'span 2' : 'span 1',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 8,
-                    padding: 8,
-                    background: 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer'
+                    flex: 1,
+                    position: 'relative',
+                    overflow: 'hidden'
                 }
-            }, renderMobileWidget(widget))
-        )))))
+            }, React.createElement('div', {
+                className: 'grid-bg'
+            }, React.createElement('div', {
+                className: 'widgets-area',
+                style: {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '12px',
+                    padding: '16px',
+                    height: '100%',
+                    overflowY: 'auto'
+                }
+            }, currentTabWidgets.map((widget) => 
+                React.createElement('div', {
+                    key: widget.id,
+                    className: 'adtec-status-item',
+                    style: {
+                        gridColumn: widget.width === 2 ? 'span 2' : 'span 1',
+                        gridRow: widget.height === 2 ? 'span 2' : 'span 1',
+                        position: 'relative',
+                        padding: '12px'
+                    }
+                }, renderMobileWidget(widget))
+            ))))
+        ])
     ]);
 };
 
