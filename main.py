@@ -180,8 +180,6 @@ CONTROL_STATE = {
     "manual": False,
         "relay_1": False,
     "relay_2": False,
-    "vfd_1": 0.0,
-    "vfd_1_state": False,
     "relay_3": False
 }
 
