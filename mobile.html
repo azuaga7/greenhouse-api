@@ -1225,9 +1225,11 @@ const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTi
     style: { 
       marginTop: '8px', 
       ...sparklineColors,
-      background: 'rgba(0,0,0,0.2)',
+      height: '40px',
       borderRadius: '6px',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      background: 'rgba(0, 0, 0, 0.2)',
+      border: '1px solid rgba(148, 163, 184, 0.05)'
     }
   }, [
     React.createElement('svg', { 
@@ -2113,23 +2115,57 @@ const MobileDashboardApp = () => {
 
             case 'gauge':
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
+                    React.createElement('div', { key: 'header', style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '8px'
+                    } }, [
+                        React.createElement('div', { key: 'title', style: {
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: '#f8fafc',
+                            lineHeight: '1.2',
+                            flex: '1'
+                        } }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', style: {
+                            fontSize: '7px',
+                            color: '#94a3b8',
+                            opacity: '0.6',
+                            fontFamily: 'monospace'
+                        } }, w.key)
                     ]),
-                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
+                    React.createElement('div', { key: 'value', style: {
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        color: '#38bdf8',
+                        textAlign: 'center',
+                        margin: '4px 0'
+                    } }, [
                         valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+                        React.createElement('span', { key: 'unit', style: {
+                            fontSize: '10px',
+                            color: '#94a3b8',
+                            opacity: '0.8'
+                        } }, w.unit)
                     ]),
                     (w.showBar ?? true) && React.createElement('div', {
                         key: 'bar',
-                        className: 'mobile-gauge-bar',
-                        style: { background: 'rgba(255,255,255,0.1)', height: '8px', borderRadius: '4px', marginTop: '10px' }
+                        style: {
+                            height: '6px',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                            marginTop: '8px'
+                        }
                     }, [
                         React.createElement('div', {
                             key: 'fill',
-                            className: 'mobile-gauge-fill',
                             style: {
+                                height: '100%',
+                                borderRadius: '3px',
+                                transition: 'width 0.3s ease',
+                                boxShadow: '0 0 8px currentColor',
                                 width: `${Math.max(0, Math.min(100, ((val - (w.min || 0)) / Math.max(1, (w.max || 100) - (w.min || 0))) * 100))}%`,
                                 height: '100%',
                                 background: 'linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%)',
@@ -2142,9 +2178,25 @@ const MobileDashboardApp = () => {
             case 'indicator':
                 const isOn = valStr === 'ON' || valStr === '1' || valStr === '1.0' || valStr === 'TRUE' || valStr === 'ACTIVO';
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
+                    React.createElement('div', { key: 'header', style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '8px'
+                    } }, [
+                        React.createElement('div', { key: 'title', style: {
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: '#f8fafc',
+                            lineHeight: '1.2',
+                            flex: '1'
+                        } }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', style: {
+                            fontSize: '7px',
+                            color: '#94a3b8',
+                            opacity: '0.6',
+                            fontFamily: 'monospace'
+                        } }, w.key)
                     ]),
                     React.createElement('div', {
                         key: 'chip',
@@ -2155,10 +2207,12 @@ const MobileDashboardApp = () => {
                             gap: '6px',
                             padding: '6px 12px',
                             borderRadius: '20px',
-                            fontSize: '12px',
+                            fontSize: '10px',
                             fontWeight: '600',
-                            background: isOn ? 'rgba(16, 185, 129, 0.2)' : 'rgba(107, 114, 128, 0.2)',
-                            color: isOn ? '#10b981' : '#6b7280'
+                            marginTop: 'auto',
+                            background: isOn ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                            color: isOn ? '#10b981' : '#ef4444',
+                            border: isOn ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)'
                         }
                     }, [
                         React.createElement('div', {
@@ -2177,13 +2231,39 @@ const MobileDashboardApp = () => {
 
             case 'text':
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
+                    React.createElement('div', { key: 'header', style: {
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: '8px'
+                    } }, [
+                        React.createElement('div', { key: 'title', style: {
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            color: '#f8fafc',
+                            lineHeight: '1.2',
+                            flex: '1'
+                        } }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', style: {
+                            fontSize: '7px',
+                            color: '#94a3b8',
+                            opacity: '0.6',
+                            fontFamily: 'monospace'
+                        } }, w.key)
                     ]),
-                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
+                    React.createElement('div', { key: 'value', style: {
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        color: '#38bdf8',
+                        textAlign: 'center',
+                        margin: '4px 0'
+                    } }, [
                         valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+                        React.createElement('span', { key: 'unit', style: {
+                            fontSize: '10px',
+                            color: '#94a3b8',
+                            opacity: '0.8'
+                        } }, w.unit)
                     ])
                 ]);
 
@@ -2370,15 +2450,14 @@ const MobileDashboardApp = () => {
             style: {
                 width: '380px',
                 height: '720px',
-                margin: '20px auto',
+                background: '#000',
                 borderRadius: '20px',
-                border: '8px solid #1a1a1a',
                 boxShadow: '0 0 40px rgba(0, 0, 0, 0.8)',
-                overflow: 'hidden',
-                position: 'relative',
+                border: '8px solid #1a1a1a',
                 display: 'flex',
                 flexDirection: 'column',
-                background: '#000'
+                overflow: 'hidden',
+                position: 'relative'
             }
         }, [
             // Header
@@ -2609,22 +2688,44 @@ const MobileDashboardApp = () => {
                             key: 'grid',
                             className: 'mobile-dashboard-grid',
                             style: {
-                                padding: '15px',
+                                padding: '12px',
                                 display: 'grid',
                                 gridTemplateColumns: 'repeat(2, 1fr)',
-                                gap: '12px',
+                                gap: '10px',
                                 height: '100%',
-                                overflowY: 'auto'
+                                overflowY: 'auto',
+                                alignContent: 'start',
+                                maxWidth: '380px',
+                                margin: '0 auto'
                             }
                         }, 
                             currentTabWidgets.map((widget: any) => 
                                 React.createElement('div', {
                                     key: widget.id,
                                     style: {
+                                        background: 'rgba(15, 23, 42, 0.8)',
+                                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                                        borderRadius: '12px',
+                                        padding: '10px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '6px',
+                                        minHeight: '85px',
+                                        position: 'relative',
+                                        transition: 'all 0.2s',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                                         ...(widget.type === 'label' || widget.type === 'control-relay' || widget.type === 'control-vfd' ? {
                                             gridColumn: 'span 2',
                                             width: '100%',
-                                            maxWidth: '100%'
+                                            maxWidth: '100%',
+                                            minHeight: '30px',
+                                            background: widget.type === 'control-relay' ? 'rgba(16, 185, 129, 0.1)' : 
+                                                          widget.type === 'control-vfd' ? 'rgba(168, 85, 247, 0.1)' : 
+                                                          'rgba(56, 189, 248, 0.1)',
+                                            border: widget.type === 'control-relay' ? '1px solid rgba(16, 185, 129, 0.2)' : 
+                                                   widget.type === 'control-vfd' ? '1px solid rgba(168, 85, 247, 0.2)' : 
+                                                   '1px solid rgba(56, 189, 248, 0.2)',
+                                            padding: '6px'
                                         } : {})
                                     }
                                 }, [
