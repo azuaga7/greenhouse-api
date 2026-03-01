@@ -1624,7 +1624,7 @@ const fetchCacheApiSnapshot = async (force = false) => {
         const headers = {};
         if (cacheApiEtag) headers["If-None-Match"] = cacheApiEtag;
 
-        const resp = await fetch("/cache_api/snapshot.json.gz", { headers });
+        const resp = await fetch(BASE_URL + '/cache_api/snapshot.json.gz', { headers });
         if (resp.status === 304) return;
         if (!resp.ok) return;
 
@@ -2152,30 +2152,70 @@ const MobileDashboardApp = () => {
             },
         }), [chartConfig.secondaryY, widget.min, widget.max, isPortrait]);
 
-        // Inicializar Chart.js
+        // Inicializar Chart.js - ESTABLE COMO WEB CHART
         React.useEffect(() => {
             const ChartGlobal = Chart;
-            if (!ChartGlobal || !chartRef.current || !chartData) return;
+            if (!ChartGlobal || !chartRef.current) return;
 
-            // Destruir chart anterior si existe
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-            }
-
-            // Crear nuevo Chart
-            chartInstance.current = new ChartGlobal(chartRef.current, {
+            const ctx = chartRef.current.getContext('2d');
+            
+            // Inicializar chart una sola vez con datos vacíos
+            chartInstance.current = new ChartGlobal(ctx, {
                 type: 'line',
-                data: chartData,
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Eje Principal',
+                            data: [],
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Eje Secundario',
+                            data: [],
+                            borderColor: '#a855f7',
+                            backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
                 options: chartOptions
             });
 
-            // Cleanup
+            // Cleanup solo cuando se desmonta el componente
             return () => {
                 if (chartInstance.current) {
                     chartInstance.current.destroy();
                 }
             };
-        }, [chartData, chartOptions, isPortrait]);
+        }, []); // ← DEPENDENCIAS VACÍAS = SE EJECUTA UNA SOLA VEZ
+
+        // Actualizar datos del chart sin destruirlo
+        React.useEffect(() => {
+            if (chartInstance.current && chartData) {
+                chartInstance.current.data = chartData;
+                chartInstance.current.options = chartOptions;
+                chartInstance.current.update('none'); // Actualizar sin animación para evitar flicker
+            }
+        }, [chartData, chartOptions]);
+
+        // Actualizar opciones de responsive cuando cambia orientación
+        React.useEffect(() => {
+            if (chartInstance.current) {
+                chartInstance.current.options.scales.x.display = !isPortrait;
+                chartInstance.current.update();
+            }
+        }, [isPortrait]);
 
         return React.createElement('div', {
             style: { 
@@ -2415,6 +2455,7 @@ const MobileDashboardApp = () => {
     });
 
     // Función renderMobileWidget inline - copiada desde MobileDashboardPreview.tsx
+    // Usar misma lógica que web - statisticsBlock inputSources con TODAS las variables de telemetría
     const availableVariables = CONFIGGlobal.availableVariables || [];
     const renderMobileWidget = (w) => {
         const valStr = formatValue(getWidgetValue(w.key), w.format, w.unit);
