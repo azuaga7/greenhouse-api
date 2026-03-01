@@ -18,6 +18,7 @@
 
 :root { 
   --adtec-accent: #38bdf8; 
+  --primary: #38bdf8;
   --bg: #020617; 
   --surface: rgba(15, 23, 42, 0.8); 
   --border: rgba(148, 163, 184, 0.2); 
@@ -28,7 +29,20 @@
   --text-muted: #94a3b8;
 }
 
-/* Override para vista previa */
+/* Mobile dashboard root */
+.mobile-dashboard-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .mobile-dashboard-preview-container {
   position: fixed;
   top: 0;
@@ -65,11 +79,17 @@
 
 /* Legacy styles compatibility */
 .mobile-dashboard-container {
-  max-width: 420px;
-  margin: 0 auto;
+  margin: 20px auto;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
   border-radius: 20px;
   border: 8px solid #1a1a1a;
+  width: 380px;
+  height: 720px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #000;
 }
 
 .mobile-header {
@@ -154,7 +174,7 @@
   flex: 1;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, var(--panel-bg) 0%, rgba(0, 0, 0, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(15,23,42,0.96) 0%, rgba(0, 0, 0, 0.3) 100%);
 }
 
 .mobile-dashboard-grid {
@@ -192,8 +212,8 @@
   background: rgba(56, 189, 248, 0.1);
   border: 1px solid rgba(56, 189, 248, 0.2);
   padding: 6px;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 100%;
+  max-width: 100%;
 }
 
 .mobile-widget.control-relay {
@@ -269,24 +289,17 @@
   box-shadow: 0 0 8px currentColor;
 }
 
-.mobile-sparkline {
-  height: 40px;
-  margin-top: 8px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(148, 163, 184, 0.05);
-}
 
 .mobile-status-chip {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 16px;
-  font-size: 10px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 600;
-  margin-top: auto;
+  margin: 0;
+  align-self: flex-start;
 }
 
 .mobile-status-chip.on {
@@ -302,15 +315,23 @@
 }
 
 .mobile-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: currentColor;
 }
 
+.mobile-status-chip.on .mobile-status-dot {
+  background: #10b981;
+}
+
+.mobile-status-chip.off .mobile-status-dot {
+  background: #ef4444;
+}
+
 .mobile-control-buttons {
   display: flex;
-  gap: 8px;
+  gap: 5px;
   margin-top: auto;
 }
 
@@ -323,6 +344,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  color: white;
 }
 
 .mobile-control-btn.start {
@@ -579,8 +601,9 @@
 
 .mobile-sparkline-path {
   fill: none;
-  stroke-width: 1; /* Más fina que desktop (1.5) */
+  stroke-width: 2;
   stroke-linecap: round;
+  stroke-linejoin: round;
   filter: drop-shadow(0 0 1px currentColor);
 }
 
@@ -595,6 +618,199 @@
   --grad-start: #ef4444;
   --grad-mid: #f59e0b;
   --grad-end: #10b981;
+}
+
+/* Estilos adicionales del preview */
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #facc15 0%, #f59e0b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+}
+
+.logo-icon-inner {
+  font-size: 8px;
+  font-weight: bold;
+  color: #000;
+}
+
+.mobile-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mobile-chart-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-chart-container .mobile-widget-header {
+  margin-bottom: 15px;
+}
+
+.mobile-alerts-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.mobile-alerts-container .mobile-widget-header {
+  padding: 15px 15px 10px 15px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.mobile-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mobile-empty-state-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.mobile-empty-state-text {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.mobile-empty-state-subtext {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* Label widget styles - exact match from preview */
+.mobile-widget.section-label .label-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-align: center;
+  white-space: pre-wrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--label-color, #38bdf8);
+  font-size: var(--label-font-size, 16px);
+}
+
+/* Datetime widget styles - eliminate inline styles */
+.mobile-datetime-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mobile-datetime-icon {
+  font-size: 16px;
+}
+
+.mobile-datetime-content {
+  flex: 1;
+}
+
+.mobile-datetime-time {
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.mobile-datetime-date {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+/* Sparkline widget styles - eliminate inline styles */
+.mobile-sparkline-container {
+  margin-top: 8px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.mobile-sparkline-svg {
+  /* SVG specific styles can be added here if needed */
+}
+
+.mobile-sparkline-path {
+  /* Path specific styles can be added here if needed */
+}
+
+/* Gradient classes for sparkline */
+.mobile-gauge-gradient-normal {
+  --grad-start: #10b981;
+  --grad-mid: #f59e0b;
+  --grad-end: #ef4444;
+}
+
+.mobile-gauge-gradient-inverted {
+  --grad-start: #ef4444;
+  --grad-mid: #f59e0b;
+  --grad-end: #10b981;
+}
+
+/* Location widget styles - eliminate inline styles */
+.mobile-location-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mobile-location-icon {
+  font-size: 20px;
+}
+
+.mobile-location-info {
+  flex: 1;
+}
+
+.mobile-location-text {
+  font-size: 12px;
+  color: white;
+  font-weight: 600;
+}
+
+.mobile-location-coords {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.mobile-location-detecting {
+  font-size: 10px;
+  opacity: 0.6;
 }
 
         body { 
@@ -899,10 +1115,119 @@
             const widget = widgets.find(w => w.key === key);
             return formatValue(val, widget && widget.format, widget && widget.unit);
         };
+
+        // Mobile Sparkline Component - Same as MobileDashboardView
+        const MobileSparkline = React.memo(({ id, variableKey, min, max, inverted, value, isSimulating }) => {
+            const [points, setPoints] = React.useState(() => {
+                const initialBuffer = SparklineEngine.getBuffer(id, variableKey, min, max);
+                return [...initialBuffer];
+            });
+
+            React.useEffect(() => {
+                // No mock data generation - use real data only
+            }, []);
+
+            const editorColors = {
+                '--grad-start': inverted ? '#ef4444' : '#10b981',
+                '--grad-mid': '#f59e0b',
+                '--grad-end': inverted ? '#10b981' : '#ef4444',
+                '--gauge-pct-0': inverted ? '#ef4444' : '#10b981',
+                '--gauge-pct-50': '#f59e0b',
+                '--gauge-pct-100': inverted ? '#10b981' : '#ef4444'
+            };
+
+            React.useEffect(() => {
+                let newPoints;
+                if (isSimulating && value !== undefined) {
+                    newPoints = SparklineEngine.update(id, variableKey, value, min, max);
+                } else {
+                    newPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
+                }
+                setPoints([...newPoints]);
+            }, [id, variableKey, value, min, max, isSimulating]);
+
+            const hasData = React.useMemo(() => SparklineEngine.hasRealData(id), [id, value]);
+            const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
+
+            const stats = React.useMemo(() => SparklineEngine.getStats(id), [id, value]);
+
+            const commonGradient = React.createElement(React.Fragment, null, [
+                React.createElement('defs', null, [
+                    React.createElement('linearGradient', {
+                        id: `mobile-grad-${id}`,
+                        x1: "0", y1: "50", x2: "0", y2: "0",
+                        gradientUnits: "userSpaceOnUse"
+                    }, [
+                        React.createElement('stop', { offset: "0%", stopColor: "var(--grad-start, rgb(16, 185, 129))" }),
+                        React.createElement('stop', { offset: "50%", stopColor: "var(--grad-mid, rgb(245, 158, 11))" }),
+                        React.createElement('stop', { offset: "100%", stopColor: "var(--grad-end, rgb(239, 68, 68))" })
+                    ]),
+                    React.createElement('linearGradient', {
+                        id: `mobile-bg-grad-${id}`,
+                        x1: "0", y1: "1", x2: "0", y2: "0"
+                    }, [
+                        React.createElement('stop', { offset: "0%", stopColor: "rgba(56, 189, 248, 0.02)" }),
+                        React.createElement('stop', { offset: "50%", stopColor: "rgba(56, 189, 248, 0.1)" }),
+                        React.createElement('stop', { offset: "100%", stopColor: "rgba(56, 189, 248, 0.02)" })
+                    ])
+                ])
+            ]);
+
+            const pathData = React.useMemo(() => {
+                if (points.length === 0) return "";
+                const width = 100;
+                const height = 50;
+                const padding = 2;
+                const safeHeight = height - (padding * 2);
+                
+                const sMin = Number(min) || 0;
+                let sMax = Number(max);
+                if (isNaN(sMax)) sMax = 100;
+                if (sMax <= sMin) sMax = sMin + 1;
+                const range = sMax - sMin;
+                
+                return points.map((val, i) => {
+                    const x = (i / (points.length - 1)) * width;
+                    const cappedVal = Math.max(sMin, Math.min(sMax, val));
+                    const pct = (cappedVal - sMin) / range;
+                    const y = (height - padding) - (pct * safeHeight);
+                    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }).join(' ');
+            }, [points, min, max]);
+
+            const strokeColor = (hasData && isDisconnected) ? "#3b82f6" : `url(#mobile-grad-${id})`;
+
+            return React.createElement('div', { className: 'mobile-sparkline-container' }, [
+                React.createElement('svg', {
+                    className: 'mobile-sparkline-svg',
+                    viewBox: '0 0 100 50',
+                    preserveAspectRatio: 'none'
+                }, [
+                    commonGradient,
+                    React.createElement('rect', {
+                        x: "0", y: "0", width: "100", height: "50",
+                        fill: `url(#mobile-bg-grad-${id})`,
+                        opacity: "0.6"
+                    }),
+                    React.createElement('line', { x1: "0", y1: "0", x2: "100", y2: "0", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
+                    React.createElement('line', { x1: "0", y1: "25", x2: "100", y2: "25", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5", strokeDasharray: "2,2" }),
+                    React.createElement('line', { x1: "0", y1: "50", x2: "100", y2: "50", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
+                    React.createElement('path', {
+                        d: pathData,
+                        className: 'mobile-sparkline-path',
+                        stroke: strokeColor,
+                        fill: 'none',
+                        strokeWidth: '2',
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round'
+                    })
+                ])
+            ]);
+        });
+
   
             
-// MOBILE TEMPLATE FINAL - CONSOLIDADO
-// Revisión punto por punto desde el 1
+// MOBILE TEMPLATE FINAL - CONSOLIDADO Y CORREGIDO
 
 // === PUNTO 1: INICIALIZACIÓN ===
 // Hooks React y configuración inicial
@@ -910,17 +1235,17 @@ const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 // === PUNTO 2: CONFIGURACIÓN DE TIMEZONE ===
 // Helpers de formato para Paraguay (fmtPY, fmtPYTime) - IGUAL que React Desktop
-const asDate = (x: any) => (x instanceof Date) ? x : new Date(x);
-const fmtPY = (x: any, opts: any) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ_PY, ...opts }).format(asDate(x));
-const fmtPYTime = (x: any) => fmtPY(x, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-const fmtPYDate = (x: any) => fmtPY(x, { day: '2-digit', month: '2-digit', year: 'numeric' });
-const fmtPYDayMonth = (x: any) => fmtPY(x, { day: '2-digit', month: '2-digit' });
+const asDate = (x) => (x instanceof Date) ? x : new Date(x);
+const fmtPY = (x, opts) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ_PY, ...opts }).format(asDate(x));
+const fmtPYTime = (x) => fmtPY(x, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+const fmtPYDate = (x) => fmtPY(x, { day: '2-digit', month: '2-digit', year: 'numeric' });
+const fmtPYDayMonth = (x) => fmtPY(x, { day: '2-digit', month: '2-digit' });
 
 // === PUNTO 3: NORMALIZACIÓN DE DATOS ===
 // normKey(), getVal(), normalizePoint() - IGUAL que React Desktop
-const normKey = (k: any) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
+const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
 
-const getVal = (obj: any, key: any) => {
+const getVal = (obj, key) => {
     if (!obj || !key) return undefined;
     const nk = normKey(key);
     if (obj[nk] !== undefined) return obj[nk];
@@ -929,10 +1254,10 @@ const getVal = (obj: any, key: any) => {
     return undefined;
 };
 
-const normalizePoint = (raw: any) => {
+const normalizePoint = (raw) => {
     if (!raw || typeof raw !== 'object') return raw;
     const src = (raw.kv && typeof raw.kv === 'object') ? raw.kv : raw;
-    const out: any = {};
+    const out = {};
     if (raw.timestamp) out.timestamp = raw.timestamp;
     for (const k in src) {
         if (k === 'timestamp') continue;
@@ -942,12 +1267,23 @@ const normalizePoint = (raw: any) => {
     return out;
 };
 
-// === PUNTO 4: CONFIGURACIÓN DE LÍMITES ===
-// Definición de constantes de cache y polling
-const TZ_PY = 'America/Asuncion';
-const LIVE_MAX_POINTS = 300;
-const HISTORY_PRELOAD_LIMIT = 5000;
-const LIVE_PRELOAD_LIMIT = 300;
+// === PUNTO 6: MAPEO DE ICONOS ===
+// Mapeo de strings de iconos a emojis para compatibilidad
+const iconMap = {
+  'bell': '🔔',
+  'settings': '⚙️',
+  'home': '🏠',
+  'dashboard': '📊',
+  'chart': '📈',
+  'alerts': '🚨',
+  'temperature': '🌡️',
+  'humidity': '💧',
+  'pressure': '📏',
+  'light': '💡',
+  'power': '⚡',
+  'wifi': '📶',
+  'bluetooth': '📱'
+};
 const HISTORY_CACHE_LIMIT = 1500;
 const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 // Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
@@ -1173,7 +1509,7 @@ const initializeChart = (canvasRef, chartData, chartOptions) => {
 
 const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTick }) => {
   // SparklineEngine debe estar disponible globalmente
-  const SparklineEngineGlobal: any = SparklineEngine;
+  const SparklineEngineGlobal = SparklineEngine;
   
   const [points, setPoints] = useState(() => {
     if (SparklineEngineGlobal) {
@@ -1223,21 +1559,14 @@ const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTi
   return React.createElement('div', { 
     className: `mobile-sparkline-container ${inverted ? 'mobile-gauge-gradient-inverted' : 'mobile-gauge-gradient-normal'}`,
     style: { 
-      marginTop: '8px', 
-      ...sparklineColors,
-      height: '40px',
-      borderRadius: '6px',
-      overflow: 'hidden',
-      background: 'rgba(0, 0, 0, 0.2)',
-      border: '1px solid rgba(148, 163, 184, 0.05)'
+      ...sparklineColors
     }
   }, [
     React.createElement('svg', { 
       key: 'svg',
       className: 'mobile-sparkline-svg', 
-      viewBox: '0 0 100 35', 
-      preserveAspectRatio: 'none',
-      style: { height: '35px', flex: 1 }
+      viewBox: '0 0 100 50', 
+      preserveAspectRatio: 'none'
     }, [
       React.createElement('defs', { key: 'defs' }, [
         React.createElement('linearGradient', { 
@@ -1255,10 +1584,7 @@ const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTi
         key: 'path',
         d: pathData,
         className: 'mobile-sparkline-path',
-        stroke: strokeColor,
-        fill: 'none',
-        strokeWidth: '1',
-        filter: 'drop-shadow(0 0 1px currentColor)'
+        stroke: strokeColor
       })
     ])
   ]);
@@ -1417,14 +1743,14 @@ const MobileDashboardApp = () => {
             // Cargar historial en los Sparklines y estadísticas usando fullHistory
             const todayStart = fullHistory.length > 0 ? (fullHistory[0].timestamp || null) : null;
             const CONFIGGlobal = CONFIG;
-            const SparklineEngineGlobal: any = SparklineEngine;
+            const SparklineEngineGlobal = SparklineEngine;
             if (CONFIGGlobal && CONFIGGlobal.dashboard && SparklineEngineGlobal) {
-                CONFIGGlobal.dashboard.widgets.forEach((w: any) => {
+                CONFIGGlobal.dashboard.widgets.forEach((w) => {
                     if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
                         const wk = normKey(w.key);
-                        const hDataBuffer = fullHistory.map((d: any) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
+                        const hDataBuffer = fullHistory.map((d) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
                         const hDataToday = (todayStart !== null)
-                            ? fullHistory.filter((d: any) => (d.timestamp || d.ts_iso) >= todayStart).map((d: any) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
+                            ? fullHistory.filter((d) => (d.timestamp || d.ts_iso) >= todayStart).map((d) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
                             : [];
                         try {
                             SparklineEngineGlobal.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
@@ -1452,9 +1778,9 @@ const MobileDashboardApp = () => {
                 setSparkTick(t => t + 1);
                 // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
                 const CONFIGGlobal = CONFIG;
-                const SparklineEngineGlobal: any = SparklineEngine;
+                const SparklineEngineGlobal = SparklineEngine;
                 if (CONFIGGlobal && CONFIGGlobal.dashboard && SparklineEngineGlobal) {
-                    CONFIGGlobal.dashboard.widgets.forEach((w: any) => {
+                    CONFIGGlobal.dashboard.widgets.forEach((w) => {
                         const wk = normKey(w.key);
                         const rawVal = getVal(flat, wk);
                         SparklineEngineGlobal.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
@@ -1475,17 +1801,17 @@ const MobileDashboardApp = () => {
             if (!res.ok) return;
             const js = await res.json();
             const arr = Array.isArray(js) ? js : [];
-            const normalized = arr.map((a: any) => {
+            const normalized = arr.map((a) => {
                 const ms = getAlertMs(a);
                 const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
                 return { ...a, timestamp, __ts_ms: ms };
-            }).filter((a: any) => (a.__ts_ms || 0) > alertsSeenUntilMs);
+            }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
             setAlerts(normalized);
         } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
     // --- Helper para Alertas - IGUAL que React Desktop ---
-    const getAlertMs = (a: any) => {
+    const getAlertMs = (a) => {
         if (a.timestamp) return new Date(a.timestamp).getTime();
         if (a.ts_iso) return new Date(a.ts_iso).getTime();
         if (a.ts) return Number(a.ts) * 1000;
@@ -1493,7 +1819,7 @@ const MobileDashboardApp = () => {
     };
 
     // --- Funciones Auxiliares - IGUAL que React Desktop ---
-    const formatValue = (val: any, format?: string, unit: string = "") => {
+    const formatValue = (val, format, unit = "") => {
         if (val === null || val === undefined || val === '--') return "--";
         
         // Convertir a número si es posible para formatos numéricos
@@ -1598,10 +1924,10 @@ const MobileDashboardApp = () => {
         return formatValue(val, widget?.format, widget?.unit);
     };
 
-    const sendControl = async (key: string, val: any) => {
+    const sendControl = async (key, val) => {
         try {
             // Marcar como pendiente de inmediato
-            setPendingCommands((prev: any) => ({ 
+            setPendingCommands((prev) => ({ 
                 ...prev, 
                 [key]: { value: val, ts: Date.now() } 
             }));
@@ -1611,13 +1937,13 @@ const MobileDashboardApp = () => {
                 body: JSON.stringify({ [key]: val })
             });
             if (res.ok) {
-                setControlState((prev: any) => ({ ...prev, [key]: val }));
+                setControlState((prev) => ({ ...prev, [key]: val }));
             }
         } catch(e) { console.error("Error envío control:", e); }
     };
 
     // --- Helper para setSeenUntil (marcar alertas como vistas) ---
-    const setSeenUntil = (ms: number) => {
+    const setSeenUntil = (ms) => {
         try {
             localStorage.setItem('adtec_alerts_seen_until_ms', String(ms));
             setAlertsSeenUntilMs(ms);
@@ -1675,7 +2001,7 @@ const MobileDashboardApp = () => {
     // --- Componentes Inline - Copiados desde MobileDashboardPreview.tsx ---
     
     // Componente DashboardMobileChart inline - versión completa con Chart.js y controles de tiempo
-    const DashboardMobileChart = React.memo(({ widget }: any) => {
+    const DashboardMobileChart = React.memo(({ widget }) => {
         const [chartConfig, setChartConfig] = React.useState({
             primaryY: widget.key || '',
             secondaryY: '',
@@ -2037,7 +2363,7 @@ const MobileDashboardApp = () => {
     });
 
     // Componente AlertsWidget inline
-    const AlertsWidget = React.memo(({ getWidgetValue: customGetWidgetValue }: any) => {
+    const AlertsWidget = React.memo(({ getWidgetValue: customGetWidgetValue }) => {
         const alerts = lastData?.activeAlerts || [];
         
         return React.createElement('div', {
@@ -2067,7 +2393,7 @@ const MobileDashboardApp = () => {
             alerts.length === 0 
                 ? React.createElement('div', { key: 'empty', style: { textAlign: 'center', color: '#94a3b8', padding: '20px' } }, 'Sin alertas activas')
                 : React.createElement('div', { key: 'list' }, 
-                    alerts.map((alert: any, i: number) => 
+                    alerts.map((alert, i) => 
                         React.createElement('div', {
                             key: i,
                             style: {
@@ -2089,181 +2415,167 @@ const MobileDashboardApp = () => {
     });
 
     // Función renderMobileWidget inline - copiada desde MobileDashboardPreview.tsx
-    const renderMobileWidget = (w: any) => {
+    const availableVariables = CONFIGGlobal.availableVariables || [];
+    const renderMobileWidget = (w) => {
         const valStr = formatValue(getWidgetValue(w.key), w.format, w.unit);
         const val = parseFloat(valStr);
 
         switch (w.type) {
             case 'label':
-                return React.createElement('div', {
-                    className: 'mobile-widget section-label',
-                    style: {
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: w.color || '#38bdf8',
-                        fontSize: (w.fontSize || 14) + 2,
-                        fontWeight: 700,
-                        textAlign: 'center',
-                        whiteSpace: 'pre-wrap',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                    }
-                }, w.label);
+                return React.createElement('div', { className: 'mobile-widget section-label' }, [
+                    React.createElement('div', { key: 'content', className: 'label-content' }, w.label)
+                ]);
 
             case 'gauge':
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', style: {
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        gap: '8px'
-                    } }, [
-                        React.createElement('div', { key: 'title', style: {
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            color: '#f8fafc',
-                            lineHeight: '1.2',
-                            flex: '1'
-                        } }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', style: {
-                            fontSize: '7px',
-                            color: '#94a3b8',
-                            opacity: '0.6',
-                            fontFamily: 'monospace'
-                        } }, w.key)
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
-                    React.createElement('div', { key: 'value', style: {
-                        fontSize: '16px',
-                        fontWeight: '700',
-                        color: '#38bdf8',
-                        textAlign: 'center',
-                        margin: '4px 0'
-                    } }, [
+                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
                         valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', style: {
-                            fontSize: '10px',
-                            color: '#94a3b8',
-                            opacity: '0.8'
-                        } }, w.unit)
+                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
                     ]),
+                    w.showMinMax && (() => {
+                        const stats = SparklineEngine.getStats(w.id);
+                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+                        
+                        return React.createElement('div', { 
+                            key: 'minmax',
+                            className: 'mobile-widget-minmax' 
+                        }, 'Mín: ' + minDay + ' · Máx: ' + maxDay);
+                    })(),
                     (w.showBar ?? true) && React.createElement('div', {
                         key: 'bar',
-                        style: {
-                            height: '6px',
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            borderRadius: '3px',
-                            overflow: 'hidden',
-                            marginTop: '8px'
-                        }
+                        className: 'mobile-gauge-bar'
                     }, [
                         React.createElement('div', {
                             key: 'fill',
+                            className: 'mobile-gauge-fill',
                             style: {
-                                height: '100%',
-                                borderRadius: '3px',
-                                transition: 'width 0.3s ease',
-                                boxShadow: '0 0 8px currentColor',
-                                width: `${Math.max(0, Math.min(100, ((val - (w.min || 0)) / Math.max(1, (w.max || 100) - (w.min || 0))) * 100))}%`,
-                                height: '100%',
-                                background: 'linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%)',
-                                borderRadius: '4px'
+                                width: String(Math.max(0, Math.min(100, ((val - (w.min || 0)) / Math.max(1, (w.max || 100) - (w.min || 0))) * 100))) + '%',
+                                background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 1, w.inverted)
                             }
                         })
-                    ])
+                    ]),
+                    w.showSparkline && (() => {
+                        return React.createElement(MobileSparkline, {
+                            key: 'sparkline',
+                            id: w.id,
+                            variableKey: w.key,
+                            min: w.min,
+                            max: w.max,
+                            inverted: w.inverted,
+                            value: val,
+                            isSimulating: true
+                        });
+                    })()
                 ]);
 
             case 'indicator':
                 const isOn = valStr === 'ON' || valStr === '1' || valStr === '1.0' || valStr === 'TRUE' || valStr === 'ACTIVO';
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', style: {
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        gap: '8px'
-                    } }, [
-                        React.createElement('div', { key: 'title', style: {
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            color: '#f8fafc',
-                            lineHeight: '1.2',
-                            flex: '1'
-                        } }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', style: {
-                            fontSize: '7px',
-                            color: '#94a3b8',
-                            opacity: '0.6',
-                            fontFamily: 'monospace'
-                        } }, w.key)
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
                     React.createElement('div', {
                         key: 'chip',
-                        className: `mobile-status-chip ${isOn ? 'on' : 'off'}`,
-                        style: {
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '6px 12px',
-                            borderRadius: '20px',
-                            fontSize: '10px',
-                            fontWeight: '600',
-                            marginTop: 'auto',
-                            background: isOn ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                            color: isOn ? '#10b981' : '#ef4444',
-                            border: isOn ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)'
-                        }
+                        className: `mobile-status-chip ${isOn ? 'on' : 'off'}`
                     }, [
                         React.createElement('div', {
                             key: 'dot',
-                            className: 'mobile-status-dot',
-                            style: {
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: isOn ? '#10b981' : '#6b7280'
-                            }
+                            className: 'mobile-status-dot'
                         }),
                         React.createElement('span', { key: 'text' }, isOn ? 'ACTIVO' : 'INACTIVO')
                     ])
                 ]);
 
+            case 'control-vfd':
+                const freq = parseFloat(getWidgetValue(w.key.replace('_State', ''))) || 0;
+                const vfdState = getWidgetValue(w.key);
+                const vfdIsOn = vfdState === 'ON' || vfdState === '1' || vfdState === 'TRUE' || String(vfdState) === 'true';
+                
+                return React.createElement('div', { className: 'mobile-widget' }, [
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
+                    ]),
+                    React.createElement('div', { key: 'vfd-dial', className: 'mobile-vfd-dial' }, [
+                        React.createElement('div', { key: 'value', className: 'mobile-vfd-value' }, freq.toFixed(1)),
+                        React.createElement('div', { key: 'unit', className: 'mobile-vfd-unit' }, 'Hz')
+                    ]),
+                    React.createElement('input', {
+                        key: 'slider',
+                        type: 'range',
+                        value: freq,
+                        min: '0',
+                        max: '60',
+                        step: '0.5',
+                        className: 'mobile-range-slider',
+                        readOnly: true
+                    }),
+                    React.createElement('div', { key: 'buttons', className: 'mobile-control-buttons' }, [
+                        React.createElement('button', {
+                            key: 'start-btn',
+                            className: 'mobile-control-btn start'
+                        }, vfdIsOn ? '⏸️ PAUSA' : '▶️ INICIA'),
+                        React.createElement('button', {
+                            key: 'stop-btn',
+                            className: 'mobile-control-btn stop'
+                        }, 'OFF')
+                    ])
+                ]);
+
             case 'text':
                 return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', style: {
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        gap: '8px'
-                    } }, [
-                        React.createElement('div', { key: 'title', style: {
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            color: '#f8fafc',
-                            lineHeight: '1.2',
-                            flex: '1'
-                        } }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', style: {
-                            fontSize: '7px',
-                            color: '#94a3b8',
-                            opacity: '0.6',
-                            fontFamily: 'monospace'
-                        } }, w.key)
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
-                    React.createElement('div', { key: 'value', style: {
-                        fontSize: '16px',
-                        fontWeight: '700',
-                        color: '#38bdf8',
-                        textAlign: 'center',
-                        margin: '4px 0'
-                    } }, [
+                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
                         valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', style: {
-                            fontSize: '10px',
-                            color: '#94a3b8',
-                            opacity: '0.8'
-                        } }, w.unit)
+                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+                    ]),
+                    w.showMinMax && (() => {
+                        const stats = SparklineEngine.getStats(w.id);
+                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
+                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+                        
+                        return React.createElement('div', { 
+                            key: 'minmax',
+                            className: 'mobile-widget-minmax' 
+                        }, 'Mín: ' + minDay + ' · Máx: ' + maxDay);
+                    })()
+                ]);
+
+            case 'control-relay':
+                const relayVal = getWidgetValue(w.key);
+                const relayIsOn = relayVal === 'ON' || relayVal === '1' || relayVal === 'TRUE' || String(relayVal) === 'true';
+                
+                return React.createElement('div', { className: 'mobile-widget' }, [
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
+                    ]),
+                    React.createElement('div', {
+                        key: 'chip',
+                        className: `mobile-status-chip ${relayIsOn ? 'on' : 'off'}`
+                    }, [
+                        React.createElement('div', {
+                            key: 'dot',
+                            className: 'mobile-status-dot'
+                        }),
+                        React.createElement('span', { key: 'text' }, relayIsOn ? 'ACTIVO' : 'INACTIVO')
+                    ]),
+                    React.createElement('div', { key: 'buttons', className: 'mobile-control-buttons' }, [
+                        React.createElement('button', {
+                            key: 'on',
+                            className: 'mobile-control-btn start'
+                        }, 'ON'),
+                        React.createElement('button', {
+                            key: 'off',
+                            className: 'mobile-control-btn stop'
+                        }, 'OFF')
                     ])
                 ]);
 
@@ -2292,10 +2604,50 @@ const MobileDashboardApp = () => {
                                 }
                             })
                         )),
-                        React.createElement('span', {
-                            key: 'status',
-                            style: { fontSize: '12px', color: isConnected ? '#38bdf8' : '#6b7280' }
-                        }, isConnected ? 'Conectado' : 'Desconectado')
+                        React.createElement('div', {
+                            key: 'status-chip',
+                            className: `mobile-status-chip ${isConnected ? 'on' : 'off'}`
+                        }, [
+                            React.createElement('div', {
+                                key: 'status-dot',
+                                className: 'mobile-status-dot'
+                            }),
+                            React.createElement('span', {
+                                key: 'status-text'
+                            }, isConnected ? 'ONLINE' : 'OFFLINE')
+                        ])
+                    ])
+                ]);
+
+            case 'datetime':
+                const rawVal = getWidgetValue(w.key);
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('es-AR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false 
+                }) + ' hs';
+                const dateStr = now.toLocaleDateString('es-AR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }).charAt(0).toUpperCase() + now.toLocaleDateString('es-AR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }).slice(1);
+                return React.createElement('div', { className: 'mobile-widget' }, [
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
+                    ]),
+                    React.createElement('div', { key: 'datetime', className: 'mobile-datetime-container' }, [
+                        React.createElement('span', { key: 'icon', className: 'mobile-datetime-icon' }, '⏰'),
+                        React.createElement('div', { key: 'content', className: 'mobile-datetime-content' }, [
+                            React.createElement('div', { key: 'time', className: 'mobile-datetime-time' }, timeStr),
+                            React.createElement('div', { key: 'date', className: 'mobile-datetime-date' }, dateStr)
+                        ])
                     ])
                 ]);
 
@@ -2311,17 +2663,17 @@ const MobileDashboardApp = () => {
                     ]),
                     React.createElement('div', {
                         key: 'location',
-                        style: { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }
+                        className: 'mobile-location-container'
                     }, [
-                        React.createElement('span', { key: 'icon', style: { fontSize: '20px' } }, '📍'),
-                        React.createElement('div', { key: 'info', style: { flex: 1 } }, [
+                        React.createElement('span', { key: 'icon', className: 'mobile-location-icon' }, '📍'),
+                        React.createElement('div', { key: 'info', className: 'mobile-location-info' }, [
                             hasCity 
-                                ? React.createElement('div', { key: 'city', style: { fontSize: '12px', color: 'white', fontWeight: 600 } }, cityValue)
+                                ? React.createElement('div', { key: 'city', className: 'mobile-location-text' }, cityValue)
                                 : hasLocation 
-                                    ? React.createElement('div', { key: 'detected', style: { fontSize: '12px', color: 'white', fontWeight: 600 } }, 'Ubicación Detectada')
-                                    : React.createElement('div', { key: 'pro', style: { fontSize: '12px', color: 'white', fontWeight: 600 } }, 'Ubicación Pro'),
-                            hasLocation && React.createElement('div', { key: 'coords', style: { fontSize: '10px', color: '#94a3b8', marginTop: '2px' } }, locationValue),
-                            !hasLocation && !hasCity && React.createElement('div', { key: 'detecting', style: { fontSize: '10px', opacity: 0.6 } }, 'Detectando GPS...')
+                                    ? React.createElement('div', { key: 'detected', className: 'mobile-location-text' }, 'Ubicación Detectada')
+                                    : React.createElement('div', { key: 'pro', className: 'mobile-location-text' }, 'Ubicación Pro'),
+                            hasLocation && React.createElement('div', { key: 'coords', className: 'mobile-location-coords' }, locationValue),
+                            !hasLocation && !hasCity && React.createElement('div', { key: 'detecting', className: 'mobile-location-detecting' }, 'Detectando GPS...')
                         ])
                     ])
                 ]);
@@ -2369,7 +2721,11 @@ const MobileDashboardApp = () => {
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
                     ]),
-                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, valStr)
+                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
+                        valStr.replace(w.unit || '', ''),
+                        ' ',
+                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+                    ])
                 ]);
         }
     };
@@ -2427,8 +2783,8 @@ const MobileDashboardApp = () => {
         ]);
     }
 
-    const currentTabData = CONFIGGlobal.dashboard.tabs.find((t: any) => t.id === activeTabId);
-    const currentTabWidgets = CONFIGGlobal.dashboard.widgets.filter((w: any) => String(w.tabId) === String(activeTabId));
+    const currentTabData = CONFIGGlobal.dashboard.tabs.find((t) => t.id === activeTabId);
+    const currentTabWidgets = CONFIGGlobal.dashboard.widgets.filter((w) => String(w.tabId) === String(activeTabId));
 
     // Debug info
     console.log('Mobile Dashboard Debug:', {
@@ -2446,67 +2802,33 @@ const MobileDashboardApp = () => {
         // Mobile Card Container
         React.createElement('div', {
             key: 'container',
-            className: 'mobile-dashboard-container',
-            style: {
-                width: '380px',
-                height: '720px',
-                background: '#000',
-                borderRadius: '20px',
-                boxShadow: '0 0 40px rgba(0, 0, 0, 0.8)',
-                border: '8px solid #1a1a1a',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                position: 'relative'
-            }
+            className: 'mobile-dashboard-container'
         }, [
             // Header
             React.createElement('div', {
                 key: 'header',
-                className: 'mobile-header',
-                style: {
-                    background: 'linear-gradient(135deg, rgba(15,23,42,0.98) 0%, rgba(0,0,0,0.9) 100%)',
-                    padding: '15px 20px',
-                    borderBottom: '1px solid rgba(148,163,184,0.1)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }
+                className: 'mobile-header'
             }, [
                 React.createElement('div', {
                     key: 'title-section',
-                    className: 'mobile-header-title',
-                    style: { display: 'flex', alignItems: 'center', gap: '12px' }
+                    className: 'mobile-header-title'
                 }, [
                     React.createElement('div', {
-                        key: 'logo',
-                        className: 'logo-icon',
-                        style: {
-                            width: 24,
-                            height: 24,
-                            borderRadius: 6,
-                            background: 'linear-gradient(135deg, #facc15 0%, #f59e0b 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 0 10px rgba(250, 204, 21, 0.4)'
-                        }
-                    }, [
-                        React.createElement('div', {
-                            key: 'logo-text',
-                            className: 'logo-icon-inner',
-                            style: { fontSize: '8px', fontWeight: 'bold', color: '#000' }
-                        }, 'ADTEC')
-                    ]),
+                    key: 'logo',
+                    className: 'logo-icon'
+                }, [
+                    React.createElement('div', {
+                        key: 'logo-text',
+                        className: 'logo-icon-inner'
+                    }, 'ADTEC')
+                ]),
                     React.createElement('h3', {
-                        key: 'title',
-                        style: { color: 'white', margin: 0, fontSize: '16px', fontWeight: '600' }
+                        key: 'title'
                     }, 'Mobile Dashboard')
                 ]),
                 React.createElement('div', {
                     key: 'actions',
-                    className: 'mobile-header-actions',
-                    style: { display: 'flex', gap: '8px' }
+                    className: 'mobile-header-actions'
                 }, [
                     React.createElement('div', {
                         key: 'status',
@@ -2524,73 +2846,37 @@ const MobileDashboardApp = () => {
             // Tab Navigation
             React.createElement('div', {
                 key: 'tab-header',
-                className: 'mobile-tab-header',
-                style: {
-                    background: 'rgba(15,23,42,0.8)',
-                    padding: '10px 20px',
-                    borderBottom: '1px solid rgba(148,163,184,0.1)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }
+                className: 'mobile-tab-header'
             }, [
                 React.createElement('div', {
                     key: 'tab-name',
-                    className: 'mobile-tab-name',
-                    style: { color: 'white', fontSize: '14px', fontWeight: '600' }
+                    className: 'mobile-tab-name'
                 }, currentTabData?.title || 'Dashboard'),
                 React.createElement('div', {
                     key: 'tab-icons',
-                    className: 'mobile-tab-icons',
-                    style: { display: 'flex', gap: '8px' }
-                }, 
-                    CONFIGGlobal.dashboard.tabs.map((tab: any) => 
+                    className: 'mobile-tab-icons'
+                }, [
+                    CONFIGGlobal.dashboard.tabs.map((tab) => 
                         React.createElement('div', {
                             key: tab.id,
                             onClick: () => setActiveTabId(tab.id),
-                            className: `mobile-tab-icon ${activeTabId === tab.id ? 'active' : ''}`,
-                            style: {
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                background: activeTabId === tab.id ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.05)',
-                                color: activeTabId === tab.id ? '#38bdf8' : '#94a3b8',
-                                fontSize: '16px'
-                            }
+                            className: `mobile-tab-icon ${activeTabId === tab.id ? 'active' : ''}`
                         }, [
-                            React.createElement('span', { key: 'icon' }, tab.icon || '📱')
+                            React.createElement('span', {}, iconMap[tab.icon] || tab.icon || '📱')
                         ])
                     )
-                )
+                ])
             ]),
 
             // Main Content Area
             React.createElement('div', {
                 key: 'content',
-                className: 'mobile-content',
-                style: {
-                    flex: 1,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    background: 'linear-gradient(135deg, rgba(15,23,42,0.96) 0%, rgba(0, 0, 0, 0.3) 100%)'
-                }
+                className: 'mobile-content'
             }, [
                 // Grid Background
                 React.createElement('div', {
                     key: 'grid-bg',
-                    className: 'mobile-grid-bg',
-                    style: {
-                        position: 'absolute',
-                        inset: 0,
-                        backgroundImage: 'radial-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px)',
-                        backgroundSize: '30px 30px',
-                        opacity: 0.5,
-                        pointerEvents: 'none'
-                    }
+                    className: 'mobile-grid-bg'
                 }),
 
                 // Content Logic - Copiado desde MobileDashboardPreview.tsx
@@ -2658,88 +2944,43 @@ const MobileDashboardApp = () => {
                     return currentTabWidgets.length === 0 
                         ? React.createElement('div', {
                             key: 'empty',
-                            className: 'mobile-empty-state',
-                            style: {
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                height: '100%',
-                                color: '#94a3b8'
-                            }
+                            className: 'mobile-empty-state'
                         }, [
                             React.createElement('div', {
                                 key: 'empty-icon',
-                                className: 'mobile-empty-state-icon',
-                                style: { fontSize: '48px', marginBottom: '15px' }
+                                className: 'mobile-empty-state-icon'
                             }, '📱'),
                             React.createElement('div', {
                                 key: 'empty-text',
-                                className: 'mobile-empty-state-text',
-                                style: { fontSize: '16px', fontWeight: '600', marginBottom: '5px' }
+                                className: 'mobile-empty-state-text'
                             }, 'Dashboard móvil vacío'),
                             React.createElement('div', {
                                 key: 'empty-subtext',
-                                className: 'mobile-empty-state-subtext',
-                                style: { fontSize: '12px', opacity: 0.7 }
+                                className: 'mobile-empty-state-subtext'
                             }, 'Agrega widgets usando el panel lateral')
                         ])
                         : React.createElement('div', {
                             key: 'grid',
-                            className: 'mobile-dashboard-grid',
-                            style: {
-                                padding: '12px',
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(2, 1fr)',
-                                gap: '10px',
-                                height: '100%',
-                                overflowY: 'auto',
-                                alignContent: 'start',
-                                maxWidth: '380px',
-                                margin: '0 auto'
-                            }
+                            className: 'mobile-dashboard-grid'
                         }, 
-                            currentTabWidgets.map((widget: any) => 
+                            currentTabWidgets.map((widget) => 
                                 React.createElement('div', {
                                     key: widget.id,
                                     style: {
-                                        background: 'rgba(15, 23, 42, 0.8)',
-                                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                                        borderRadius: '12px',
-                                        padding: '10px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '6px',
-                                        minHeight: '85px',
-                                        position: 'relative',
-                                        transition: 'all 0.2s',
-                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                                         ...(widget.type === 'label' || widget.type === 'control-relay' || widget.type === 'control-vfd' ? {
                                             gridColumn: 'span 2',
                                             width: '100%',
-                                            maxWidth: '100%',
-                                            minHeight: '30px',
-                                            background: widget.type === 'control-relay' ? 'rgba(16, 185, 129, 0.1)' : 
-                                                          widget.type === 'control-vfd' ? 'rgba(168, 85, 247, 0.1)' : 
-                                                          'rgba(56, 189, 248, 0.1)',
-                                            border: widget.type === 'control-relay' ? '1px solid rgba(16, 185, 129, 0.2)' : 
-                                                   widget.type === 'control-vfd' ? '1px solid rgba(168, 85, 247, 0.2)' : 
-                                                   '1px solid rgba(56, 189, 248, 0.2)',
-                                            padding: '6px'
+                                            maxWidth: '100%'
                                         } : {})
                                     }
-                                }, [
-                                    renderMobileWidget(widget)
-                                ])
+                                }, renderMobileWidget(widget))
                             )
-                        );
+                        )
                 })()
             ])
         ])
     ]);
-};
-
-
+}; //hola
 
 // Renderizado principal
 const root = document.getElementById('mobile-dashboard-root');
