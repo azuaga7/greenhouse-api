@@ -140,7 +140,7 @@
 .mobile-tab-icons {
   display: flex;
   justify-content: space-around;
-  padding: 12px 0;
+  padding: 8px 0;
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -675,7 +675,7 @@
 }
 
 .mobile-alerts-container .mobile-widget-header {
-  padding: 15px 15px 10px 15px;
+  padding: 8px 15px 5px 15px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   flex-shrink: 0;
 }
@@ -843,7 +843,7 @@
     <script type="text/babel">
         try {
             
-        const CONFIG = {
+        window.CONFIG = {
             BASE_URL: '',
             dashboard: {"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","unit":"Hs","min":0,"max":0,"tabId":"1","format":"datetime_hm_full","hideKey":true,"showBar":false},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"tabId":"1","format":"fixed1","hideKey":true,"showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":50,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":50,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":50,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":40000,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"mobile_1772082564926","type":"label","label":"RELES","key":"static_text","min":0,"max":0,"tabId":"3","format":"fixed1","showBar":false},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"mobile_1772080317620","type":"chart","label":"","key":"","min":0,"max":0,"tabId":"5","format":"fixed1","showBar":false},{"id":"mobile_1772080351240","type":"alerts","label":"","key":"alerts_system","min":0,"max":0,"tabId":"4","format":"fixed1","showBar":false}],"tabs":[{"id":"1","name":"Estado Actual","icon":"📊","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"📈","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"🎮","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","signal":"dht22_1.HUM_OUT"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP","signal":"dht22_1.TEMP_OUT"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP","signal":"ds18b20_2.TEMP_OUT"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","signal":"relay_3.STATE_OUT"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","signal":"relay_1.STATE_OUT"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","signal":"relay_2.STATE_OUT"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","signal":"relay_3.RUNTIME_OUT"},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","signal":"relay_1.RUNTIME_OUT"},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","signal":"relay_2.RUNTIME_OUT"},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP","signal":"ds18b20_1.TEMP_OUT"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","signal":"tsl2561_1.LUX_OUT"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL","signal":"gsm_1.SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE","signal":"gsm_1.STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION","signal":"gsm_1.LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION","signal":"gsm_1.CITY_COUNTRY"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura Sector 3","ds18b20_2_TEMP_OUT":"Temperatura Sector 2","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","ds18b20_1_TEMP_OUT":"Temperatura Sector 1","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS","gsm_1_CITY_COUNTRY":"City, Country"},
@@ -1229,11 +1229,16 @@
             
 // MOBILE TEMPLATE FINAL - CONSOLIDADO Y CORREGIDO
 
+// CONFIG debe definirse primero antes de ser usado
+const CONFIG = window.CONFIG || {};
+
 // === PUNTO 1: INICIALIZACIÓN ===
 // Hooks React y configuración inicial
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 // === PUNTO 2: CONFIGURACIÓN DE TIMEZONE ===
+// Timezone para Paraguay (UTC-3)
+const TZ_PY = 'America/Asuncion'; // UTC-3
 // Helpers de formato para Paraguay (fmtPY, fmtPYTime) - IGUAL que React Desktop
 const asDate = (x) => (x instanceof Date) ? x : new Date(x);
 const fmtPY = (x, opts) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ_PY, ...opts }).format(asDate(x));
@@ -1242,7 +1247,7 @@ const fmtPYDate = (x) => fmtPY(x, { day: '2-digit', month: '2-digit', year: 'num
 const fmtPYDayMonth = (x) => fmtPY(x, { day: '2-digit', month: '2-digit' });
 
 // === PUNTO 3: NORMALIZACIÓN DE DATOS ===
-// normKey(), getVal(), normalizePoint() - IGUAL que React Desktop
+// normKey(), getVal(), normalizeRow() - IGUAL que React Desktop
 const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
 
 const getVal = (obj, key) => {
@@ -1254,18 +1259,7 @@ const getVal = (obj, key) => {
     return undefined;
 };
 
-const normalizePoint = (raw) => {
-    if (!raw || typeof raw !== 'object') return raw;
-    const src = (raw.kv && typeof raw.kv === 'object') ? raw.kv : raw;
-    const out = {};
-    if (raw.timestamp) out.timestamp = raw.timestamp;
-    for (const k in src) {
-        if (k === 'timestamp') continue;
-        out[normKey(k)] = src[k];
-    }
-    if (!out.timestamp) out.timestamp = new Date().toISOString();
-    return out;
-};
+const normalizeRow = (obj) => { const out = {}; for (const [k,v] of Object.entries(obj||{})) out[normKey(k)] = v; return out; };
 
 // === PUNTO 6: MAPEO DE ICONOS ===
 // Mapeo de strings de iconos a emojis para compatibilidad
@@ -1284,6 +1278,9 @@ const iconMap = {
   'wifi': '📶',
   'bluetooth': '📱'
 };
+const LIVE_MAX_POINTS = 300;
+const HISTORY_PRELOAD_LIMIT = 5000;
+const LIVE_PRELOAD_LIMIT = 300;
 const HISTORY_CACHE_LIMIT = 1500;
 const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 // Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
@@ -1509,25 +1506,24 @@ const initializeChart = (canvasRef, chartData, chartOptions) => {
 
 const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTick }) => {
   // SparklineEngine debe estar disponible globalmente
-  const SparklineEngineGlobal = SparklineEngine;
   
   const [points, setPoints] = useState(() => {
-    if (SparklineEngineGlobal) {
-      const initial = SparklineEngineGlobal.getBuffer(id, variableKey, min || 0, max || 100);
+    if (SparklineEngine) {
+      const initial = SparklineEngine.getBuffer(id, variableKey, min || 0, max || 100);
       return [...initial];
     }
     return [];
   });
   
   useEffect(() => {
-    if (SparklineEngineGlobal) {
-      const currentPoints = SparklineEngineGlobal.getBuffer(id, variableKey, min || 0, max || 100);
+    if (SparklineEngine) {
+      const currentPoints = SparklineEngine.getBuffer(id, variableKey, min || 0, max || 100);
       setPoints([...currentPoints]);
     }
   }, [id, variableKey, value, min, max, historyTick]);
   
   const hasData = useMemo(() => {
-    return SparklineEngineGlobal ? SparklineEngineGlobal.hasRealData(id) : false;
+    return SparklineEngine ? SparklineEngine.hasRealData(id) : false;
   }, [id, value, historyTick]);
   const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
   
@@ -1643,8 +1639,7 @@ const fetchCacheApiSnapshot = async (force = false) => {
 
 // --- Componente Principal Mobile Dashboard ---
 const MobileDashboardApp = () => {
-    const CONFIGGlobal = CONFIG;
-    const [activeTabId, setActiveTabId] = useState((CONFIGGlobal?.dashboard?.tabs?.[0]?.id) || '0');
+    const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [alerts, setAlerts] = useState([]);
     const [controlState, setControlState] = useState({});
@@ -1671,7 +1666,7 @@ const MobileDashboardApp = () => {
     const [seriesData, setSeriesData] = useState([]);
     const [seriesLoading, setSeriesLoading] = useState(false);
     const [chartConfig, setChartConfig] = useState({
-        ...CONFIGGlobal?.chartConfig,
+        ...CONFIG.chartConfig,
         filter: 'all',
         fromDate: '',
         toDate: '',
@@ -1685,7 +1680,7 @@ const MobileDashboardApp = () => {
     const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
     const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
-    const BASE_URL = CONFIGGlobal?.BASE_URL || '';
+    const BASE_URL = CONFIG.BASE_URL || '';
 
     // --- ACK local de alertas (no borra historial en el Bridge) ---
     const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
@@ -1706,7 +1701,7 @@ const MobileDashboardApp = () => {
                     if (cached) {
                         const parsed = JSON.parse(cached);
                         if (Array.isArray(parsed) && parsed.length > 0) {
-                            const cachedRows = parsed.map(r => normalizePoint(r));
+                            const cachedRows = parsed.map(r => normalizeRow(r));
                             setHistoryData(cachedRows);
                             setLastData(cachedRows[cachedRows.length - 1]);
                             if (chartConfig.timeRange === 'Ahora') {
@@ -1724,7 +1719,7 @@ const MobileDashboardApp = () => {
             const res = await fetch(url);
             if (!res.ok) return;
             const raw = await res.json();
-            const fullHistory = Array.isArray(raw) ? raw.map(r => normalizePoint(r)) : [];
+            const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
 
             // 1) Guardar cache acotado
             try {
@@ -1742,10 +1737,8 @@ const MobileDashboardApp = () => {
             }
             // Cargar historial en los Sparklines y estadísticas usando fullHistory
             const todayStart = fullHistory.length > 0 ? (fullHistory[0].timestamp || null) : null;
-            const CONFIGGlobal = CONFIG;
-            const SparklineEngineGlobal = SparklineEngine;
-            if (CONFIGGlobal && CONFIGGlobal.dashboard && SparklineEngineGlobal) {
-                CONFIGGlobal.dashboard.widgets.forEach((w) => {
+            if (CONFIG && CONFIG.dashboard && SparklineEngine) {
+                CONFIG.dashboard.widgets.forEach((w) => {
                     if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
                         const wk = normKey(w.key);
                         const hDataBuffer = fullHistory.map((d) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
@@ -1753,12 +1746,56 @@ const MobileDashboardApp = () => {
                             ? fullHistory.filter((d) => (d.timestamp || d.ts_iso) >= todayStart).map((d) => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
                             : [];
                         try {
-                            SparklineEngineGlobal.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
+                            SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
                         } catch (e) {}
                     }
                 });
             }
+
+            // Precargar series server-side para Sparklines (historial profundo)
+            await preloadSparklineHistory();
         } catch(e) { console.error("Error historial:", e); }
+    };
+
+    // --- Precarga server-side de series para Sparklines (1 request, 24h / max_points) ---
+    const preloadSparklineHistory = async () => {
+        try {
+            const sparkWidgets = CONFIG.dashboard.widgets.filter(w => (w.showSparkline || w.type === 'gauge' || w.showMinMax));
+            if (!sparkWidgets || sparkWidgets.length === 0) return;
+
+            const keys = Array.from(new Set(sparkWidgets.map(w => normKey(w.key)).filter(Boolean)));
+            if (keys.length === 0) return;
+
+            const u = new URL(BASE_URL + '/api/sparkline_series', window.location.origin);
+            u.searchParams.set('channel', 'ingreso');
+            u.searchParams.set('hours', String(CONFIG.sparklineHours || 24));
+            u.searchParams.set('max_points', String(CONFIG.sparklineMaxPoints || 120));
+            u.searchParams.set('keys', keys.join(','));
+
+            const res = await fetch(u);
+            if (!res.ok) return;
+            const js = await res.json();
+            const series = js && js.series ? js.series : {};
+            if (!series || typeof series !== 'object') return;
+
+            sparkWidgets.forEach(w => {
+                const wk = normKey(w.key);
+                const pts = Array.isArray(series[wk]) ? series[wk] : [];
+                if (pts.length === 0) return;
+
+                const hDataBuffer = pts.map(p => p?.[1]).filter(v => v !== undefined && v !== null);
+                // Para min/max del día, usamos el mismo buffer (el motor ya calcula stats).
+                const hDataToday = hDataBuffer;
+
+                try {
+                    SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
+                } catch (e) {
+                    console.warn('SparklineEngine.setHistory (server series) falló para', w.id, e);
+                }
+            });
+        } catch (e) {
+            console.warn('preloadSparklineHistory falló', e);
+        }
     };
 
     const fetchUpdate = async () => {
@@ -1768,7 +1805,7 @@ const MobileDashboardApp = () => {
             if (!res.ok) throw new Error("API Offline");
             
             const raw = await res.json();
-            const flat = normalizePoint(raw);
+            const flat = normalizeRow(raw);
             
             // Validar que la data es real
             const hasData = flat && flat.timestamp && flat.timestamp !== '--';
@@ -1777,13 +1814,11 @@ const MobileDashboardApp = () => {
                 // Forzar refresco de sparklines en cada paquete nuevo
                 setSparkTick(t => t + 1);
                 // Actualización Centralizada del Motor (usar normalizedLive.kv para valores)
-                const CONFIGGlobal = CONFIG;
-                const SparklineEngineGlobal = SparklineEngine;
-                if (CONFIGGlobal && CONFIGGlobal.dashboard && SparklineEngineGlobal) {
-                    CONFIGGlobal.dashboard.widgets.forEach((w) => {
+                if (CONFIG && CONFIG.dashboard && SparklineEngine) {
+                    CONFIG.dashboard.widgets.forEach((w) => {
                         const wk = normKey(w.key);
                         const rawVal = getVal(flat, wk);
-                        SparklineEngineGlobal.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
+                        SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
                     });
                 }
             }
@@ -1878,49 +1913,61 @@ const MobileDashboardApp = () => {
         // Formato raw o default
         return val + unit;
     };
+    const getWidgetValue = (key) => getWidgetValueShared(key, lastData, CONFIG.dashboard.widgets);
 
-    // --- Función para obtener valor de widget (IGUAL que React Desktop) ---
-    const getWidgetValue = (key) => getWidgetValueShared(key, lastData, CONFIGGlobal.dashboard.widgets);
-
-    // --- Implementación inline de getWidgetValueShared (de dashboardShared.ts) ---
-    const getWidgetValueShared = (key, state, widgets) => {
-        if (!state) return '--';
+    // --- Implementación IDÉNTICA a dashboardShared.ts (React Desktop) ---
+    const getRawWidgetValue = (key, state) => {
+        if (!state) return undefined;
         
-        // 1. Obtener valor crudo con getRawWidgetValue
-        const getRawWidgetValue = (key, state) => {
-            if (!state || !key) return undefined;
-            
-            // Intentar directamente con la key
-            let val = state[key];
-            
-            // Si no existe, intentar con kv.key
-            if (val === undefined && state.kv && typeof state.kv === 'object') {
-                val = state.kv[key];
-            }
-            
-            // Si no existe, intentar sin kv. si la key tiene kv.
-            if (val === undefined && typeof key === 'string' && key.startsWith('kv.')) {
-                const cleanKey = key.slice(3);
-                val = state[cleanKey];
-                if (val === undefined && state.kv && typeof state.kv === 'object') {
-                    val = state.kv[cleanKey];
+        const k0 = (typeof key === 'string' && key.startsWith('kv.')) ? key.slice(3) : key;
+        const k1 = 'kv.' + k0;
+
+        let val = state.telemetry ? (state.telemetry[k0] ?? state.telemetry[k1]) : (state[k0] ?? state[k1]);
+
+        if (val === undefined && state.data && typeof state.data === 'object') {
+            val = state.data[k0] ?? state.data[k1];
+        }
+
+        if (val === undefined && state.blocks) {
+            for (const blockId in state.blocks) {
+                if (state.blocks[blockId][k0] !== undefined || state.blocks[blockId][k1] !== undefined) {
+                    val = state.blocks[blockId][k0] ?? state.blocks[blockId][k1];
+                    break;
                 }
             }
-            
-            return val;
-        };
-        
+        }
+
+        if (val === undefined && key.includes('.')) {
+            const [blockId, prop] = key.split('.');
+            val = state.blocks?.[blockId]?.[prop.toLowerCase()] || state.blocks?.[blockId]?.[prop];
+        }
+
+        return val;
+    };
+
+    const getWidgetValueShared = (key, state, widgets) => {
+        if (!state) return '--';
+
+        // 1. Especial: Alertas
+        if (key.toLowerCase() === 'alert_msg' || key.toLowerCase() === 'ultima_alerta' || key.toLowerCase() === 'alerta') {
+            const alerts = state.activeAlerts || [];
+            if (alerts.length === 0) return '🟢 SISTEMA OK';
+            const lastAlert = alerts[alerts.length - 1];
+            return (lastAlert.type === 'CRITICAL' ? '🔴' : '🟡') + ' ' + lastAlert.message;
+        }
+
+        // 2. Búsqueda de valor bruto
         const val = getRawWidgetValue(key, state);
-        
+
         if (val === undefined) return '--';
-        
-        // 2. Formateo Final
+
+        // 5. Formateo Final
         const nk = (typeof key === 'string' && key.startsWith('kv.')) ? key.slice(3) : key;
         const widget = widgets.find(w => {
             const wk = (typeof w.key === 'string' && w.key.startsWith('kv.')) ? w.key.slice(3) : w.key;
             return wk === nk;
         });
-        
+
         return formatValue(val, widget?.format, widget?.unit);
     };
 
@@ -1968,8 +2015,7 @@ const MobileDashboardApp = () => {
             } catch (e) {
                 console.warn('fetchUpdate inicial falló', e);
             }
-            const CONFIGGlobal = CONFIG;
-            intervalId = setInterval(fetchUpdate, (CONFIGGlobal?.refreshInterval ?? 1000));
+            intervalId = setInterval(fetchUpdate, (CONFIG.refreshInterval ?? 1000));
         };
         startLoop();
         return () => {
@@ -2024,7 +2070,7 @@ const MobileDashboardApp = () => {
         const getScaleSettings = (key) => {
             if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
             const nk = normKey(key);
-            const variable = CONFIGGlobal.dashboard.widgets?.find(w => normKey(w.key) === nk);
+            const variable = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             if (!variable) return { min: undefined, max: undefined, format: undefined, unit: "" };
             
             // Si es estado digital, escala inicial 0-2
@@ -2041,11 +2087,10 @@ const MobileDashboardApp = () => {
         };
 
         const chartData = React.useMemo(() => {
-            const SparklineEngineGlobal = SparklineEngine;
-            if (!SparklineEngineGlobal) return { labels: [], datasets: [] };
+            if (!SparklineEngine) return { labels: [], datasets: [] };
 
             const scaleSettings = getScaleSettings(chartConfig.primaryY || widget.key);
-            const data = SparklineEngineGlobal.getBuffer(widget.id, chartConfig.primaryY || widget.key, scaleSettings.min || 0, scaleSettings.max || 100);
+            const data = SparklineEngine.getBuffer(widget.id, chartConfig.primaryY || widget.key, scaleSettings.min || 0, scaleSettings.max || 100);
             const labels = data.map((_, i) => i.toString());
             
             const datasets = [{
@@ -2063,7 +2108,7 @@ const MobileDashboardApp = () => {
             // Add secondary axis if selected
             if (chartConfig.secondaryY) {
                 const secondaryScaleSettings = getScaleSettings(chartConfig.secondaryY);
-                const secondaryData = SparklineEngineGlobal.getBuffer(widget.id + '_secondary', chartConfig.secondaryY, secondaryScaleSettings.min || 0, secondaryScaleSettings.max || 100);
+                const secondaryData = SparklineEngine.getBuffer(widget.id + '_secondary', chartConfig.secondaryY, secondaryScaleSettings.min || 0, secondaryScaleSettings.max || 100);
                 datasets.push({
                     label: 'Variable 2',
                     data: secondaryData,
@@ -2259,7 +2304,7 @@ const MobileDashboardApp = () => {
                             fontWeight: 'bold' 
                         }
                     }, 
-                        CONFIGGlobal.dashboard.widgets?.map(v => 
+                        CONFIG.dashboard.widgets.map(v => 
                             React.createElement('option', { 
                                 key: v.key, 
                                 value: v.key, 
@@ -2298,7 +2343,7 @@ const MobileDashboardApp = () => {
                             value: '', 
                             style: { color: 'white' } 
                         }, '(sin eje secundario)'),
-                        ...(CONFIGGlobal.dashboard.widgets?.map(v => 
+                        ...(CONFIG.dashboard.widgets.map(v => 
                             React.createElement('option', { 
                                 key: v.key, 
                                 value: v.key, 
@@ -2455,8 +2500,7 @@ const MobileDashboardApp = () => {
     });
 
     // Función renderMobileWidget inline - copiada desde MobileDashboardPreview.tsx
-    // Usar misma lógica que web - statisticsBlock inputSources con TODAS las variables de telemetría
-    const availableVariables = CONFIGGlobal.availableVariables || [];
+    const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
         const valStr = formatValue(getWidgetValue(w.key), w.format, w.unit);
         const val = parseFloat(valStr);
@@ -2773,8 +2817,8 @@ const MobileDashboardApp = () => {
 
     // --- Renderizado Principal - Copiado desde MobileDashboardPreview.tsx ---
     // Validación de CONFIGGlobal para debug
-    if (!CONFIGGlobal) {
-        console.error('CONFIGGlobal no está disponible - globalThis.CONFIG:', CONFIG);
+    if (!CONFIG) {
+        console.error('CONFIG no está disponible - globalThis.CONFIG:', CONFIG);
         return React.createElement('div', {
             style: {
                 position: 'fixed',
@@ -2793,14 +2837,14 @@ const MobileDashboardApp = () => {
             }
         }, [
             React.createElement('div', { key: 'error-title', style: { fontSize: '24px', marginBottom: '20px', color: '#ef4444' } }, '❌ CONFIG Error'),
-            React.createElement('div', { key: 'error-msg', style: { fontSize: '16px', marginBottom: '10px' } }, 'CONFIGGlobal no está disponible'),
+            React.createElement('div', { key: 'error-msg', style: { fontSize: '16px', marginBottom: '10px' } }, 'CONFIG no está disponible'),
             React.createElement('div', { key: 'error-detail', style: { fontSize: '12px', opacity: 0.7, textAlign: 'center' } }, 'CONFIG está undefined'),
             React.createElement('div', { key: 'error-hint', style: { fontSize: '14px', marginTop: '20px', padding: '10px', background: 'rgba(239, 68, 68, 0.2)', borderRadius: '8px' } }, 'Asegúrate de que la configuración esté cargada antes de renderizar el dashboard')
         ]);
     }
 
-    if (!CONFIGGlobal.dashboard) {
-        console.error('CONFIGGlobal.dashboard no está disponible');
+    if (!CONFIG.dashboard) {
+        console.error('CONFIG.dashboard no está disponible');
         return React.createElement('div', {
             style: {
                 position: 'fixed',
@@ -2819,20 +2863,20 @@ const MobileDashboardApp = () => {
             }
         }, [
             React.createElement('div', { key: 'error-title', style: { fontSize: '24px', marginBottom: '20px', color: '#ef4444' } }, '❌ Dashboard Error'),
-            React.createElement('div', { key: 'error-msg', style: { fontSize: '16px', marginBottom: '10px' } }, 'CONFIGGlobal.dashboard no está disponible'),
+            React.createElement('div', { key: 'error-msg', style: { fontSize: '16px', marginBottom: '10px' } }, 'CONFIG.dashboard no está disponible'),
             React.createElement('div', { key: 'error-hint', style: { fontSize: '14px', marginTop: '20px', padding: '10px', background: 'rgba(239, 68, 68, 0.2)', borderRadius: '8px' } }, 'Verifica la configuración del dashboard')
         ]);
     }
 
-    const currentTabData = CONFIGGlobal.dashboard.tabs.find((t) => t.id === activeTabId);
-    const currentTabWidgets = CONFIGGlobal.dashboard.widgets.filter((w) => String(w.tabId) === String(activeTabId));
+    const currentTabData = CONFIG.dashboard.tabs.find((t) => t.id === activeTabId);
+    const currentTabWidgets = CONFIG.dashboard.widgets.filter((w) => String(w.tabId) === String(activeTabId));
 
     // Debug info
     console.log('Mobile Dashboard Debug:', {
-        CONFIGGlobal: !!CONFIGGlobal,
-        dashboard: !!CONFIGGlobal?.dashboard,
-        tabs: CONFIGGlobal?.dashboard?.tabs?.length || 0,
-        widgets: CONFIGGlobal?.dashboard?.widgets?.length || 0,
+        CONFIG: !!CONFIG,
+        dashboard: !!CONFIG.dashboard,
+        tabs: CONFIG.dashboard.tabs.length || 0,
+        widgets: CONFIG.dashboard.widgets.length || 0,
         activeTabId,
         currentTabWidgets: currentTabWidgets.length
     });
@@ -2897,7 +2941,7 @@ const MobileDashboardApp = () => {
                     key: 'tab-icons',
                     className: 'mobile-tab-icons'
                 }, [
-                    CONFIGGlobal.dashboard.tabs.map((tab) => 
+                    CONFIG.dashboard.tabs.map((tab) => 
                         React.createElement('div', {
                             key: tab.id,
                             onClick: () => setActiveTabId(tab.id),

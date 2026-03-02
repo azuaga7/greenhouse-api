@@ -31,7 +31,7 @@ except ImportError:
     def _iter_archive_chunks(s, e): return []
     def _ungzip_to_cache(p): return p
 
-app = FastAPI(title="ADTEC Desktop Bridge API")
+app = FastAPI(title="ADTEC Mobile Bridge API")
 
 DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
@@ -170,7 +170,7 @@ def clean_for_json(obj):
     return obj
 
 # HELPERS: filtrar headers hop-by-hop y no reenviar content-length
-HOP_BY_HOP = {"connection","keep-alive","proxy-authenticate","proxy-authorization","te","trailers","transfer-encoding","upgrade"}
+HOP_BY_HOP = {"connection","keep-alive","proxy-authenticate","proxy-authorize","te","trailers","transfer-encoding","upgrade"}
 
 def _filter_upstream_headers(hdrs):
     return {k: v for k, v in hdrs.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
@@ -192,11 +192,11 @@ if os.path.exists("libs"):
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    # Desktop Dashboard: siempre servir index.html
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
+    # Mobile Dashboard: siempre servir mobile.html
+    if os.path.exists("mobile.html"):
+        with open("mobile.html", "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>ADTEC Desktop Bridge API</h1><p>index.html no encontrado</p>")
+    return HTMLResponse(content="<h1>ADTEC Mobile Bridge API</h1><p>mobile.html no encontrado</p>")
 
 # 2) /api/ingreso (Normalizado según especificación Natasha)
 @app.post("/api/ingreso")
@@ -241,7 +241,7 @@ async def api_ingreso(payload: Dict[str, Any]):
     # Delegar al Bridge
     success = persist(DEFAULT_CHANNEL, device, bridge_payload)
     if success:
-        # Actualizar caché con el formato que espera el Dashboard
+        # Actualizar caché con el formato que espera el Dashboard Mobile
         # El Dashboard prefiere ver las claves en la raíz del objeto para compatibilidad
         cache_data = {"timestamp": bridge_payload["ts_iso"]}
         cache_data.update(bridge_payload["kv"])
@@ -261,7 +261,7 @@ async def api_last(request: Request):
     media_type = r.headers.get("content-type")
     return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
-# 2b) /api/data (PROXY: Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
+# 2b) /api/data (PROXY: Mobile Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
 # Inserted bridge host at generation time to avoid undefined Python variable
 BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
 
@@ -458,4 +458,4 @@ async def update_control_state(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8001)))
