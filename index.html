@@ -82,7 +82,7 @@
     .logo-icon-inner { font-size: 9px; font-weight: 900; color: black; letter-spacing: -0.5px; }
     .card-title { font-weight: 600; font-size: 18px; letter-spacing: 0.05em; color: #f8fafc; margin: 0; }
 
-    .tabs-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; width: 100%; justify-content: center; }
+    .tabs-nav { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; width: 100%; justify-content: center; overflow: visible; }
     .tab-btn { 
         padding: 10px 20px; cursor: pointer; border-radius: 10px; font-size: 12px; font-weight: 700;
         transition: all 0.2s; color: var(--text-muted); border: 1px solid transparent;
@@ -420,10 +420,11 @@
                             hour12: is12h
                         });
                         
-                        // Añadir sufijo ' hs' si es formato 24h, o unidad si existe
+                        // Añadir sufijo ' hs' si es formato 24h y no hay unidad configurada, o usar unidad si existe
                         let timeSuffix = "";
                         if (!is12h) {
-                            timeSuffix = " hs";
+                            // Solo añadir "hs" automáticamente si no hay una unidad configurada
+                            timeSuffix = unit ? (" " + unit) : " hs";
                         } else if (unit) {
                             timeSuffix = " " + unit;
                         }
