@@ -976,6 +976,8 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
         };
     }, []);
 
+
+
     // Actualización dinámica del tooltip - RESPONDE A CAMBIOS DE VARIABLES
     useEffect(() => {
         const chart = chartRef.current;
@@ -987,7 +989,7 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             const value = item.formattedValue;
             
             // Obtener la clave de la variable según el dataset y modo
-            const key = item.datasetIndex === 0 ? (isHistoryMode ? chartConfig?.primaryY : widget?.key) : chartConfig?.secondaryY;
+            const key = item.datasetIndex === 0 ? (chartConfig.timeRange !== 'Ahora' ? chartConfig?.primaryY : widget?.key) : chartConfig?.secondaryY;
             
             if (!key) {
                 return label + ': ' + value;
@@ -1007,11 +1009,10 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             return label + ': ' + value + (unit ? ' ' + unit : '');
         };
         
-        // Determinar si estamos en modo historial
-        const isHistoryMode = chartConfig.timeRange !== 'Ahora';
+        
         
         chart.update('none');
-    }, [chartConfig, widget?.key, isHistoryMode]);
+    }, [chartConfig, widget?.key]);
 
     useEffect(() => {
         const chart = chartRef.current;
@@ -2510,7 +2511,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                         const parts = formatted.split('|');
                                         const displayTime = parts[0];
                                         const displayDate = parts[1] || '';
-	                                        const timeUnit = (w.type === 'datetime') ? '' : (w.unit || '').trim();
+	                                        const timeUnit = (w.unit || '').trim();
 	                                        
 	                                        return (
 	                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
