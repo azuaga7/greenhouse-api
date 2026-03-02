@@ -989,7 +989,7 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             const value = item.formattedValue;
             
             // Obtener la clave de la variable según el dataset y modo
-            const key = item.datasetIndex === 0 ? (chartConfig.timeRange !== 'Ahora' ? chartConfig?.primaryY : widget?.key) : chartConfig?.secondaryY;
+            const key = item.datasetIndex === 0 ? (chartConfig?.primaryY || widget?.key) : chartConfig?.secondaryY;
             
             if (!key) {
                 return label + ': ' + value;
