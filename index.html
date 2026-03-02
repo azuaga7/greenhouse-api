@@ -1007,6 +1007,9 @@ const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
             return label + ': ' + value + (unit ? ' ' + unit : '');
         };
         
+        // Determinar si estamos en modo historial
+        const isHistoryMode = chartConfig.timeRange !== 'Ahora';
+        
         chart.update('none');
     }, [chartConfig, widget?.key, isHistoryMode]);
 
