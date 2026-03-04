@@ -162,6 +162,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://127.0.0.1:80")
+
 def clean_for_json(obj):
     if isinstance(obj, list): return [clean_for_json(x) for x in obj]
     if isinstance(obj, dict): return {k: clean_for_json(v) for k, v in obj.items()}
@@ -174,6 +176,36 @@ HOP_BY_HOP = {"connection","keep-alive","proxy-authenticate","proxy-authorize","
 
 def _filter_upstream_headers(hdrs):
     return {k: v for k, v in hdrs.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
+
+async def proxy_stream(request: Request, url: str, inject_mobile: bool = False):
+    headers = {k: v for k, v in request.headers.items()
+               if k.lower() not in HOP_BY_HOP and k.lower() not in ("host", "content-length")}
+
+    if inject_mobile:
+        headers["X-Client"] = "mobile"
+
+    body = await request.body() if request.method in ("POST", "PUT") else None
+
+    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
+        upstream_stream = client.stream(request.method, url, headers=headers, content=body)
+        resp = await upstream_stream.__aenter__()
+
+        resp_headers = {k: v for k, v in resp.headers.items()
+                        if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
+
+        async def content_generator():
+            try:
+                async for chunk in resp.aiter_raw():
+                    yield chunk
+            finally:
+                await upstream_stream.__aexit__(None, None, None)
+
+        return StreamingResponse(
+            content_generator(),
+            status_code=resp.status_code,
+            headers=resp_headers,
+            media_type=resp.headers.get("content-type"),
+        )
 
 # 1) ESTADO DE CONTROL Y ALERTAS
 CONTROL_STATE = {
@@ -255,25 +287,17 @@ async def api_ingreso(payload: Dict[str, Any]):
 async def api_last(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/last"
     qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 # 2b) /api/data (PROXY: Mobile Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
-# Inserted bridge host at generation time to avoid undefined Python variable
-BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
 
 @app.get("/api/data")
 async def api_data(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/data"
     qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 
 # 3) /api/series
@@ -288,7 +312,7 @@ async def api_series(request: Request):
         status_code, content, headers, media_type = hit
         return Response(content=content, status_code=status_code, headers=headers, media_type=media_type)
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
 
     headers = _filter_upstream_headers(r.headers)
@@ -351,71 +375,20 @@ async def api_sparkline_series(
     return JSONResponse(content={"channel": channel, "device": device, "hours": hours, "max_points": max_points, "series": series})
 
 
-
-# 4) /api/download/xlsx_range
-@app.get("/api/download/xlsx")
-async def proxy_download_xlsx(request: Request):
-    url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx"
-    qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=None) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    if r.headers.get("content-disposition"):
-        headers["content-disposition"] = r.headers.get("content-disposition")
-    media_type = r.headers.get("content-type")
-    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
-
-@app.get("/api/download/xlsx_range")
-async def proxy_download_xlsx_range(request: Request):
-    url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx_range"
-    qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=None) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    if r.headers.get("content-disposition"):
-        headers["content-disposition"] = r.headers.get("content-disposition")
-    media_type = r.headers.get("content-type")
-    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
-
-
 @app.post("/api/alerts")
 async def api_alerts(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/alerts"
     qs = str(request.url.query)
-    body = await request.body()
-
-    # reenviar content-type + headers de auditoría si vienen
-    fwd_headers = {}
-    if "content-type" in request.headers:
-        fwd_headers["content-type"] = request.headers["content-type"]
-    if "x-actor-id" in request.headers:
-        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
-    if "x-session-id" in request.headers:
-        fwd_headers["x-session-id"] = request.headers["x-session-id"]
-    if "x-forwarded-for" in request.headers:
-        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 
 @app.get("/api/alerts")
 async def get_alerts(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/alerts"
     qs = str(request.url.query)
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 
 
@@ -423,38 +396,16 @@ async def get_alerts(request: Request):
 async def get_control_state(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/control_state"
     qs = str(request.url.query)
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 
 @app.post("/api/control_state")
 async def update_control_state(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/control_state"
     qs = str(request.url.query)
-    body = await request.body()
-
-    # reenviar content-type + headers de auditoría si vienen
-    fwd_headers = {}
-    if "content-type" in request.headers:
-        fwd_headers["content-type"] = request.headers["content-type"]
-    if "x-actor-id" in request.headers:
-        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
-    if "x-session-id" in request.headers:
-        fwd_headers["x-session-id"] = request.headers["x-session-id"]
-    if "x-forwarded-for" in request.headers:
-        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url, inject_mobile=True)
 
 if __name__ == "__main__":
     import uvicorn
