@@ -2,13 +2,10 @@ from fastapi import FastAPI, Query, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import Optional, Dict, Any, List
-import sqlite3
-import pandas as pd
+from typing import Dict, Any
 import os
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -20,7 +17,6 @@ import time
 from urllib.parse import parse_qs
 from email.utils import formatdate, parsedate_to_datetime
 
-
 # IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
 try:
     from bridge import persist, _series_from_sqlite, _iter_archive_chunks, _ungzip_to_cache
@@ -31,7 +27,7 @@ except ImportError:
     def _iter_archive_chunks(s, e): return []
     def _ungzip_to_cache(p): return p
 
-app = FastAPI(title="ADTEC Desktop Bridge API")
+app = FastAPI(title="ADTEC Bridge API (Desktop+Mobile Unified)")
 
 DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
@@ -41,6 +37,9 @@ DEFAULT_CHANNEL = "ingreso"
 PY_TZ = ZoneInfo("America/Asuncion")  # UTC-3
 LIVE_RETENTION_DAYS = 30
 
+# === UPSTREAM (Bridge HTTP) ===
+# App Platform -> Bridge (droplet) por HTTP (SIM800L no acepta https)
+BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
 
 # --- cache_api snapshot (uploaded from Bridge) ---
 CACHE_API_DIR = os.environ.get("CACHE_API_DIR", os.path.join(DATA_DIR, "cache_api"))
@@ -51,7 +50,6 @@ os.makedirs(CACHE_API_DIR, exist_ok=True)
 
 @app.post("/cache_api/upload")
 async def cache_api_upload(request: Request):
-    # Optional auth: set CACHE_API_TOKEN in env and send X-Cache-Token header from Bridge
     if CACHE_API_TOKEN:
         if request.headers.get("X-Cache-Token") != CACHE_API_TOKEN:
             raise HTTPException(status_code=401, detail="bad token")
@@ -101,6 +99,7 @@ def cache_api_snapshot(request: Request):
             "Cache-Control": "no-cache",
         },
     )
+
 # Memoria volátil para respuesta instantánea
 LAST_CACHE = {}
 
@@ -111,10 +110,9 @@ SERIES_CACHE_MAX = int(os.environ.get('SERIES_CACHE_MAX', '500'))
 SERIES_TTL_DEFAULT = float(os.environ.get('SERIES_TTL_DEFAULT', '60'))
 
 def _cache_prune():
-    # Mantener tamaño acotado (drop de los más viejos)
     if len(SERIES_CACHE) <= SERIES_CACHE_MAX:
         return
-    items = sorted(SERIES_CACHE.items(), key=lambda kv: kv[1][0])  # por t_mono
+    items = sorted(SERIES_CACHE.items(), key=lambda kv: kv[1][0])
     for k, _v in items[: max(1, len(items) - SERIES_CACHE_MAX)]:
         SERIES_CACHE.pop(k, None)
 
@@ -133,27 +131,20 @@ def _cache_set(key: str, status_code: int, content: bytes, headers: dict, media_
     _cache_prune()
 
 def _series_ttl_from_qs(qs: str) -> float:
-    # TTL más largo para rangos amplios; más corto para rangos pequeños.
     try:
         q = parse_qs(qs or '')
         from_ts = int(q.get('from_ts', [0])[0]) if 'from_ts' in q else None
         to_ts = int(q.get('to_ts', [0])[0]) if 'to_ts' in q else None
         if from_ts is not None and to_ts is not None and to_ts >= from_ts:
             span = to_ts - from_ts
-            if span >= 7 * 86400:
-                return 180.0
-            if span >= 86400:
-                return 120.0
-            if span >= 6 * 3600:
-                return 90.0
-            if span >= 3600:
-                return 60.0
+            if span >= 7 * 86400: return 180.0
+            if span >= 86400: return 120.0
+            if span >= 6 * 3600: return 90.0
+            if span >= 3600: return 60.0
             return 15.0
     except Exception:
         pass
     return SERIES_TTL_DEFAULT
-
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -162,20 +153,81 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def clean_for_json(obj):
-    if isinstance(obj, list): return [clean_for_json(x) for x in obj]
-    if isinstance(obj, dict): return {k: clean_for_json(v) for k, v in obj.items()}
-    if isinstance(obj, float):
-        if math.isnan(obj) or math.isinf(obj): return 0.0
-    return obj
+# Servir archivos estáticos (si existen)
+if os.path.exists("libs"):
+    app.mount("/libs", StaticFiles(directory="libs"), name="libs")
 
-# HELPERS: filtrar headers hop-by-hop y no reenviar content-length
-HOP_BY_HOP = {"connection","keep-alive","proxy-authenticate","proxy-authorization","te","trailers","transfer-encoding","upgrade"}
+# === Proxy robusto (stream) ===
+HOP_BY_HOP = {
+    "connection","keep-alive","proxy-authenticate","proxy-authorization",
+    "te","trailers","transfer-encoding","upgrade"
+}
 
-def _filter_upstream_headers(hdrs):
-    return {k: v for k, v in hdrs.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
+async def proxy_stream(request: Request, url: str, inject_mobile: bool = False):
+    # forward headers (sin hop-by-hop, sin host/content-length)
+    headers = {
+        k: v for k, v in request.headers.items()
+        if k.lower() not in HOP_BY_HOP and k.lower() not in ("host", "content-length")
+    }
 
-# 1) ESTADO DE CONTROL Y ALERTAS
+    # si querés forzar marca desde server (opcional)
+    if inject_mobile and "x-client" not in {k.lower() for k in headers.keys()}:
+        headers["X-Client"] = "mobile"
+
+    body = await request.body() if request.method in ("POST", "PUT", "PATCH") else None
+
+    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
+        upstream_stream = client.stream(request.method, url, headers=headers, content=body)
+        resp = await upstream_stream.__aenter__()
+
+        resp_headers = {
+            k: v for k, v in resp.headers.items()
+            if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"
+        }
+
+        async def content_generator():
+            try:
+                async for chunk in resp.aiter_raw():
+                    yield chunk
+            finally:
+                await upstream_stream.__aexit__(None, None, None)
+
+        return StreamingResponse(
+            content_generator(),
+            status_code=resp.status_code,
+            headers=resp_headers,
+            media_type=resp.headers.get("content-type"),
+        )
+
+# === UI routing (Desktop + Mobile) ===
+def _is_mobile_ua(ua: str) -> bool:
+    u = (ua or "").lower()
+    # heurística simple (suficiente para routing)
+    return any(x in u for x in ["mobile", "android", "iphone", "ipad", "ipod", "opera mini", "iemobile"])
+
+async def _serve_html(path: str, title: str):
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content=f"<h1>{title}</h1><p>No existe: {path}</p>", status_code=404)
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    # Auto: si es mobile -> mobile.html, si no -> index.html
+    ua = request.headers.get("user-agent", "")
+    if _is_mobile_ua(ua):
+        return await _serve_html("mobile.html", "ADTEC Mobile UI")
+    return await _serve_html("index.html", "ADTEC Desktop UI")
+
+@app.get("/mobile", response_class=HTMLResponse)
+async def mobile(request: Request):
+    return await _serve_html("mobile.html", "ADTEC Mobile UI")
+
+@app.get("/desktop", response_class=HTMLResponse)
+async def desktop(request: Request):
+    return await _serve_html("index.html", "ADTEC Desktop UI")
+
+# 1) ESTADO DE CONTROL (placeholder tuyo)
 CONTROL_STATE = {
     "manual": False,
         "relay_1": False,
@@ -183,30 +235,15 @@ CONTROL_STATE = {
     "relay_3": False
 }
 
-# Inicialización por compatibilidad
-if not os.path.exists(DATA_DIR): os.makedirs(DATA_DIR)
-
-# Servir archivos estáticos (librerías)
-if os.path.exists("libs"):
-    app.mount("/libs", StaticFiles(directory="libs"), name="libs")
-
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    # Desktop Dashboard: siempre servir index.html
-    if os.path.exists("index.html"):
-        with open("index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>ADTEC Desktop Bridge API</h1><p>index.html no encontrado</p>")
-
-# 2) /api/ingreso (Normalizado según especificación Natasha)
+# 2) /api/ingreso (Normalizado según especificación)
 @app.post("/api/ingreso")
 async def api_ingreso(payload: Dict[str, Any]):
     global LAST_CACHE
     device = payload.get("device", DEFAULT_DEVICE)
     data_obj = payload.get("data", {})
-    if not isinstance(data_obj, dict): data_obj = {}
+    if not isinstance(data_obj, dict):
+        data_obj = {}
 
-    # Normalizar Timestamp a UTC
     ts_raw = data_obj.get("timestamp", "AUTO")
     if ts_raw == "AUTO":
         dt_utc = datetime.now(timezone.utc)
@@ -214,89 +251,76 @@ async def api_ingreso(payload: Dict[str, Any]):
         try:
             dt = datetime.fromisoformat(ts_raw.replace("Z", ""))
             dt_utc = dt.astimezone(timezone.utc) if dt.tzinfo else dt.replace(tzinfo=PY_TZ).astimezone(timezone.utc)
-        except:
+        except Exception:
             dt_utc = datetime.now(timezone.utc)
 
-    # Construir Payload Final para el Bridge (ts, ts_iso, kv)
     bridge_payload = {
         "ts": int(dt_utc.timestamp()),
         "ts_iso": dt_utc.isoformat().replace("+00:00", "Z"),
         "kv": {}
     }
-    
-    # El ESP32 ya envía las keys con kv., las pasamos directo al objeto kv
+
     kv_data = data_obj.get("kv", {})
-    if not isinstance(kv_data, dict): kv_data = {}
-    
+    if not isinstance(kv_data, dict):
+        kv_data = {}
+
     for k, v in kv_data.items():
-        # Validar prefijo kv. (por seguridad)
         key = k if k.startswith("kv.") else f"kv.{k}"
         try:
             val = float(v)
-            if math.isnan(val) or math.isinf(val): val = 0.0
-        except:
+            if math.isnan(val) or math.isinf(val):
+                val = 0.0
+        except Exception:
             val = str(v)
         bridge_payload["kv"][key] = val
 
-    # Delegar al Bridge
     success = persist(DEFAULT_CHANNEL, device, bridge_payload)
-    if success:
-        # Actualizar caché con el formato que espera el Dashboard
-        # El Dashboard prefiere ver las claves en la raíz del objeto para compatibilidad
-        cache_data = {"timestamp": bridge_payload["ts_iso"]}
-        cache_data.update(bridge_payload["kv"])
-        LAST_CACHE[DEFAULT_CHANNEL] = cache_data
-    else:
+    if not success:
         raise HTTPException(status_code=500, detail="Error al persistir en bridge")
-        
+
+    cache_data = {"timestamp": bridge_payload["ts_iso"]}
+    cache_data.update(bridge_payload["kv"])
+    LAST_CACHE[DEFAULT_CHANNEL] = cache_data
+
     return {"status": "ok"}
 
-@app.get("/api/last")
+# === Proxies API (stream) ===
+@app.api_route("/api/last", methods=["GET", "HEAD"])
 async def api_last(request: Request):
+    qs = str(request.url.query)
     url = f"{BRIDGE_HTTP_BASE}/api/last"
-    qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
-# 2b) /api/data (PROXY: Dashboard HTTPS -> API HTTPS -> BRIDGE HTTP)
-# Inserted bridge host at generation time to avoid undefined Python variable
-BRIDGE_HTTP_BASE = os.getenv("BRIDGE_HTTP_BASE", "http://161.35.129.132")
-
-@app.get("/api/data")
+@app.api_route("/api/data", methods=["GET", "HEAD"])
 async def api_data(request: Request):
-    url = f"{BRIDGE_HTTP_BASE}/api/data"
     qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    url = f"{BRIDGE_HTTP_BASE}/api/data"
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
-
-# 3) /api/series
+# /api/series mantiene cache existente (no streaming)
 @app.get("/api/series")
 async def api_series(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/series"
     qs = str(request.url.query)
     cache_key = f"/api/series?{qs}" if qs else "/api/series"
     ttl = _series_ttl_from_qs(qs)
+
     hit = _cache_get(cache_key)
     if hit is not None:
         status_code, content, headers, media_type = hit
         return Response(content=content, status_code=status_code, headers=headers, media_type=media_type)
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
 
-    headers = _filter_upstream_headers(r.headers)
+    headers = {k: v for k, v in r.headers.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
     media_type = r.headers.get("content-type")
     _cache_set(cache_key, r.status_code, r.content, headers, media_type, ttl)
     return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
 
-
+# Sparkline series (multi) - igual que antes (mantengo tu lógica)
 @app.get("/api/sparkline_series")
 async def api_sparkline_series(
     keys: str = Query(..., description="Lista de keys separadas por coma"),
@@ -305,10 +329,6 @@ async def api_sparkline_series(
     channel: str = Query(DEFAULT_CHANNEL),
     device: str = Query(DEFAULT_DEVICE),
 ):
-    """Devuelve series (downsample) para múltiples keys en un solo request.
-
-    Pensado para precargar sparklines y evitar N requests al Bridge.
-    """
     key_list = [k.strip() for k in (keys or "").split(",") if k.strip()]
     if not key_list:
         return JSONResponse(content={"channel": channel, "device": device, "hours": hours, "max_points": max_points, "series": {}})
@@ -331,7 +351,7 @@ async def api_sparkline_series(
                 pass
 
         url = f"{BRIDGE_HTTP_BASE}/api/series?{qs}"
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
             r = await client.get(url)
 
         try:
@@ -341,7 +361,7 @@ async def api_sparkline_series(
         except Exception:
             pts = []
 
-        headers = _filter_upstream_headers(r.headers)
+        headers = {k: v for k, v in r.headers.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
         media_type = r.headers.get("content-type")
         _cache_set(cache_key, r.status_code, r.content, headers, media_type, ttl)
         return k, pts
@@ -350,111 +370,40 @@ async def api_sparkline_series(
     series = {k: pts for (k, pts) in results}
     return JSONResponse(content={"channel": channel, "device": device, "hours": hours, "max_points": max_points, "series": series})
 
-
-
-# 4) /api/download/xlsx_range
-@app.get("/api/download/xlsx")
+# Downloads (stream para no romper archivos grandes)
+@app.api_route("/api/download/xlsx", methods=["GET", "HEAD"])
 async def proxy_download_xlsx(request: Request):
+    qs = str(request.url.query)
     url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx"
-    qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=None) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
-    headers = _filter_upstream_headers(r.headers)
-    if r.headers.get("content-disposition"):
-        headers["content-disposition"] = r.headers.get("content-disposition")
-    media_type = r.headers.get("content-type")
-    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
-
-@app.get("/api/download/xlsx_range")
+@app.api_route("/api/download/xlsx_range", methods=["GET", "HEAD"])
 async def proxy_download_xlsx_range(request: Request):
+    qs = str(request.url.query)
     url = f"{BRIDGE_HTTP_BASE}/api/download/xlsx_range"
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
+
+# Alerts (GET/POST) streaming
+@app.api_route("/api/alerts", methods=["GET", "POST", "PUT", "HEAD"])
+async def api_alerts_any(request: Request):
     qs = str(request.url.query)
-    async with httpx.AsyncClient(timeout=None) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    if r.headers.get("content-disposition"):
-        headers["content-disposition"] = r.headers.get("content-disposition")
-    media_type = r.headers.get("content-type")
-    return StreamingResponse(r.aiter_bytes(), status_code=r.status_code, headers=headers, media_type=media_type or "application/octet-stream")
-
-
-@app.post("/api/alerts")
-async def api_alerts(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/alerts"
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
+
+# Control state (GET/POST) streaming
+@app.api_route("/api/control_state", methods=["GET", "POST", "PUT", "HEAD"])
+async def api_control_state_any(request: Request):
     qs = str(request.url.query)
-    body = await request.body()
-
-    # reenviar content-type + headers de auditoría si vienen
-    fwd_headers = {}
-    if "content-type" in request.headers:
-        fwd_headers["content-type"] = request.headers["content-type"]
-    if "x-actor-id" in request.headers:
-        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
-    if "x-session-id" in request.headers:
-        fwd_headers["x-session-id"] = request.headers["x-session-id"]
-    if "x-forwarded-for" in request.headers:
-        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
-
-
-@app.get("/api/alerts")
-async def get_alerts(request: Request):
-    url = f"{BRIDGE_HTTP_BASE}/api/alerts"
-    qs = str(request.url.query)
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
-
-
-
-@app.get("/api/control_state")
-async def get_control_state(request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/control_state"
-    qs = str(request.url.query)
+    full_url = f"{url}?{qs}" if qs else url
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.get(f"{url}?{qs}" if qs else url)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
-
-
-@app.post("/api/control_state")
-async def update_control_state(request: Request):
-    url = f"{BRIDGE_HTTP_BASE}/api/control_state"
-    qs = str(request.url.query)
-    body = await request.body()
-
-    # reenviar content-type + headers de auditoría si vienen
-    fwd_headers = {}
-    if "content-type" in request.headers:
-        fwd_headers["content-type"] = request.headers["content-type"]
-    if "x-actor-id" in request.headers:
-        fwd_headers["x-actor-id"] = request.headers["x-actor-id"]
-    if "x-session-id" in request.headers:
-        fwd_headers["x-session-id"] = request.headers["x-session-id"]
-    if "x-forwarded-for" in request.headers:
-        fwd_headers["x-forwarded-for"] = request.headers["x-forwarded-for"]
-
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        r = await client.post(f"{url}?{qs}" if qs else url, content=body, headers=fwd_headers)
-
-    headers = _filter_upstream_headers(r.headers)
-    media_type = r.headers.get("content-type")
-    return Response(content=r.content, status_code=r.status_code, headers=headers, media_type=media_type)
+    # Si viene desde mobile, idealmente el JS manda X-Client: mobile.
+    # Igual dejamos la opción de inyectar si el request ya es POST/PUT.
+    inject_mobile = request.method in ("POST", "PUT")
+    return await proxy_stream(request, full_url, inject_mobile=inject_mobile)
 
 if __name__ == "__main__":
     import uvicorn
