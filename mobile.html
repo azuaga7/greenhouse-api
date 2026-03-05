@@ -447,53 +447,68 @@
   box-shadow: 0 0 8px currentColor;
 }
 
-/* Chip de estado - indicador ON/OFF */
-.mobile-status-chip {
-  display: flex;
+/* Chip de estado - IGUAL que Desktop */
+.mobile-status-chip,
+.adtec-status-chip {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  margin: 0;
-  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: auto;
+  border: 1px solid rgba(148,163,184,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Chip de estado en modo landscape - más compacto */
-.mobile-status-chip.landscape {
+.mobile-status-chip.landscape,
+.adtec-status-chip.landscape {
 }
 
-/* Chip de estado activo */
-.mobile-status-chip.on {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+/* Chip de estado activo - IGUAL que Desktop */
+.mobile-status-chip.on,
+.adtec-status-chip.on {
+  background: rgba(34,197,94,0.1);
+  color: #22c55e;
+  border-color: rgba(34,197,94,0.4);
 }
 
-/* Chip de estado inactivo */
-.mobile-status-chip.off {
-  background: rgba(239, 68, 68, 0.2);
+/* Chip de estado inactivo - IGUAL que Desktop */
+.mobile-status-chip.off,
+.adtec-status-chip.off {
+  background: rgba(239,68,68,0.1);
   color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-color: rgba(239,68,68,0.4);
 }
 
-/* Punto indicador de estado */
-.mobile-status-dot {
-  width: 8px;
-  height: 8px;
+/* Punto indicador de estado - IGUAL que Desktop */
+.mobile-status-dot,
+.adtec-status-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: currentColor;
+  background: #9ca3af;
 }
 
-/* Punto de estado activo */
-.mobile-status-chip.on .mobile-status-dot {
-  background: #10b981;
+/* Punto de estado activo - IGUAL que Desktop */
+.mobile-status-chip.on .mobile-status-dot,
+.mobile-status-chip.on .adtec-status-dot,
+.adtec-status-chip.on .mobile-status-dot,
+.adtec-status-chip.on .adtec-status-dot {
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
 }
 
-/* Punto de estado inactivo */
-.mobile-status-chip.off .mobile-status-dot {
+/* Punto de estado inactivo - IGUAL que Desktop */
+.mobile-status-chip.off .mobile-status-dot,
+.mobile-status-chip.off .adtec-status-dot,
+.adtec-status-chip.off .mobile-status-dot,
+.adtec-status-chip.off .adtec-status-dot {
   background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
 }
 
 /* Contenedor de botones de control */
@@ -507,78 +522,127 @@
 .mobile-control-buttons.landscape {
 }
 
-/* Botón de control individual */
-.mobile-control-btn {
+/* Botón de control individual - IGUAL que Desktop */
+.mobile-control-btn,
+.vfd-btn {
   flex: 1;
-  padding: 8px;
-  border: none;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  font-weight: 800;
+  font-size: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  color: white;
+  background: rgba(255,255,255,0.05);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 /* Botón de control en modo landscape - más pequeño */
-.mobile-control-btn.landscape {
+.mobile-control-btn.landscape,
+.vfd-btn.landscape {
 }
 
-/* Botón de control start */
-.mobile-control-btn.start {
-  background: #10b981;
-  color: white;
+/* Hover - IGUAL que Desktop */
+.mobile-control-btn:hover,
+.vfd-btn:hover {
+  background: rgba(255,255,255,0.1);
 }
 
-/* Botón de control stop */
-.mobile-control-btn.stop {
-  background: #ef4444;
-  color: white;
+/* Active - IGUAL que Desktop */
+.mobile-control-btn:active,
+.vfd-btn:active {
+  transform: scale(0.98);
 }
 
-/* Botón de control deshabilitado */
-.mobile-control-btn:disabled {
+/* Disabled - IGUAL que Desktop */
+.mobile-control-btn:disabled,
+.vfd-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Dial de VFD - control de frecuencia */
-.mobile-vfd-dial {
-  width: 60px;
-  height: 60px;
-  border: 3px solid var(--primary);
+/* Botón de control start - IGUAL que Desktop */
+.mobile-control-btn.start,
+.vfd-btn.start {
+  background: rgba(34, 197, 94, 0.2);
+  color: #ace2c0;
+  border-color: #22c55e;
+}
+
+/* Botón de control stop - IGUAL que Desktop */
+.mobile-control-btn.stop,
+.vfd-btn.stop {
+  background: rgba(239, 68, 68, 0.2);
+  color: #daafaf;
+  border-color: #ef4444;
+}
+
+/* Dial de VFD - IGUAL que Desktop */
+.mobile-vfd-dial,
+.vfd-dial {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
+  border: 6px solid #1e293b;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  position: relative;
   margin: 8px auto;
-  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Dial activo - IGUAL que Desktop */
+.mobile-vfd-dial.on,
+.vfd-dial.on {
+  border-top-color: var(--adtec-accent);
+  box-shadow: 0 0 15px rgba(56,189,248,0.2);
 }
 
 /* Dial de VFD en modo landscape - más pequeño */
-.mobile-vfd-dial.landscape {
+.mobile-vfd-dial.landscape,
+.vfd-dial.landscape {
 }
 
-/* Valor del VFD */
-.mobile-vfd-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--primary);
+/* Valor del VFD - IGUAL que Desktop */
+.mobile-vfd-value,
+.vfd-dial-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+}
+
+/* Valor del VFD cuando está activo - IGUAL que Desktop */
+.mobile-vfd-dial.on .mobile-vfd-value,
+.mobile-vfd-dial.on .vfd-dial-value,
+.vfd-dial.on .mobile-vfd-value,
+.vfd-dial.on .vfd-dial-value {
+  color: var(--adtec-accent);
 }
 
 /* Valor del VFD en modo landscape */
-.mobile-vfd-value.landscape {
+.mobile-vfd-value.landscape,
+.vfd-dial-value.landscape {
 }
 
-/* Unidad del VFD */
-.mobile-vfd-unit {
-  font-size: 9px;
-  color: var(--text-muted);
+/* Unidad del VFD - IGUAL que Desktop */
+.mobile-vfd-unit,
+.vfd-dial-unit {
+  font-size: 8px;
+  color: #9ca3af;
 }
 
 /* Unidad del VFD en modo landscape */
-.mobile-vfd-unit.landscape {
+.mobile-vfd-unit.landscape,
+.vfd-dial-unit.landscape {
 }
 
 /* Slider de rango para VFD */
@@ -1243,7 +1307,7 @@
             
         window.CONFIG = {
             BASE_URL: '',
-            dashboard: {"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"tabId":"1","format":"datetime_hm_full","hideKey":true,"showBar":false},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"tabId":"1","format":"fixed1","hideKey":true,"showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":1,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"mobile_1772082564926","type":"label","label":"RELES","key":"static_text","min":0,"max":0,"tabId":"3","format":"fixed1","showBar":false},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"mobile_1772080317620","type":"chart","label":"","key":"","min":0,"max":0,"tabId":"5","format":"fixed1","showBar":false},{"id":"mobile_1772080351240","type":"alerts","label":"","key":"alerts_system","min":0,"max":0,"tabId":"4","format":"fixed1","showBar":false}],"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","signal":"dht22_1.HUM_OUT"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP","signal":"dht22_1.TEMP_OUT"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP","signal":"ds18b20_2.TEMP_OUT"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","signal":"relay_3.STATE_OUT"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","signal":"relay_1.STATE_OUT"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","signal":"relay_2.STATE_OUT"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","signal":"relay_3.RUNTIME_OUT"},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","signal":"relay_1.RUNTIME_OUT"},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","signal":"relay_2.RUNTIME_OUT"},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP","signal":"ds18b20_1.TEMP_OUT"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","signal":"tsl2561_1.LUX_OUT"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL","signal":"gsm_1.SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE","signal":"gsm_1.STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION","signal":"gsm_1.LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION","signal":"gsm_1.CITY_COUNTRY"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
+            dashboard: {"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"tabId":"1","format":"datetime_hm_full","hideKey":true,"showBar":false},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"tabId":"1","format":"fixed1","hideKey":true,"showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE"},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"tabId":"1","format":"fixed1","hideKey":true,"showMinMax":true,"showSparkline":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"tabId":"1","format":"fixed1","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"mobile_1772082564926","type":"label","label":"RELES","key":"static_text","min":0,"max":0,"tabId":"3","format":"fixed1","showBar":false},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"tabId":"3","format":"fixed1","hideKey":true},{"id":"mobile_1772080317620","type":"chart","label":"","key":"","min":0,"max":0,"tabId":"5","format":"fixed1","showBar":false},{"id":"mobile_1772080351240","type":"alerts","label":"","key":"alerts_system","min":0,"max":0,"tabId":"4","format":"fixed1","showBar":false}],"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM","signal":"dht22_1.HUM_OUT"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP","signal":"dht22_1.TEMP_OUT"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP","signal":"ds18b20_2.TEMP_OUT"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE","signal":"relay_3.STATE_OUT"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE","signal":"relay_1.STATE_OUT"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE","signal":"relay_2.STATE_OUT"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":"","signal":"relay_3.RUNTIME_OUT"},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":"","signal":"relay_1.RUNTIME_OUT"},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":"","signal":"relay_2.RUNTIME_OUT"},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP","signal":"ds18b20_1.TEMP_OUT"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX","signal":"tsl2561_1.LUX_OUT"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL","signal":"gsm_1.SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE","signal":"gsm_1.STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION","signal":"gsm_1.LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION","signal":"gsm_1.CITY_COUNTRY"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}]},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura Sector 3","ds18b20_2_TEMP_OUT":"Temperatura Sector 2","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","ds18b20_1_TEMP_OUT":"Temperatura Sector 1","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS","gsm_1_CITY_COUNTRY":"City, Country"},
             refreshInterval: 1000,
             
@@ -1823,7 +1887,7 @@ const DEFAULT_ALERT_TYPE = {
   borderColor: '#0891b244' // Borde cyan
 };
 
-// ALERT_TYPES con colores y etiquetas - IGUAL que React Desktop
+// ALERT_TYPES con colores y etiquetas - IGUAL que React Desktop y MobileDashboardPreview
 const ALERT_TYPES = {
   'CRITICAL': { 
     label: 'CRÍTICO', 
@@ -1878,6 +1942,12 @@ const ALERT_TYPES = {
     color: '#7c3aed',
     bgColor: '#7c3aed15', 
     borderColor: '#7c3aed44'
+  },
+  'ALERT': { 
+    label: 'ALERTA', 
+    color: '#6b7280',
+    bgColor: '#6b728015', 
+    borderColor: '#6b728044'
   }
 };
 
@@ -3219,9 +3289,9 @@ const isValidForMinMax = (key, v) => {
         ]);
     });
 
-    // Componente AlertsWidget inline - IGUAL visualmente que MobileDashboardPreview.tsx
+    // Componente AlertsWidget inline - IGUAL que React Desktop
     const AlertsWidget = React.memo(({ getWidgetValue: customGetWidgetValue }) => {
-        const alertsList = alerts; // ✅ Usar estado 'alerts' en lugar de lastData.activeAlerts
+        // ✅ Usar directamente 'alerts' como en React Desktop
         
         return React.createElement('div', {
             style: {
@@ -3270,7 +3340,7 @@ const isValidForMinMax = (key, v) => {
                             borderRadius: '12px',
                             fontWeight: 'normal'
                         } 
-                    }, alertsList.length + ' activas')
+                    }, alerts.length + ' activas')
                 ]),
                 React.createElement('button', {
                     key: 'clear',
@@ -3297,13 +3367,13 @@ const isValidForMinMax = (key, v) => {
                     padding: '15px'
                 } 
             }, [
-                alertsList.length === 0 
+                alerts.length === 0 
                     ? React.createElement('div', { 
                         key: 'empty', 
                         style: { textAlign: 'center', color: '#94a3b8', padding: '20px' } 
                     }, 'Sin alertas activas')
                     : React.createElement('div', { key: 'list' }, 
-                        alertsList.map((alert, i) => {
+                        alerts.map((alert, i) => {
                             const alertType = ALERT_TYPES[alert.type] || DEFAULT_ALERT_TYPE;
                             
                             return React.createElement('div', {
@@ -3418,7 +3488,8 @@ return React.createElement('div', { className: 'mobile-widget' }, [
 ]);
 
             case 'indicator':
-                const isOn = valStr === 'ON' || valStr === '1' || valStr === '1.0' || valStr === 'TRUE' || valStr === 'ACTIVO';
+                // IGUAL que React Desktop
+                const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
@@ -3426,9 +3497,10 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     ]),
                     React.createElement('div', {
                         key: 'chip',
-                        className: 'mobile-status-chip ' + (isOn ? 'on' : 'off')
+                        className: 'adtec-status-chip ' + (isOn ? 'on' : 'off'),
+                        style: { marginTop: 'auto', alignSelf: 'flex-start' }
                     }, [
-                        React.createElement('div', { key: 'dot', className: 'mobile-status-dot' }),
+                        React.createElement('span', { key: 'dot', className: 'adtec-status-dot ' + (isOn ? 'on' : 'off') }),
                         React.createElement('span', { key: 'text' }, isOn ? 'ACTIVO' : 'INACTIVO')
                     ])
                 ]);
@@ -3575,8 +3647,9 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 ]);
 
             case 'control-relay':
+                // IGUAL que React Desktop
                 const relayVal = getWidgetValue(w.key);
-                const relayIsOn = relayVal === 'ON' || relayVal === '1' || relayVal === 'TRUE' || String(relayVal) === 'true';
+                const relayIsOn = relayVal === 'ON' || relayVal === 'ACTIVO' || relayVal === 'TRUE';
                 const isManual = !!controlState.manual;
                 const relayPending = pendingCommands[w.target];
                 
@@ -3587,10 +3660,10 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     ]),
                     React.createElement('div', { 
                         key: 'chip',
-                        className: 'mobile-status-chip ' + (relayIsOn ? 'on' : 'off'),
-                        style: { alignSelf: 'flex-start', marginBottom: 10 }
+                        className: 'adtec-status-chip ' + (relayIsOn ? 'on' : 'off'),
+                        style: { marginBottom: 10, alignSelf: 'flex-start' }
                     }, [
-                        React.createElement('div', { key: 'dot', className: 'mobile-status-dot' }),
+                        React.createElement('span', { key: 'dot', className: 'adtec-status-dot ' + (relayIsOn ? 'on' : 'off') }),
                         React.createElement('span', { key: 'text' }, relayIsOn ? 'ACTIVO' : 'INACTIVO')
                     ]),
                     React.createElement('div', { 
@@ -3600,7 +3673,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     }, [
                         React.createElement('button', {
                             key: 'on',
-                            className: 'mobile-control-btn start',
+                            className: 'vfd-btn start',
                             disabled: !isManual,
                             style: {
                                 background: relayIsOn ? '#10b981' : (relayPending?.value === true ? '#065f46' : undefined),
@@ -3612,7 +3685,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         }, relayPending?.value === true ? '⏳ ON...' : 'ON'),
                         React.createElement('button', {
                             key: 'off',
-                            className: 'mobile-control-btn stop',
+                            className: 'vfd-btn stop',
                             disabled: !isManual,
                             style: {
                                 background: !relayIsOn ? '#ef4444' : (relayPending?.value === false ? '#7f1d1d' : undefined),
@@ -3626,10 +3699,13 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 ]);
 
             case 'control-vfd':
-                const freq = parseFloat(getWidgetValue(w.key.replace('_State', ''))) || 0;
+                // IGUAL que React Desktop: freq desde controlState[w.target]
+                const freq = parseFloat(controlState[w.target] || 0);
                 const vfdState = getWidgetValue(w.key);
-                const vfdIsOn = vfdState === 'ON' || vfdState === '1' || vfdState === 'TRUE' || String(vfdState) === 'true';
-                const vfdPending = pendingCommands[w.key];
+                // IGUAL que React Desktop: misma detección de estado
+                const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE';
+                // IGUAL que React Desktop: pending desde w.target + '_state'
+                const vfdPending = pendingCommands[w.target + '_state'];
                 const vfdManual = !!controlState.manual;
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
@@ -3637,9 +3713,9 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
                         !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
-                    React.createElement('div', { key: 'vfd-dial', className: 'mobile-vfd-dial' }, [
-                        React.createElement('div', { key: 'value', className: 'mobile-vfd-value' }, freq.toFixed(1)),
-                        React.createElement('div', { key: 'unit', className: 'mobile-vfd-unit' }, 'Hz')
+                    React.createElement('div', { key: 'vfd-dial', className: 'vfd-dial ' + (vfdIsOn ? 'on' : '') }, [
+                        React.createElement('div', { key: 'value', className: 'vfd-dial-value' }, freq.toFixed(1)),
+                        React.createElement('div', { key: 'unit', className: 'vfd-dial-unit' }, 'Hz')
                     ]),
                     React.createElement('input', {
                         key: 'slider',
@@ -3651,8 +3727,8 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         disabled: !vfdManual,
                         style: { 
                             width: '100%', 
-                            opacity: vfdManual ? 1 : 0.5,
-                            cursor: vfdManual ? 'pointer' : 'not-allowed'
+                            accentColor: 'var(--adtec-accent)', 
+                            opacity: vfdManual ? 1 : 0.5
                         },
                         onChange: (e) => sendControl(w.target, parseFloat(e.target.value))
                     }),
@@ -3663,7 +3739,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     }, [
                         React.createElement('button', {
                             key: 'run',
-                            className: 'mobile-control-btn start',
+                            className: 'vfd-btn start',
                             disabled: !vfdManual,
                             style: {
                                 background: vfdIsOn ? '#10b981' : (vfdPending?.value === true ? '#065f46' : undefined),
@@ -3671,11 +3747,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: vfdManual ? 'pointer' : 'not-allowed',
                                 boxShadow: vfdPending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target, true)
+                            onClick: () => sendControl(w.target + '_state', true)
                         }, vfdPending?.value === true ? '⏳ RUN...' : 'RUN'),
                         React.createElement('button', {
                             key: 'stop',
-                            className: 'mobile-control-btn stop',
+                            className: 'vfd-btn stop',
                             disabled: !vfdManual,
                             style: {
                                 background: !vfdIsOn ? '#ef4444' : (vfdPending?.value === false ? '#7f1d1d' : undefined),
@@ -3683,7 +3759,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: vfdManual ? 'pointer' : 'not-allowed',
                                 boxShadow: vfdPending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target, false)
+                            onClick: () => sendControl(w.target + '_state', false)
                         }, vfdPending?.value === false ? '⏳ STOP...' : 'STOP')
                     ])
                 ]);
@@ -3838,16 +3914,6 @@ return React.createElement('div', { className: 'mobile-widget' }, [
 
     const currentTabData = CONFIG.dashboard.tabs.find((t) => t.id === activeTabId);
     const currentTabWidgets = CONFIG.dashboard.widgets.filter((w) => String(w.tabId) === String(activeTabId));
-
-    // Debug info
-    console.log('Mobile Dashboard Debug:', {
-        CONFIG: !!CONFIG,
-        dashboard: !!CONFIG.dashboard,
-        tabs: CONFIG.dashboard.tabs.length || 0,
-        widgets: CONFIG.dashboard.widgets.length || 0,
-        activeTabId,
-        currentTabWidgets: currentTabWidgets.length
-    });
 
     return React.createElement('div', {
         className: 'mobile-dashboard-root'
