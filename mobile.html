@@ -3403,6 +3403,14 @@ const isValidForMinMax = (key, v) => {
         const valStr = formatValue(getWidgetValue(w.key), w.format, w.unit);
         const val = parseFloat(valStr);
 
+        // Debug: Verificar qué tipo de widget se está procesando
+        console.log('[MOBILE DEBUG] Widget type:', w.type, {
+            widgetLabel: w.label,
+            widgetKey: w.key,
+            widgetTarget: w.target,
+            allPendingCommands: pendingCommands
+        });
+
         switch (w.type) {
             case 'label':
                 return React.createElement('div', { 
