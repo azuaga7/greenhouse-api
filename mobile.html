@@ -1121,7 +1121,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 100%
+  width: 100%;
   padding: 10px;
   border-radius: 12px;
   background: transparent;
@@ -1310,6 +1310,11 @@
 
             // Formato porcentaje
             if (format === 'percent') return (isNum ? (num * 100).toFixed(0) : val) + '%';
+
+            // Si es un string que parece una coordenada (ej: "-25.123,57.123"), lo devolvemos tal cual
+            if (typeof val === 'string' && val.includes(',')) {
+                return val + unit;
+            }
 
             // Formato raw o default
             return val + unit;
@@ -2043,15 +2048,6 @@ const decodeGzipJson = async (arrayBuffer) => {
 let mockDataHistory = {};
 let chartConfig = {};
 
-// Helper functions compatibles con MobileChart
-const formatValue = (val, format, unit = "") => {
-    if (val === undefined || val === null || val === '' || isNaN(parseFloat(val))) return '--';
-    let num = parseFloat(val);
-    if (format === 'bool_onoff') return num > 0.5 ? 'ON' : 'OFF';
-    if (format === 'fixed1') return num.toFixed(1);
-    if (format === 'fixed2') return num.toFixed(2);
-    return num.toString();
-};
 
 // --- Componente Principal Mobile Dashboard ---
 const MobileDashboardApp = () => {
@@ -2866,8 +2862,11 @@ const isValidForMinMax = (key, v) => {
             const data = SparklineEngine.getBuffer(widget.id, chartConfig.primaryY || widget.key, scaleSettings.min || 0, scaleSettings.max || 100);
             const labels = data.map((_, i) => i.toString());
             
+            const v1Label = CONFIG.labels[chartConfig.primaryY || widget.key] || widget.label || (chartConfig.primaryY || widget.key) || 'Variable 1';
+            const v2Label = CONFIG.labels[chartConfig.secondaryY] || chartConfig.secondaryY || 'Variable 2';
+            
             const datasets = [{
-                label: widget.label || 'Variable 1',
+                label: v1Label,
                 data,
                 borderColor: '#38bdf8',
                 backgroundColor: 'rgba(56, 189, 248, 0.1)',
@@ -2883,7 +2882,7 @@ const isValidForMinMax = (key, v) => {
                 const secondaryScaleSettings = getScaleSettings(chartConfig.secondaryY);
                 const secondaryData = SparklineEngine.getBuffer(widget.id + '_secondary', chartConfig.secondaryY, secondaryScaleSettings.min || 0, secondaryScaleSettings.max || 100);
                 datasets.push({
-                    label: 'Variable 2',
+                    label: v2Label,
                     data: secondaryData,
                     borderColor: '#a855f7',
                     backgroundColor: 'rgba(168, 85, 247, 0.05)',
@@ -3360,49 +3359,63 @@ const isValidForMinMax = (key, v) => {
                 ]);
 
             case 'gauge':
-                return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
-                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
-                    ]),
-                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
-                        valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
-                    ]),
-                    w.showMinMax && (() => {
-                        const stats = SparklineEngine.getStats(w.id);
-                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
-                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
-                        
-                        return React.createElement('div', { 
-                            key: 'minmax',
-                            className: 'mobile-widget-minmax' 
-                        }, 'Mín: ' + minDay + ' · Máx: ' + maxDay);
-                    })(),
-                    (w.showBar ?? true) && React.createElement('div', { 
-                        key: 'bar',
-                        className: 'mobile-gauge-bar' 
-                    }, [
-                        React.createElement('div', {
-                            key: 'fill',
-                            className: 'mobile-gauge-fill',
-                            style: {
-                                width: Math.max(0, Math.min(100, ((val - (w.min || 0)) / Math.max(1, (w.max || 100) - (w.min || 0))) * 100)) + '%',
-                                background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 1, w.inverted),
-                            }
-                        })
-                    ]),
-                    w.showSparkline && React.createElement(SparklineWidget, {
-                        key: 'sparkline',
-                        id: w.id,
-                        variableKey: w.key,
-                        min: w.min,
-                        max: w.max,
-                        inverted: w.inverted,
-                        value: val,
-                        historyTick: sparkTick
-                    })
-                ]);
+                const numVal = isNaN(parseFloat(valStr)) ? (w.min || 0) : parseFloat(valStr);
+const min = w.min || 0;
+const max = w.max || 100;
+const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
+
+return React.createElement('div', { className: 'mobile-widget' }, [
+    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
+    ]),
+    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
+        valStr.replace(w.unit || '', ''),
+        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+    ]),
+    w.showMinMax && (() => {
+        // Mín/Máx del día (IGUAL que React Desktop): cache_api.snapshot.day_stats
+        const wk = normKey(w.key);
+        const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
+        const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
+        const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
+        
+        return React.createElement('div', { 
+            key: 'minmax',
+            className: 'mobile-widget-minmax' 
+        }, 'Mín: ' + minDay + ' · Máx: ' + maxDay);
+    })(),
+    (w.showBar ?? true) && React.createElement('div', { 
+        key: 'bar',
+        className: 'mobile-gauge-bar',
+        style: { 
+            background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 0.25, w.inverted),
+            marginTop: w.showMinMax ? '0px' : '5px'
+        }
+    }, [
+        React.createElement('div', {
+            key: 'fill',
+            className: 'mobile-gauge-fill',
+            style: {
+                width: pct + "%",
+                background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 1, w.inverted),
+                backgroundSize: (100 / (Math.max(1, pct) / 100)) + "% 100%",
+                boxShadow: "0 0 10px " + getGaugeColor(numVal, w.key) + "66"
+            }
+        })
+    ]),
+    w.showSparkline && React.createElement(SparklineWidget, {
+        key: 'sparkline',
+        id: w.id,
+        variableKey: w.key,
+        min: w.min,
+        max: w.max,
+        inverted: w.inverted,
+        value: valStr === '--' ? undefined : numVal,
+        showShadow: w.sparklineShadow,
+        historyTick: sparkTick
+    })
+]);
 
             case 'indicator':
                 const isOn = valStr === 'ON' || valStr === '1' || valStr === '1.0' || valStr === 'TRUE' || valStr === 'ACTIVO';
@@ -3431,9 +3444,11 @@ const isValidForMinMax = (key, v) => {
                         React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
                     ]),
                     w.showMinMax && (() => {
-                        const stats = SparklineEngine.getStats(w.id);
-                        const minDay = stats.min !== undefined ? formatValue(stats.min, w.format, "") : "--";
-                        const maxDay = stats.max !== undefined ? formatValue(stats.max, w.format, "") : "--";
+                        // Mín/Máx del día (IGUAL que React Desktop): cache_api.snapshot.day_stats
+                        const wk = normKey(w.key);
+                        const ds = (dayStatsLive && dayStatsLive[wk]) ? dayStatsLive[wk] : ((cacheApiSnapshot && cacheApiSnapshot.day_stats) ? cacheApiSnapshot.day_stats[wk] : null);
+                        const minDay = (ds && ds.min !== null && ds.min !== undefined) ? formatValue(ds.min, w.format, "") : "--";
+                        const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.max, w.format, "") : "--";
                         
                         return React.createElement('div', { 
                             key: 'minmax',
@@ -3483,9 +3498,9 @@ const isValidForMinMax = (key, v) => {
 
             case 'datetime':
                 const rawVal = getWidgetValue(w.key);
-                const valToFormat = (rawVal === '--' || !rawVal) ? new Date().toISOString() : rawVal;
-                const formatted = formatValue(valToFormat, w.format || 'datetime_full');
+                const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', "");
                 const [displayTime, displayDate] = formatted.includes('|') ? formatted.split('|') : [formatted, ''];
+                const timeUnit = (w.unit || '').trim();
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3500,7 +3515,7 @@ const isValidForMinMax = (key, v) => {
                             React.createElement('div', { 
                                 key: 'time',
                                 style: { fontSize: 14, color: 'var(--primary)', fontWeight: 700 } 
-                            }, displayTime),
+                            }, displayTime + (timeUnit ? ' ' + timeUnit : '')),
                             displayDate && React.createElement('div', { 
                                 key: 'date',
                                 style: { fontSize: 9, color: 'var(--text-muted)' } 

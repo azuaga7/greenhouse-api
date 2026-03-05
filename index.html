@@ -452,6 +452,11 @@
             // Formato porcentaje
             if (format === 'percent') return (isNum ? (num * 100).toFixed(0) : val) + '%';
 
+            // Si es un string que parece una coordenada (ej: "-25.123,57.123"), lo devolvemos tal cual
+            if (typeof val === 'string' && val.includes(',')) {
+                return val + unit;
+            }
+
             // Formato raw o default
             return val + unit;
         };
@@ -2347,12 +2352,15 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                     </div>
                                                 )}
                                             {(w.showBar ?? true) && (
-                                                <div className="adtec-temp-bar" style={{ background: getGradientByType('TEMP', 0.25, w.inverted), marginTop: w.showMinMax ? '0px' : '5px' }}>
+                                                <div className="adtec-temp-bar" style={{ 
+                                                    background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 0.25, w.inverted), 
+                                                    marginTop: w.showMinMax ? '0px' : '5px' 
+                                                }}>
                                                     <div 
                                                         className="adtec-temp-bar-fill" 
                                                         style={{ 
                                                             width: pct + "%",
-                                                            background: getGradientByType('TEMP', 1, w.inverted),
+                                                            background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 1, w.inverted),
                                                             backgroundSize: (100 / (Math.max(1, pct) / 100)) + "% 100%",
                                                             boxShadow: "0 0 10px " + getGaugeColor(numVal, w.key) + "66"
                                                         }} 
