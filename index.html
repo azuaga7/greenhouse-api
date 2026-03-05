@@ -2353,14 +2353,14 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                 )}
                                             {(w.showBar ?? true) && (
                                                 <div className="adtec-temp-bar" style={{ 
-                                                    background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 0.25, w.inverted), 
+                                                    background: getGradientByType('TEMP', 0.25, w.inverted), 
                                                     marginTop: w.showMinMax ? '0px' : '5px' 
                                                 }}>
                                                     <div 
                                                         className="adtec-temp-bar-fill" 
                                                         style={{ 
                                                             width: pct + "%",
-                                                            background: getGradientByType(availableVariables.find(v => v.key === w.key)?.dataType || 'TEMP', 1, w.inverted),
+                                                            background: getGradientByType('TEMP', 1, w.inverted),
                                                             backgroundSize: (100 / (Math.max(1, pct) / 100)) + "% 100%",
                                                             boxShadow: "0 0 10px " + getGaugeColor(numVal, w.key) + "66"
                                                         }} 
