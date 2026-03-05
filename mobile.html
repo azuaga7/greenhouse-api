@@ -3653,6 +3653,15 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 const isManual = !!controlState.manual;
                 const relayPending = pendingCommands[w.target];
                 
+                // Debug: Verificar qué target y pending se está usando
+                console.log('[MOBILE DEBUG] control-relay:', {
+                    widgetLabel: w.label,
+                    widgetKey: w.key,
+                    widgetTarget: w.target,
+                    relayPending,
+                    allPendingCommands: pendingCommands
+                });
+                
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
@@ -3707,6 +3716,15 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 // IGUAL que React Desktop: pending desde w.target + '_state'
                 const vfdPending = pendingCommands[w.target + '_state'];
                 const vfdManual = !!controlState.manual;
+                
+                // Debug: Verificar qué target y pending se está usando
+                console.log('[MOBILE DEBUG] control-vfd:', {
+                    widgetLabel: w.label,
+                    widgetKey: w.key,
+                    widgetTarget: w.target,
+                    vfdPending,
+                    allPendingCommands: pendingCommands
+                });
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
