@@ -2102,7 +2102,7 @@ const decodeGzipJson = async (arrayBuffer) => {
         // Usar zlib nativo de Node.js o browser API
         const bytes = new Uint8Array(arrayBuffer);
         // Si está en browser con pako disponible globalmente
-        const pakoGlobal = pako;
+        const pakoGlobal = window.pako;
         if (!pakoGlobal) {
             console.warn("[cache_api] pako not available");
             return null;
@@ -2186,6 +2186,47 @@ const MobileDashboardApp = React.memo(() => {
             const json = await decodeGzipJson(ab);
             if (json) {
                 setCacheApiSnapshot(json);
+
+                // Seed/merge day_stats into runtime min/max (will later extend with live extremes)
+                const dayFrom = getSnapDayFromTs(json);
+                const incoming = (json && json.day_stats) ? json.day_stats : null;
+
+                if (incoming && typeof incoming === "object") {
+                    setDayStatsLive(prev => {
+                        // Reset when day boundary changes
+                        if (dayFrom !== null && dayFrom !== undefined && cacheApiDayFromRef.current !== dayFrom) {
+                            cacheApiDayFromRef.current = dayFrom;
+                            const out = {};
+                            for (const [k, s] of Object.entries(incoming)) {
+                                const kk = normKey(k);
+                                const mn = (s && s.min !== undefined) ? s.min : null;
+                                const mx = (s && s.max !== undefined) ? s.max : null;
+                                out[kk] = { min: (mn === null || mn === undefined) ? null : Number(mn), max: (mx === null || mx === undefined) ? null : Number(mx) };
+                            }
+                            return out;
+                        }
+
+                        // Merge without shrinking: keep extremes across snapshot + runtime
+                        let changed = false;
+                        const out = { ...(prev || {}) };
+                        for (const [k, s] of Object.entries(incoming)) {
+                            const kk = normKey(k);
+                            const mn = (s && s.min !== undefined) ? s.min : null;
+                            const mx = (s && s.max !== undefined) ? s.max : null;
+
+                            const prevEntry = out[kk] || { min: null, max: null };
+                            const nextMin = pickMin(prevEntry.min, mn);
+                            const nextMax = pickMax(prevEntry.max, mx);
+
+                            if (!out[kk] || nextMin !== prevEntry.min || nextMax !== prevEntry.max) {
+                                out[kk] = { min: nextMin, max: nextMax };
+                                changed = true;
+                            }
+                        }
+
+                        return changed ? out : prev;
+                    });
+                }
             }
         } catch (e) {
             console.warn("[cache_api] fetch failed:", e);
@@ -3402,7 +3443,7 @@ const isValidForMinMax = (key, v) => {
     // Función renderMobileWidget - IGUAL que MobileDashboardView.tsx y MobileDashboardPreview.tsx
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
-        const valStr = formatValue(getWidgetValue(w.key), w.format, w.unit);
+        const valStr = getWidgetValue(w.key);  // IGUAL que React Desktop - sin formatValue
         const val = parseFloat(valStr);
 
         // Debug: Verificar qué tipo de widget se está procesando
@@ -3444,8 +3485,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
         !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
     ]),
     React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
-        valStr.replace(w.unit || '', ''),
-        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+        valStr  // ✅ Ya incluye formato y unidad via getWidgetValueShared
     ]),
     w.showMinMax && (() => {
         // Mín/Máx del día (IGUAL que React Desktop): cache_api.snapshot.day_stats
@@ -3516,8 +3556,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
                     React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
-                        valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
+                        valStr  // ✅ Ya incluye formato y unidad via getWidgetValueShared
                     ]),
                     w.showMinMax && (() => {
                         // Mín/Máx del día (IGUAL que React Desktop): cache_api.snapshot.day_stats
