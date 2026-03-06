@@ -1699,7 +1699,6 @@ const fetchHistory = async () => {
 	                    // Forzar refresco de sparklines en cada paquete nuevo
 	                    setSparkTick(t => t + 1);
                     // Sincronización de Estado Deseado
-                    console.log('[REACT] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
@@ -1707,24 +1706,12 @@ const fetchHistory = async () => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
                             
-                            // Debug: log para ver qué está pasando
-                            if (Object.keys(next).length > 0) {
-                                console.log('[REACT DEBUG] pendingCommand:', {
-                                    key,
-                                    realVal,
-                                    desiredVal,
-                                    flatKeys: Object.keys(flat).filter(k => k.includes(key) || key.includes(k)),
-                                    allFlatKeys: Object.keys(flat)
-                                });
-                            }
-                            
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
                                           (realVal === 0 && desiredVal === false) ||
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
-                                console.log('[REACT] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }
@@ -1839,22 +1826,42 @@ useEffect(() => {
     });
 }, [lastData, minMaxKeys]);
 
-	// Poll de alertas (separado del loop live para no spamear el Bridge)
+	// Poll de alertas (separado del loop live para no spamear el Bridge) - TEMPORALMENTE DESHABILITADO
 	const fetchAlerts = async () => {
 		try {
+			// Temporalmente deshabilitado hasta que el servidor esté actualizado
+			console.log('[REACT] fetchAlerts deshabilitado temporalmente - esperando deploy del servidor');
+			return;
+			
 			const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
 			u.searchParams.set('limit', '200');
-			const res = await fetch(u);
+			
+			// Forzar HTTP/1.1 para evitar ERR_HTTP2_PROTOCOL_ERROR
+			const res = await fetch(u, {
+				headers: {
+					'Connection': 'close',
+					'Upgrade': '',
+					'Cache-Control': 'no-cache'
+				}
+			});
+			
 			if (!res.ok) return;
 			const js = await res.json();
 			const arr = Array.isArray(js) ? js : [];
-			const normalized = arr.map(a => {
+			const normalized = arr.map((a) => {
 				const ms = getAlertMs(a);
 				const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
 				return { ...a, timestamp, __ts_ms: ms };
-			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
+			}).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
 			setAlerts(normalized);
-		} catch(e) { console.warn("Fallo Alertas:", e); }
+		} catch(e) { 
+			console.warn("Fallo Alertas:", e);
+			// Si es error HTTP/2, reintentar con headers específicos
+			if (e.message.includes('HTTP2') || e.message.includes('Failed to fetch')) {
+				console.log('[REACT] Error HTTP/2 detectado, reintentando con HTTP/1.1 forzado...');
+				setTimeout(fetchAlerts, 5000); // Reintentar en 5 segundos
+			}
+		}
 	};
 
 	useEffect(() => {
@@ -2301,17 +2308,6 @@ useEffect(() => {
                     ) : (
                         <div className="widgets-area">
                             {CONFIG.dashboard.widgets.filter(w => String(w.tabId) === String(activeTabId)).map(w => {
-                            // Debug: log para ver w.target
-                            if (w.type === 'control-relay' || w.type === 'control-vfd') {
-                                console.log('[REACT] Widget control:', {
-                                    type: w.type,
-                                    key: w.key,
-                                    target: w.target,
-                                    label: w.label,
-                                    widgetObject: w
-                                });
-                            }
-                            
                             const valStr = getWidgetValue(w.key);
                             const val = parseFloat(valStr);
                             const style = { left: w.x, top: w.y, width: w.w, height: w.h, position: 'absolute' };

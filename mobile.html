@@ -2591,9 +2591,13 @@ const fetchUpdate = async () => {
         }
     };
 
-    // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
+    // --- Poll de Alertas - TEMPORALMENTE DESHABILITADO ---
     const fetchAlerts = async () => {
         try {
+            // Temporalmente deshabilitado hasta que el servidor esté actualizado
+            console.log('[MOBILE] fetchAlerts deshabilitado temporalmente - esperando deploy del servidor');
+            return;
+            
             const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
             u.searchParams.set('limit', '200');
             
@@ -3646,17 +3650,6 @@ const isValidForMinMax = (key, v) => {
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
-        // Debug: log para ver w.target
-        if (w.type === 'control-relay' || w.type === 'control-vfd') {
-            console.log('[MOBILE] Widget control:', {
-                type: w.type,
-                key: w.key,
-                target: w.target,
-                label: w.label,
-                widgetObject: w
-            });
-        }
-        
         const valStr = getWidgetValue(w.key);  // IGUAL que React Desktop - sin formatValue
         const val = parseFloat(valStr);
 
