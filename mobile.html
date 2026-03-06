@@ -2494,6 +2494,7 @@ const fetchUpdate = async () => {
                     setSparkTick(t => t + 1);
                     
                     // Sincronización de Estado Deseado
+                    console.log('[MOBILE] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
@@ -2518,6 +2519,7 @@ const fetchUpdate = async () => {
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
+                                console.log('[MOBILE] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }

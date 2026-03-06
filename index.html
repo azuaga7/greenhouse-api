@@ -1699,6 +1699,7 @@ const fetchHistory = async () => {
 	                    // Forzar refresco de sparklines en cada paquete nuevo
 	                    setSparkTick(t => t + 1);
                     // Sincronización de Estado Deseado
+                    console.log('[REACT] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
@@ -1723,6 +1724,7 @@ const fetchHistory = async () => {
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
+                                console.log('[REACT] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }
