@@ -2008,7 +2008,7 @@ const initializeChart = (canvasRef, chartData, chartOptions) => {
 // === PUNTO 9: CREACIÓN DE SPARKLINE ===
 // Componente de minigráficos SVG para mobile
 
-const SparklineWidget = ({ id, variableKey, min, max, inverted, value, historyTick }) => {
+const SparklineWidget = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
   // SparklineEngine debe estar disponible globalmente
   
   const [points, setPoints] = useState(() => {
@@ -2122,7 +2122,7 @@ let chartConfig = {};
 
 
 // --- Componente Principal Mobile Dashboard ---
-const MobileDashboardApp = () => {
+const MobileDashboardApp = React.memo(() => {
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [alerts, setAlerts] = useState([]);
@@ -2864,7 +2864,7 @@ const isValidForMinMax = (key, v) => {
         const initIcons = () => {
             const lucideGlobal = window.lucide;
             if (lucideGlobal && typeof lucideGlobal.createIcons === 'function') {
-                console.log("[MOBILE LUCIDE] ✨ Refrescando iconos...");
+                // console.log("[MOBILE LUCIDE] ✨ Refrescando iconos...");
                 lucideGlobal.createIcons();
             }
         };
@@ -3406,12 +3406,6 @@ const isValidForMinMax = (key, v) => {
         const val = parseFloat(valStr);
 
         // Debug: Verificar qué tipo de widget se está procesando
-        console.log('[MOBILE DEBUG] Widget type:', w.type, {
-            widgetLabel: w.label,
-            widgetKey: w.key,
-            widgetTarget: w.target,
-            allPendingCommands: pendingCommands
-        });
 
         switch (w.type) {
             case 'label':
@@ -3663,15 +3657,6 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 const isManual = !!controlState.manual;
                 const relayPending = pendingCommands[w.target];
                 
-                // Debug: Verificar qué target y pending se está usando
-                console.log('[MOBILE DEBUG] control-relay:', {
-                    widgetLabel: w.label,
-                    widgetKey: w.key,
-                    widgetTarget: w.target,
-                    relayPending,
-                    allPendingCommands: pendingCommands
-                });
-                
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
@@ -3726,15 +3711,6 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 // IGUAL que React Desktop: pending desde w.target + '_state'
                 const vfdPending = pendingCommands[w.target + '_state'];
                 const vfdManual = !!controlState.manual;
-                
-                // Debug: Verificar qué target y pending se está usando
-                console.log('[MOBILE DEBUG] control-vfd:', {
-                    widgetLabel: w.label,
-                    widgetKey: w.key,
-                    widgetTarget: w.target,
-                    vfdPending,
-                    allPendingCommands: pendingCommands
-                });
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3831,7 +3807,9 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 ]);
 
             case 'location':
-                const locationValue = getWidgetValue(w.key);
+                // IGUAL que React Desktop: usar RAW para no truncar coordenadas
+                const rawLocationValue = getRawWidgetValue(w.key, lastData);
+                const locationValue = (rawLocationValue === null || rawLocationValue === undefined) ? '' : String(rawLocationValue);
                 const cityValue = getWidgetValue(w.statusKey || (w.key + '_CITY'));
                 const hasLocation = locationValue !== '--' && locationValue.trim() !== '';
                 const hasCity = cityValue !== '--' && cityValue.trim() !== '';
@@ -4194,7 +4172,7 @@ if (root) {
             // Inicializar iconos después de que React termine
             setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
             
-            console.log("✅ ADTEC Mobile Dashboard: Renderizado exitoso.");
+            // console.log("✅ ADTEC Mobile Dashboard: Renderizado exitoso.");
         } catch (err) {
             console.error("❌ Error Crítico Mobile Dashboard:", err);
             document.getElementById('error-fallback').style.display = 'block';
