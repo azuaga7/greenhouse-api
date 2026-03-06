@@ -2577,7 +2577,7 @@ const fetchUpdate = async () => {
         }
     };
 
-    // --- Poll de Alertas - IGUAL que React Desktop ---
+    // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
     const fetchAlerts = async () => {
         try {
             const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
@@ -2591,7 +2591,24 @@ const fetchUpdate = async () => {
                 const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
                 return { ...a, timestamp, __ts_ms: ms };
             }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
-            setAlerts(normalized);
+            
+            // Solo actualizar si hay cambios reales
+            setAlerts(prevAlerts => {
+                // Comparar arrays para evitar renders innecesarios
+                if (prevAlerts.length === normalized.length) {
+                    let hasChanges = false;
+                    for (let i = 0; i < prevAlerts.length; i++) {
+                        if (prevAlerts[i]?.__ts_ms !== normalized[i]?.__ts_ms) {
+                            hasChanges = true;
+                            break;
+                        }
+                    }
+                    if (!hasChanges) {
+                        return prevAlerts; // No hay cambios, mantener estado anterior
+                    }
+                }
+                return normalized;
+            });
         } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
@@ -3331,19 +3348,65 @@ const isValidForMinMax = (key, v) => {
         ]);
     });
 
-    // Componente AlertsWidget inline - CON ESTADO LOCAL para evitar re-renderizado
+    // Componente AlertsWidget inline - CON PRESERVACIÓN DE SCROLL Y RENDERIZADO INCREMENTAL
     const AlertsWidget = React.memo(({ getWidgetValue: customGetWidgetValue }) => {
-        // ✅ ESTADO LOCAL como en React Desktop - evita re-renderizado completo
-        const [localAlerts, setLocalAlerts] = React.useState([]);
+        // Ref para preservar posición del scroll
+        const scrollContainerRef = React.useRef(null);
+        const lastAlertsRef = React.useRef([]);
         
-        // ✅ Sincronizar estado local con global solo cuando es necesario
-        React.useEffect(() => {
-            setLocalAlerts(alerts);
+        // Estado local solo para controlar la vista, no para duplicar datos
+        const [shouldScrollToBottom, setShouldScrollToBottom] = React.useState(true);
+        
+        // Comparación profunda de arrays para evitar renders innecesarios
+        const alertsChanged = React.useMemo(() => {
+            const current = alerts || [];
+            const last = lastAlertsRef.current || [];
+            
+            // Si el tamaño cambió, hay nuevas alertas
+            if (current.length !== last.length) {
+                return true;
+            }
+            
+            // Comparar timestamps de las últimas alertas
+            for (let i = 0; i < current.length; i++) {
+                if (current[i].__ts_ms !== last[i]?.__ts_ms) {
+                    return true;
+                }
+            }
+            
+            return false;
         }, [alerts]);
         
-        // ✅ Función local para limpiar alertas (sin afectar el DOM del contenedor)
+        // Actualizar referencia solo cuando cambien las alertas
+        React.useEffect(() => {
+            if (alertsChanged) {
+                lastAlertsRef.current = [...(alerts || [])];
+            }
+        }, [alerts, alertsChanged]);
+        
+        // Manejar scroll del usuario
+        const handleScroll = React.useCallback(() => {
+            if (scrollContainerRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
+                setShouldScrollToBottom(isAtBottom);
+            }
+        }, []);
+        
+        // Auto-scroll solo si el usuario está al final
+        React.useEffect(() => {
+            if (shouldScrollToBottom && scrollContainerRef.current && alertsChanged) {
+                const scrollTimeout = setTimeout(() => {
+                    if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                    }
+                }, 100);
+                return () => clearTimeout(scrollTimeout);
+            }
+        }, [alerts, shouldScrollToBottom, alertsChanged]);
+        
+        // Función local para limpiar alertas
         const handleClearAlerts = () => {
-            setLocalAlerts([]);
             setSeenUntil(Date.now());
         };
         
@@ -3401,7 +3464,7 @@ const isValidForMinMax = (key, v) => {
                             borderRadius: '12px',
                             fontWeight: 'normal'
                         } 
-                    }, localAlerts.length + ' activas')
+                    }, (alerts || []).length + ' activas')
                 ]),
                 React.createElement('button', {
                     key: 'clear',
@@ -3419,9 +3482,11 @@ const isValidForMinMax = (key, v) => {
                 }, '🗑️ LIMPIAR')
             ]),
             
-            // Content area - MISMO ESTILO que preview
+            // Content area con scroll preservado
             React.createElement('div', { 
                 key: 'content',
+                ref: scrollContainerRef,
+                onScroll: handleScroll,
                 style: { 
                     flex: 1,
                     overflow: 'auto', 
@@ -3431,7 +3496,7 @@ const isValidForMinMax = (key, v) => {
                     minHeight: 0
                 } 
             }, [
-                localAlerts.length === 0 
+                (alerts || []).length === 0 
                     ? React.createElement('div', { 
                         key: 'empty', 
                         style: { 
@@ -3448,7 +3513,7 @@ const isValidForMinMax = (key, v) => {
                         React.createElement('p', { key: 'subtitle', style: { fontSize: '12px' } }, 'No hay alertas registradas en este momento.')
                     ])
                     : React.createElement('div', { key: 'list' }, 
-                        localAlerts.map((alert, i) => {
+                        (alerts || []).map((alert, i) => {
                             const alertType = ALERT_TYPES[alert.type] || DEFAULT_ALERT_TYPE;
                             
                             return React.createElement('div', {
@@ -3528,6 +3593,24 @@ const isValidForMinMax = (key, v) => {
                     )
             ])
         ]);
+    }, (prevProps, nextProps) => {
+        // Comparación personalizada para evitar renders innecesarios
+        // Solo renderizar si las alertas realmente cambiaron
+        const prevAlerts = prevProps.getWidgetValue?.('alerts') || [];
+        const nextAlerts = nextProps.getWidgetValue?.('alerts') || [];
+        
+        if (prevAlerts.length !== nextAlerts.length) {
+            return false; // Cambió el tamaño, necesita render
+        }
+        
+        // Comparar timestamps para detectar cambios reales
+        for (let i = 0; i < prevAlerts.length; i++) {
+            if (prevAlerts[i]?.__ts_ms !== nextAlerts[i]?.__ts_ms) {
+                return false; // Cambió alguna alerta, necesita render
+            }
+        }
+        
+        return true; // No hay cambios, evitar render
     });
 
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional

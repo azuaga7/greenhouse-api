@@ -176,7 +176,12 @@ async def proxy_stream(request: Request, url: str, inject_mobile: bool = False):
 
     body = await request.body() if request.method in ("POST", "PUT", "PATCH") else None
 
-    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        timeout=None, 
+        follow_redirects=True,
+        http2=False,  # Forzar HTTP/1.1 para compatibilidad con Bridge
+        verify=False
+    ) as client:
         upstream_stream = client.stream(request.method, url, headers=headers, content=body)
         resp = await upstream_stream.__aenter__()
 
@@ -312,7 +317,12 @@ async def api_series(request: Request):
         status_code, content, headers, media_type = hit
         return Response(content=content, status_code=status_code, headers=headers, media_type=media_type)
 
-    async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
+    async with httpx.AsyncClient(
+        timeout=None, 
+        follow_redirects=True,
+        http2=False,  # Forzar HTTP/1.1 para compatibilidad con Bridge
+        verify=False
+    ) as client:
         r = await client.get(f"{url}?{qs}" if qs else url)
 
     headers = {k: v for k, v in r.headers.items() if k.lower() not in HOP_BY_HOP and k.lower() != "content-length"}
@@ -351,7 +361,12 @@ async def api_sparkline_series(
                 pass
 
         url = f"{BRIDGE_HTTP_BASE}/api/series?{qs}"
-        async with httpx.AsyncClient(timeout=None, follow_redirects=True) as client:
+        async with httpx.AsyncClient(
+            timeout=None, 
+            follow_redirects=True,
+            http2=False,  # Forzar HTTP/1.1 para compatibilidad con Bridge
+            verify=False
+        ) as client:
             r = await client.get(url)
 
         try:
