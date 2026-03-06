@@ -400,13 +400,49 @@ async def proxy_download_xlsx_range(request: Request):
     full_url = f"{url}?{qs}" if qs else url
     return await proxy_stream(request, full_url)
 
-# Alerts (GET/POST) streaming
+# Alerts (GET/POST) - ENDPOINT JSON NORMAL (sin streaming)
 @app.api_route("/api/alerts", methods=["GET", "POST", "PUT", "HEAD"])
 async def api_alerts_any(request: Request):
     qs = str(request.url.query)
     url = f"{BRIDGE_HTTP_BASE}/api/alerts"
     full_url = f"{url}?{qs}" if qs else url
-    return await proxy_stream(request, full_url)
+    
+    # Forward headers seguros (sin hop-by-hop, sin content-length)
+    headers = {
+        k: v for k, v in request.headers.items()
+        if k.lower() not in HOP_BY_HOP and k.lower() not in ("host", "content-length", "transfer-encoding", "content-encoding", "connection", "keep-alive", "proxy-connection", "upgrade")
+    }
+    
+    # Forzar marca mobile si aplica
+    if "x-client" not in {k.lower() for k in headers.keys()}:
+        user_agent = request.headers.get("user-agent", "")
+        if _is_mobile_ua(user_agent):
+            headers["X-Client"] = "mobile"
+    
+    body = await request.body() if request.method in ("POST", "PUT", "PATCH") else None
+    
+    async with httpx.AsyncClient(
+        timeout=None, 
+        follow_redirects=True,
+        http2=False,  # Forzar HTTP/1.1 para compatibilidad con Bridge
+        verify=False
+    ) as client:
+        r = await client.request(request.method, full_url, headers=headers, content=body)
+    
+    # Headers seguros para respuesta
+    safe_headers = {}
+    if "content-type" in r.headers:
+        safe_headers["content-type"] = r.headers["content-type"]
+    if "cache-control" in r.headers:
+        safe_headers["cache-control"] = r.headers["cache-control"]
+    if "etag" in r.headers:
+        safe_headers["etag"] = r.headers["etag"]
+    
+    return Response(
+        content=r.content,
+        status_code=r.status_code,
+        headers=safe_headers
+    )
 
 # Control state (GET/POST) streaming
 @app.api_route("/api/control_state", methods=["GET", "POST", "PUT", "HEAD"])

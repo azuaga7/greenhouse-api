@@ -2494,7 +2494,6 @@ const fetchUpdate = async () => {
                     setSparkTick(t => t + 1);
                     
                     // Sincronización de Estado Deseado
-                    console.log('[MOBILE] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
@@ -2502,24 +2501,12 @@ const fetchUpdate = async () => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
                             
-                            // Debug: log para ver qué está pasando
-                            if (Object.keys(next).length > 0) {
-                                console.log('[MOBILE DEBUG] pendingCommand:', {
-                                    key,
-                                    realVal,
-                                    desiredVal,
-                                    flatKeys: Object.keys(flat).filter(k => k.includes(key) || key.includes(k)),
-                                    allFlatKeys: Object.keys(flat)
-                                });
-                            }
-                            
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
                                           (realVal === 0 && desiredVal === false) ||
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
-                                console.log('[MOBILE] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }
