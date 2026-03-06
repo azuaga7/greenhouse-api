@@ -1388,7 +1388,7 @@
   
 
         // Declaración global de Chart para compatibilidad con MobileChart
-        var Chart: any;
+        var Chart;
         
         const getGaugeColor = (val, key = "") => {
             const num = parseFloat(val);
@@ -1767,7 +1767,6 @@ MobileChart.displayName = 'MobileChart';
             
 // MOBILE TEMPLATE FINAL - CONSOLIDADO Y CORREGIDO
 
-try {
 // CONFIG debe definirse primero antes de ser usado
 const CONFIG = window.CONFIG || {};
 
@@ -1955,8 +1954,8 @@ const ALERT_TYPES = {
 
 // === PUNTO 6: CREACIÓN DE DASHBOARDCHART ===
 // Componente de gráficos con Chart.js
-// Desktop: DashboardChart (completo)
-// MobileChart se inyectará desde el archivo original en mobileDashboardExport.ts
+// Declaración global de Chart para compatibilidad con MobileChart
+var Chart;
 
 // === PUNTO 7: CONFIGURACIÓN DE ESCALA ===
 // getScaleSettings() - obtiene min/max desde widgets
@@ -2093,7 +2092,7 @@ const SparklineWidget = React.memo(({ id, variableKey, min, max, inverted, value
       })
     ])
   ]);
-};
+});
 
 // --- Cache API Snapshot - datos gzip comprimidos ---
 
@@ -3332,20 +3331,39 @@ const isValidForMinMax = (key, v) => {
         ]);
     });
 
-    // Componente AlertsWidget inline - IGUAL que React Desktop
+    // Componente AlertsWidget inline - CON ESTADO LOCAL para evitar re-renderizado
     const AlertsWidget = React.memo(({ getWidgetValue: customGetWidgetValue }) => {
-        // ✅ Usar directamente 'alerts' como en React Desktop
+        // ✅ ESTADO LOCAL como en React Desktop - evita re-renderizado completo
+        const [localAlerts, setLocalAlerts] = React.useState([]);
+        
+        // ✅ Sincronizar estado local con global solo cuando es necesario
+        React.useEffect(() => {
+            setLocalAlerts(alerts);
+        }, [alerts]);
+        
+        // ✅ Función local para limpiar alertas (sin afectar el DOM del contenedor)
+        const handleClearAlerts = () => {
+            setLocalAlerts([]);
+            setSeenUntil(Date.now());
+        };
         
         return React.createElement('div', {
             style: {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 width: '100%',
                 height: '100%',
-                display: 'flex',
+                display: 'flex', 
                 flexDirection: 'column',
                 background: 'var(--surface)',
                 border: 'none',
                 borderRadius: 0,
-                padding: 0
+                padding: 0,
+                overflow: 'hidden',
+                zIndex: 10
             }
         }, [
             // Header - IGUAL que preview
@@ -3383,11 +3401,11 @@ const isValidForMinMax = (key, v) => {
                             borderRadius: '12px',
                             fontWeight: 'normal'
                         } 
-                    }, alerts.length + ' activas')
+                    }, localAlerts.length + ' activas')
                 ]),
                 React.createElement('button', {
                     key: 'clear',
-                    onClick: () => setSeenUntil(Date.now()), // Mantengo funcionalidad original
+                    onClick: handleClearAlerts,
                     style: { 
                         background: 'rgba(239, 68, 68, 0.1)', 
                         color: '#ef4444', 
@@ -3401,38 +3419,110 @@ const isValidForMinMax = (key, v) => {
                 }, '🗑️ LIMPIAR')
             ]),
             
-            // Content area
+            // Content area - MISMO ESTILO que preview
             React.createElement('div', { 
                 key: 'content',
                 style: { 
                     flex: 1,
                     overflow: 'auto', 
-                    padding: '15px'
+                    padding: '0 15px 15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 0
                 } 
             }, [
-                alerts.length === 0 
+                localAlerts.length === 0 
                     ? React.createElement('div', { 
                         key: 'empty', 
-                        style: { textAlign: 'center', color: '#94a3b8', padding: '20px' } 
-                    }, 'Sin alertas activas')
+                        style: { 
+                            flex: 1, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            opacity: 0.5 
+                        }
+                    }, [
+                        React.createElement('span', { key: 'icon', style: { fontSize: '48px', marginBottom: '15px' } }, '✅'),
+                        React.createElement('p', { key: 'title', style: { fontSize: '14px', fontWeight: '600' } }, 'Sistema en estado óptimo'),
+                        React.createElement('p', { key: 'subtitle', style: { fontSize: '12px' } }, 'No hay alertas registradas en este momento.')
+                    ])
                     : React.createElement('div', { key: 'list' }, 
-                        alerts.map((alert, i) => {
+                        localAlerts.map((alert, i) => {
                             const alertType = ALERT_TYPES[alert.type] || DEFAULT_ALERT_TYPE;
                             
                             return React.createElement('div', {
                                 key: i,
                                 style: {
-                                    background: alertType.bgColor,
-                                    border: '1px solid ' + alertType.borderColor,
-                                    borderRadius: '8px',
-                                    padding: '10px',
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    padding: '12px',
                                     marginBottom: '8px',
-                                    color: 'white'
+                                    borderRadius: '8px',
+                                    border: '1px solid ' + alertType.borderColor,
+                                    background: alertType.bgColor,
+                                    borderLeft: '4px solid ' + alertType.color
                                 }
                             }, [
-                                React.createElement('div', { key: 'level', style: { fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' } }, alertType.label || 'ALERTA'),
-                                React.createElement('div', { key: 'message', style: { fontSize: '14px' } }, alert.msg || alert.message || 'Mensaje de alerta'),
-                                React.createElement('div', { key: 'time', style: { fontSize: '11px', opacity: 0.7, marginTop: '4px' } }, alert.timestamp || new Date().toISOString())
+                                React.createElement('div', { key: 'content', style: { flex: 1 } }, [
+                                    React.createElement('div', { 
+                                        key: 'header',
+                                        style: { 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            marginBottom: '4px' 
+                                        } 
+                                    }, [
+                                        React.createElement('span', { 
+                                            key: 'type',
+                                            style: { 
+                                                background: alertType.color, 
+                                                color: 'white', 
+                                                padding: '2px 8px', 
+                                                borderRadius: '4px', 
+                                                fontSize: '10px', 
+                                                fontWeight: 'bold', 
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px'
+                                            } 
+                                        }, alertType.label),
+                                        React.createElement('span', { 
+                                            key: 'timestamp',
+                                            style: { 
+                                                marginLeft: '8px', 
+                                                fontSize: '10px', 
+                                                color: 'var(--text-muted)' 
+                                            } 
+                                        }, alert.timestamp || new Date().toLocaleString('es-ES'))
+                                    ]),
+                                    React.createElement('div', { 
+                                        key: 'message',
+                                        style: { 
+                                            fontSize: '13px', 
+                                            fontWeight: '500', 
+                                            color: 'var(--text)', 
+                                            marginBottom: '4px' 
+                                        } 
+                                    }, alert.msg || alert.message || 'Mensaje de alerta'),
+                                    React.createElement('div', { 
+                                        key: 'details',
+                                        style: { 
+                                            fontSize: '11px', 
+                                            color: 'var(--text-muted)' 
+                                        } 
+                                    }, [
+                                        'Valor: ', 
+                                        React.createElement('span', { 
+                                            key: 'value',
+                                            style: { color: alertType.color, fontWeight: 'bold' } 
+                                        }, alert.value || '--'),
+                                        ' | Señal: ', 
+                                        React.createElement('span', { 
+                                            key: 'signal',
+                                            style: { color: 'var(--adtec-accent)' } 
+                                        }, alert.signal || 'N/A')
+                                    ])
+                                ])
                             ]);
                         })
                     )
@@ -3440,7 +3530,7 @@ const isValidForMinMax = (key, v) => {
         ]);
     });
 
-    // Función renderMobileWidget - IGUAL que MobileDashboardView.tsx y MobileDashboardPreview.tsx
+    // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
         const valStr = getWidgetValue(w.key);  // IGUAL que React Desktop - sin formatValue
@@ -3448,8 +3538,8 @@ const isValidForMinMax = (key, v) => {
 
         // Debug: Verificar qué tipo de widget se está procesando
 
-        switch (w.type) {
-            case 'label':
+        // EXACTAMENTE IGUAL que React Desktop - renderizado condicional con IIFEs
+        if (w.type === 'label') {
                 return React.createElement('div', { 
                     className: 'mobile-widget section-label' 
                 }, [
@@ -3473,11 +3563,14 @@ const isValidForMinMax = (key, v) => {
                     }, w.label)
                 ]);
 
-            case 'gauge':
+            }
+
+        if (w.type === 'gauge') {
+            return (() => {
                 const numVal = isNaN(parseFloat(valStr)) ? (w.min || 0) : parseFloat(valStr);
-const min = w.min || 0;
-const max = w.max || 100;
-const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
+                const min = w.min || 0;
+                const max = w.max || 100;
+                const pct = Math.max(0, Math.min(100, ((numVal - min) / (Math.max(1, max - min))) * 100));
 
 return React.createElement('div', { className: 'mobile-widget' }, [
     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3530,9 +3623,12 @@ return React.createElement('div', { className: 'mobile-widget' }, [
         historyTick: sparkTick
     })
 ]);
+            })();
+        }
 
-            case 'indicator':
-                // IGUAL que React Desktop
+        if (w.type === 'indicator') {
+            // IGUAL que React Desktop
+            return (() => {
                 const isOn = valStr === 'ON' || valStr === 'ACTIVO' || valStr === 'TRUE';
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3548,8 +3644,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         React.createElement('span', { key: 'text' }, isOn ? 'ACTIVO' : 'INACTIVO')
                     ])
                 ]);
+            })();
+        }
 
-            case 'text':
+        if (w.type === 'text') {
+            return (() => {
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
@@ -3571,8 +3670,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         }, 'Mín: ' + minDay + ' · Máx: ' + maxDay);
                     })()
                 ]);
+            })();
+        }
 
-            case 'connection':
+        if (w.type === 'connection') {
+            return (() => {
                 const sigVal = parseFloat(getWidgetValue(w.signalKey || w.key) || getWidgetValue('gsm_signal') || "0");
                 const isConnected = !isNaN(sigVal) && sigVal > 0;
                 
@@ -3610,8 +3712,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         ])
                     ])
                 ]);
+            })();
+        }
 
-            case 'datetime':
+        if (w.type === 'datetime') {
+            return (() => {
                 const rawVal = getWidgetValue(w.key);
                 const formatted = formatValue(rawVal === '--' ? new Date().toISOString() : rawVal, w.format || 'datetime_full', "");
                 const [displayTime, displayDate] = formatted.includes('|') ? formatted.split('|') : [formatted, ''];
@@ -3638,17 +3743,18 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         ])
                     ])
                 ]);
+            })();
+        }
 
-            case 'battery':
+        if (w.type === 'battery') {
+            return (() => {
                 const batteryVal = parseFloat(getWidgetValue(w.key)) || 85;
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
                     ]),
-                    React.createElement('div', { 
-                        key: 'battery',
-                        style: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }
-                    }, [
+                    React.createElement('div', { key: 'battery-container', style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 } }, [
                         React.createElement('div', { 
                             key: 'battery-container',
                             style: { 
@@ -3688,13 +3794,16 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         }, batteryVal + '%')
                     ])
                 ]);
+            })();
+        }
 
-            case 'control-relay':
-                // IGUAL que React Desktop
+        if (w.type === 'control-relay') {
+            return (() => {
                 const relayVal = getWidgetValue(w.key);
                 const relayIsOn = relayVal === 'ON' || relayVal === 'ACTIVO' || relayVal === 'TRUE';
                 const isManual = !!controlState.manual;
-                const relayPending = pendingCommands[w.target];
+                const pending = pendingCommands[w.target];
+                const isPending = pending !== undefined;
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3719,37 +3828,37 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                             className: 'vfd-btn start',
                             disabled: !isManual,
                             style: {
-                                background: relayIsOn ? '#10b981' : (relayPending?.value === true ? '#065f46' : undefined),
+                                background: relayIsOn ? '#10b981' : (pending?.value === true ? '#065f46' : undefined),
                                 opacity: isManual ? 1 : 0.5,
                                 cursor: isManual ? 'pointer' : 'not-allowed',
-                                boxShadow: relayPending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
+                                boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
                             onClick: () => sendControl(w.target, true)
-                        }, relayPending?.value === true ? '⏳ ON...' : 'ON'),
+                        }, pending?.value === true ? '⏳ ON...' : 'ON'),
                         React.createElement('button', {
                             key: 'off',
                             className: 'vfd-btn stop',
                             disabled: !isManual,
                             style: {
-                                background: !relayIsOn ? '#ef4444' : (relayPending?.value === false ? '#7f1d1d' : undefined),
+                                background: !relayIsOn ? '#ef4444' : (pending?.value === false ? '#7f1d1d' : undefined),
                                 opacity: isManual ? 1 : 0.5,
                                 cursor: isManual ? 'pointer' : 'not-allowed',
-                                boxShadow: relayPending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
+                                boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
                             onClick: () => sendControl(w.target, false)
-                        }, relayPending?.value === false ? '⏳ OFF...' : 'OFF')
+                        }, pending?.value === false ? '⏳ OFF...' : 'OFF')
                     ])
                 ]);
+            })();
+        }
 
-            case 'control-vfd':
-                // IGUAL que React Desktop: freq desde controlState[w.target]
+        if (w.type === 'control-vfd') {
+            return (() => {
                 const freq = parseFloat(controlState[w.target] || 0);
                 const vfdState = getWidgetValue(w.key);
-                // IGUAL que React Desktop: misma detección de estado
                 const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE';
-                // IGUAL que React Desktop: pending desde w.target + '_state'
-                const vfdPending = pendingCommands[w.target + '_state'];
-                const vfdManual = !!controlState.manual;
+                const isManual = !!controlState.manual;
+                const pending = pendingCommands[w.target + '_state'];
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3767,11 +3876,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         max: '60',
                         step: '0.5',
                         value: freq,
-                        disabled: !vfdManual,
+                        disabled: !isManual,
                         style: { 
                             width: '100%', 
                             accentColor: 'var(--adtec-accent)', 
-                            opacity: vfdManual ? 1 : 0.5
+                            opacity: isManual ? 1 : 0.5
                         },
                         onChange: (e) => sendControl(w.target, parseFloat(e.target.value))
                     }),
@@ -3783,32 +3892,34 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         React.createElement('button', {
                             key: 'run',
                             className: 'vfd-btn start',
-                            disabled: !vfdManual,
+                            disabled: !isManual,
                             style: {
-                                background: vfdIsOn ? '#10b981' : (vfdPending?.value === true ? '#065f46' : undefined),
-                                opacity: vfdManual ? 1 : 0.5,
-                                cursor: vfdManual ? 'pointer' : 'not-allowed',
-                                boxShadow: vfdPending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
+                                background: vfdIsOn ? '#10b981' : (pending?.value === true ? '#065f46' : undefined),
+                                opacity: isManual ? 1 : 0.5,
+                                cursor: isManual ? 'pointer' : 'not-allowed',
+                                boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
                             onClick: () => sendControl(w.target + '_state', true)
-                        }, vfdPending?.value === true ? '⏳ RUN...' : 'RUN'),
+                        }, pending?.value === true ? '⏳ RUN...' : 'RUN'),
                         React.createElement('button', {
                             key: 'stop',
                             className: 'vfd-btn stop',
-                            disabled: !vfdManual,
+                            disabled: !isManual,
                             style: {
-                                background: !vfdIsOn ? '#ef4444' : (vfdPending?.value === false ? '#7f1d1d' : undefined),
-                                opacity: vfdManual ? 1 : 0.5,
-                                cursor: vfdManual ? 'pointer' : 'not-allowed',
-                                boxShadow: vfdPending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
+                                background: !vfdIsOn ? '#ef4444' : (pending?.value === false ? '#7f1d1d' : undefined),
+                                opacity: isManual ? 1 : 0.5,
+                                cursor: isManual ? 'pointer' : 'not-allowed',
+                                boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
                             onClick: () => sendControl(w.target + '_state', false)
-                        }, vfdPending?.value === false ? '⏳ STOP...' : 'STOP')
+                        }, pending?.value === false ? '⏳ STOP...' : 'STOP')
                     ])
                 ]);
+            })();
+        }
 
-            case 'chart':
-            case 'summary-chart':
+        if (w.type === 'chart' || w.type === 'summary-chart') {
+            return (() => {
                 return React.createElement('div', { className: 'mobile-chart-container' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
                         React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
@@ -3820,8 +3931,11 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         React.createElement(DashboardMobileChart, { key: 'chart', 'widget': w })
                     ])
                 ]);
+            })();
+        }
 
-            case 'alerts':
+        if (w.type === 'alerts') {
+            return (() => {
                 return React.createElement('div', {
                     className: 'mobile-alerts-container',
                     style: {
@@ -3844,9 +3958,12 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         })
                     ])
                 ]);
+            })();
+        }
 
-            case 'location':
-                // IGUAL que React Desktop: usar RAW para no truncar coordenadas
+        if (w.type === 'location') {
+            // IGUAL que React Desktop: usar RAW para no truncar coordenadas
+            return (() => {
                 const rawLocationValue = getRawWidgetValue(w.key, lastData);
                 const locationValue = (rawLocationValue === null || rawLocationValue === undefined) ? '' : String(rawLocationValue);
                 const cityValue = getWidgetValue(w.statusKey || (w.key + '_CITY'));
@@ -3890,18 +4007,21 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         ])
                     ])
                 ]);
-
-            default:
-                return React.createElement('div', { className: 'mobile-widget' }, [
-                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
-                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label)
-                    ]),
-                    React.createElement('div', { key: 'value', className: 'mobile-widget-value' }, [
-                        valStr.replace(w.unit || '', ''),
-                        React.createElement('span', { key: 'unit', className: 'mobile-widget-unit' }, w.unit)
-                    ])
-                ]);
+            })();
         }
+
+        // Default case - widget no reconocido
+        return (() => {
+            return React.createElement('div', { className: 'mobile-widget' }, [
+                React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                    React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label || 'Widget Desconocido'),
+                    !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key || 'unknown')
+                ]),
+                React.createElement('div', { key: 'content', style: { padding: 10, textAlign: 'center', color: '#94a3b8' } }, [
+                    React.createElement('div', { key: 'msg' }, 'Tipo de widget no soportado: ' + (w.type || 'unknown'))
+                ])
+            ]);
+        })();
     };
 
     // --- Renderizado Principal - Copiado desde MobileDashboardPreview.tsx ---
@@ -4200,7 +4320,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
             ])
         ])
     ]);
-};
+});
 
 // Renderizado principal
 const root = document.getElementById('mobile-dashboard-root');
@@ -4208,15 +4328,10 @@ if (root) {
     ReactDOM.render(React.createElement(MobileDashboardApp), root);
 }
 
-            // Inicializar iconos después de que React termine
-            setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
-            
-            // console.log("✅ ADTEC Mobile Dashboard: Renderizado exitoso.");
-        } catch (err) {
-            console.error("❌ Error Crítico Mobile Dashboard:", err);
-            document.getElementById('error-fallback').style.display = 'block';
-            document.getElementById('error-details').innerText = err.stack || err.message;
-        }
+// Inicializar iconos después de que React termine
+setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
+
+// console.log("✅ ADTEC Mobile Dashboard: Renderizado exitoso.");
 
             
             // Inicializar iconos después de que React termine
