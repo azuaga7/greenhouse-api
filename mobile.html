@@ -2494,6 +2494,7 @@ const fetchUpdate = async () => {
                     setSparkTick(t => t + 1);
                     
                     // Sincronización de Estado Deseado
+                    console.log('[MOBILE] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
                         const next = { ...prev };
                         let changed = false;
@@ -2501,12 +2502,24 @@ const fetchUpdate = async () => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
                             
+                            // Debug: log para ver qué está pasando
+                            if (Object.keys(next).length > 0) {
+                                console.log('[MOBILE DEBUG] pendingCommand:', {
+                                    key,
+                                    realVal,
+                                    desiredVal,
+                                    flatKeys: Object.keys(flat).filter(k => k.includes(key) || key.includes(k)),
+                                    allFlatKeys: Object.keys(flat)
+                                });
+                            }
+                            
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
                                           (realVal === 0 && desiredVal === false) ||
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
+                                console.log('[MOBILE] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }
@@ -2578,25 +2591,12 @@ const fetchUpdate = async () => {
         }
     };
 
-    // --- Poll de Alertas - TEMPORALMENTE DESHABILITADO ---
+    // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
     const fetchAlerts = async () => {
         try {
-            // Temporalmente deshabilitado hasta que el servidor esté actualizado
-            console.log('[MOBILE] fetchAlerts deshabilitado temporalmente - esperando deploy del servidor');
-            return;
-            
             const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
             u.searchParams.set('limit', '200');
-            
-            // Forzar HTTP/1.1 para evitar ERR_HTTP2_PROTOCOL_ERROR
-            const res = await fetch(u, {
-                headers: {
-                    'Connection': 'close',
-                    'Upgrade': '',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            
+            const res = await fetch(u);
             if (!res.ok) return;
             const js = await res.json();
             const arr = Array.isArray(js) ? js : [];
@@ -2623,14 +2623,7 @@ const fetchUpdate = async () => {
                 }
                 return normalized;
             });
-        } catch(e) { 
-            console.warn("Fallo Alertas:", e);
-            // Si es error HTTP/2, reintentar con headers específicos
-            if (e.message.includes('HTTP2') || e.message.includes('Failed to fetch')) {
-                console.log('[MOBILE] Error HTTP/2 detectado, reintentando con HTTP/1.1 forzado...');
-                setTimeout(fetchAlerts, 5000); // Reintentar en 5 segundos
-            }
-        }
+        } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
     // --- Helper para Alertas - IGUAL que React Desktop ---
@@ -3637,6 +3630,17 @@ const isValidForMinMax = (key, v) => {
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
+        // Debug: log para ver w.target
+        if (w.type === 'control-relay' || w.type === 'control-vfd') {
+            console.log('[MOBILE] Widget control:', {
+                type: w.type,
+                key: w.key,
+                target: w.target,
+                label: w.label,
+                widgetObject: w
+            });
+        }
+        
         const valStr = getWidgetValue(w.key);  // IGUAL que React Desktop - sin formatValue
         const val = parseFloat(valStr);
 
