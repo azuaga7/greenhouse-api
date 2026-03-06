@@ -2301,6 +2301,17 @@ useEffect(() => {
                     ) : (
                         <div className="widgets-area">
                             {CONFIG.dashboard.widgets.filter(w => String(w.tabId) === String(activeTabId)).map(w => {
+                            // Debug: log para ver w.target
+                            if (w.type === 'control-relay' || w.type === 'control-vfd') {
+                                console.log('[REACT] Widget control:', {
+                                    type: w.type,
+                                    key: w.key,
+                                    target: w.target,
+                                    label: w.label,
+                                    widgetObject: w
+                                });
+                            }
+                            
                             const valStr = getWidgetValue(w.key);
                             const val = parseFloat(valStr);
                             const style = { left: w.x, top: w.y, width: w.w, height: w.h, position: 'absolute' };

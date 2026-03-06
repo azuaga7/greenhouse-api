@@ -3630,6 +3630,17 @@ const isValidForMinMax = (key, v) => {
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
+        // Debug: log para ver w.target
+        if (w.type === 'control-relay' || w.type === 'control-vfd') {
+            console.log('[MOBILE] Widget control:', {
+                type: w.type,
+                key: w.key,
+                target: w.target,
+                label: w.label,
+                widgetObject: w
+            });
+        }
+        
         const valStr = getWidgetValue(w.key);  // IGUAL que React Desktop - sin formatValue
         const val = parseFloat(valStr);
 
@@ -3899,7 +3910,10 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 const relayVal = getWidgetValue(w.key);
                 const relayIsOn = relayVal === 'ON' || relayVal === 'ACTIVO' || relayVal === 'TRUE';
                 const isManual = !!controlState.manual;
-                const pending = pendingCommands[w.target];
+                
+                // Validar que w.target exista, si no usar w.key como fallback
+                const targetKey = w.target || w.key;
+                const pending = pendingCommands[targetKey];
                 const isPending = pending !== undefined;
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
@@ -3930,7 +3944,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target, true)
+                            onClick: () => sendControl(targetKey, true)
                         }, pending?.value === true ? '⏳ ON...' : 'ON'),
                         React.createElement('button', {
                             key: 'off',
@@ -3942,7 +3956,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target, false)
+                            onClick: () => sendControl(targetKey, false)
                         }, pending?.value === false ? '⏳ OFF...' : 'OFF')
                     ])
                 ]);
@@ -3951,11 +3965,13 @@ return React.createElement('div', { className: 'mobile-widget' }, [
 
         if (w.type === 'control-vfd') {
             return (() => {
-                const freq = parseFloat(controlState[w.target] || 0);
+                // Validar que w.target exista, si no usar w.key como fallback
+                const targetKey = w.target || w.key;
+                const freq = parseFloat(controlState[targetKey] || 0);
                 const vfdState = getWidgetValue(w.key);
                 const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE';
                 const isManual = !!controlState.manual;
-                const pending = pendingCommands[w.target + '_state'];
+                const pending = pendingCommands[targetKey + '_state'];
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3996,7 +4012,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target + '_state', true)
+                            onClick: () => sendControl(targetKey + '_state', true)
                         }, pending?.value === true ? '⏳ RUN...' : 'RUN'),
                         React.createElement('button', {
                             key: 'stop',
@@ -4008,7 +4024,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(w.target + '_state', false)
+                            onClick: () => sendControl(targetKey + '_state', false)
                         }, pending?.value === false ? '⏳ STOP...' : 'STOP')
                     ])
                 ]);
