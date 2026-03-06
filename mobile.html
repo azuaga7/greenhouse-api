@@ -2500,6 +2500,18 @@ const fetchUpdate = async () => {
                         Object.keys(next).forEach(key => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
+                            
+                            // Debug: log para ver qué está pasando
+                            if (Object.keys(next).length > 0) {
+                                console.log('[MOBILE DEBUG] pendingCommand:', {
+                                    key,
+                                    realVal,
+                                    desiredVal,
+                                    flatKeys: Object.keys(flat).filter(k => k.includes(key) || key.includes(k)),
+                                    allFlatKeys: Object.keys(flat)
+                                });
+                            }
+                            
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
                                           (realVal === 0 && desiredVal === false) ||
@@ -3878,6 +3890,62 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     ])
                 ]);
             })();
+        }
+
+        if (w.type === 'control-relay') {
+            return (() => {
+                const relayVal = getWidgetValue(w.key);
+                const relayIsOn = relayVal === 'ON' || relayVal === 'ACTIVO' || relayVal === 'TRUE';
+                const isManual = !!controlState.manual;
+                const pending = pendingCommands[w.target];
+                const isPending = pending !== undefined;
+                
+                return React.createElement('div', { className: 'mobile-widget' }, [
+                    React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
+                        React.createElement('div', { key: 'title', className: 'mobile-widget-title' }, w.label),
+                        !w.hideKey && React.createElement('div', { key: 'key', className: 'mobile-widget-key' }, w.key)
+                    ]),
+                    React.createElement('div', { 
+                        key: 'chip',
+                        className: 'adtec-status-chip ' + (relayIsOn ? 'on' : 'off'),
+                        style: { marginBottom: 10, alignSelf: 'flex-start' }
+                    }, [
+                        React.createElement('span', { key: 'dot', className: 'adtec-status-dot ' + (relayIsOn ? 'on' : 'off') }),
+                        React.createElement('span', { key: 'text' }, relayIsOn ? 'ACTIVO' : 'INACTIVO')
+                    ]),
+                    React.createElement('div', { 
+                        key: 'buttons',
+                        className: 'mobile-control-buttons',
+                        style: { display: 'flex', gap: '5px' }
+                    }, [
+                        React.createElement('button', {
+                            key: 'on',
+                            className: 'vfd-btn start',
+                            disabled: !isManual,
+                            style: {
+                                background: relayIsOn ? '#10b981' : (pending?.value === true ? '#065f46' : undefined),
+                                opacity: isManual ? 1 : 0.5,
+                                cursor: isManual ? 'pointer' : 'not-allowed',
+                                boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
+                            },
+                            onClick: () => sendControl(w.target, true)
+                        }, pending?.value === true ? '⏳ ON...' : 'ON'),
+                        React.createElement('button', {
+                            key: 'off',
+                            className: 'vfd-btn stop',
+                            disabled: !isManual,
+                            style: {
+                                background: !relayIsOn ? '#ef4444' : (pending?.value === false ? '#7f1d1d' : undefined),
+                                opacity: isManual ? 1 : 0.5,
+                                cursor: isManual ? 'pointer' : 'not-allowed',
+                                boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
+                            },
+                            onClick: () => sendControl(w.target, false)
+                        }, pending?.value === false ? '⏳ OFF...' : 'OFF')
+                    ])
+                ]);
+            })();
+        }
 
         if (w.type === 'control-vfd') {
             return (() => {
@@ -3885,9 +3953,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 const vfdState = getWidgetValue(w.key);
                 const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE';
                 const isManual = !!controlState.manual;
-                // Asegurar que cada widget verifique su propio estado pending de forma específica
-                const widgetTarget = w.target + '_state';
-                const pending = pendingCommands[widgetTarget];
+                const pending = pendingCommands[w.target + '_state'];
                 
                 return React.createElement('div', { className: 'mobile-widget' }, [
                     React.createElement('div', { key: 'header', className: 'mobile-widget-header' }, [
@@ -3928,7 +3994,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === true ? '0 0 10px rgba(16, 185, 129, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(widgetTarget, true)
+                            onClick: () => sendControl(w.target + '_state', true)
                         }, pending?.value === true ? '⏳ RUN...' : 'RUN'),
                         React.createElement('button', {
                             key: 'stop',
@@ -3940,7 +4006,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 cursor: isManual ? 'pointer' : 'not-allowed',
                                 boxShadow: pending?.value === false ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none'
                             },
-                            onClick: () => sendControl(widgetTarget, false)
+                            onClick: () => sendControl(w.target + '_state', false)
                         }, pending?.value === false ? '⏳ STOP...' : 'STOP')
                     ])
                 ]);
