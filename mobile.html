@@ -4188,7 +4188,8 @@ return React.createElement('div', { className: 'mobile-widget' }, [
 // Renderizado principal
 const root = document.getElementById('mobile-dashboard-root');
 if (root) {
-    ReactDOM.render(React.createElement(MobileDashboardApp), root);
+    const reactRoot = ReactDOM.createRoot(root);
+    reactRoot.render(React.createElement(MobileDashboardApp));
 }
 
             // Inicializar iconos después de que React termine

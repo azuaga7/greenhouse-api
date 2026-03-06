@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADTEC · Invernadero Pro Dashboard</title>
     
-    <!-- Scripts Profesionales (Locales) -->
-    <script src="libs/react.production.min.js"></script>
-    <script src="libs/react-dom.production.min.js"></script>
+    <!-- Scripts Profesionales (Locales) - Generados Dinámicamente -->
     <script src="libs/babel.min.js"></script>
-    <script src="libs/lucide.min.js"></script>
+    <script src="libs/chart.umd.js"></script>
     <script src="libs/chart.umd.min.js"></script>
+    <script src="libs/lucide.min.js"></script>
     <script src="libs/pako.min.js"></script>
+    <script src="libs/react-dom.production.min.js"></script>
+    <script src="libs/react.production.min.js"></script>
 
     <style>
         
@@ -2591,7 +2592,8 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
         </div>
     );
 };
-ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
+const root = ReactDOM.createRoot(document.getElementById('dashboard-root'));
+root.render(<DashboardApp />);
 
             
             // Inicializar iconos después de que React termine
