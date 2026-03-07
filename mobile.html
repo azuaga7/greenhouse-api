@@ -2259,8 +2259,7 @@ const MobileDashboardApp = React.memo(() => {
                         _lastConnection: latestCached.timestamp // Solo timestamp como referencia
                     });
                     
-                    console.log('[CACHE] Loaded sensor values only - connection state ignored');
-                    
+                                        
                     // NO MODIFICAR connStatus NI connColor
                     // Dejar que fetchUpdate() determine el estado real
                 }
@@ -2485,7 +2484,6 @@ const fetchUpdate = async () => {
                     // NUEVO: Guardar solo el último punto en cache
                     try {
                         localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify([flat]));
-                        console.log('[CACHE] Updated with latest data:', flat.timestamp);
                     } catch (e) {
                         console.warn('[CACHE] Failed to update:', e);
                     }
@@ -2499,15 +2497,6 @@ const fetchUpdate = async () => {
                         Object.keys(next).forEach(key => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
-                            
-                            // Debug: log para ver qué está pasando
-                            if (Object.keys(next).length > 0) {
-                                console.log('[MOBILE DEBUG] pendingCommand:', {
-                                    key,
-                                    realVal,
-                                    desiredVal,
-                                    flatKeys: Object.keys(flat).filter(k => k.includes(key) || key.includes(k)),
-                                    allFlatKeys: Object.keys(flat)
                                 });
                             }
                             
@@ -2517,7 +2506,6 @@ const fetchUpdate = async () => {
                                           (realVal === "ON" && desiredVal === true) ||
                                           (realVal === "OFF" && desiredVal === false);
                             if (isMatch || (Date.now() - next[key].ts > 30000)) {
-                                console.log('[MOBILE] Eliminando pendingCommand para:', key);
                                 delete next[key];
                                 changed = true;
                             }
@@ -2535,7 +2523,6 @@ const fetchUpdate = async () => {
                     }
                     
                     // ÚNICA FUENTE DE ESTADO DE CONEXIÓN
-                    console.log('[CONNECTION] Updating connection state from live data');
                     updateConnectionState(flat);
                     
                     if (chartConfig.timeRange === 'Ahora') {
@@ -2559,13 +2546,11 @@ const fetchUpdate = async () => {
                 }
             } else {
                 // Sin datos live - estado offline
-                console.log('[CONNECTION] No live data - setting offline');
                 setConnStatus("SIN DATOS");
                 setConnColor("#ef4444");
             }
         } catch (e) {
             // API offline - estado offline
-            console.log('[CONNECTION] API offline - setting offline');
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
             console.warn("fetchUpdate failed:", e);
@@ -2830,45 +2815,34 @@ const isValidForMinMax = (key, v) => {
         let cacheTimeoutId = null;
         
         const startLoop = async () => {
-            console.time('[INIT] Total dashboard initialization');
             
             // 1. Cargar sparklines primero
-            console.time('[INIT] loadSparklinesFirst');
             await loadSparklinesFirst();
-            console.timeEnd('[INIT] loadSparklinesFirst');
             
             // 2. Intentar obtener datos live inmediatamente
-            console.time('[INIT] fetchUpdate initial');
             try {
                 await fetchUpdate();
             } catch (e) {
                 console.warn('fetchUpdate inicial falló', e);
             }
-            console.timeEnd('[INIT] fetchUpdate initial');
             
             // 3. Si no hay datos live después de 2 segundos, cargar cache
             cacheTimeoutId = setTimeout(async () => {
                 if (mounted && (!lastData || !lastData.timestamp)) {
-                    console.time('[INIT] loadCacheOnlyIfEmpty');
                     await loadCacheOnlyIfEmpty();
-                    console.timeEnd('[INIT] loadCacheOnlyIfEmpty');
                 }
             }, 2000); // 2 segundos timeout
             
             // 4. Cargar historial en background
             setTimeout(async () => {
                 if (mounted) {
-                    console.time('[INIT] loadHistoryInBackground');
                     await loadHistoryInBackground();
-                    console.timeEnd('[INIT] loadHistoryInBackground');
                 }
             }, 5000); // 5 segundos después
             
             // 5. Iniciar loop live
             intervalId = setInterval(fetchUpdate, (CONFIG.refreshInterval ?? 1000));
-            console.log('[INIT] Live loop started');
             
-            console.timeEnd('[INIT] Total dashboard initialization');
         };
         
         startLoop();
@@ -2881,8 +2855,6 @@ const isValidForMinMax = (key, v) => {
     }, []);
 
     const loadSparklinesFirst = async () => {
-        console.time('[SPARKLINES] loadSparklinesFirst total');
-        
         // Sparklines que necesitan inicialización
         const sparkWidgets = CONFIG.dashboard.widgets.filter(w => 
             w.showSparkline || w.type === 'gauge' || w.showMinMax
@@ -2890,11 +2862,8 @@ const isValidForMinMax = (key, v) => {
         
         if (sparkWidgets.length > 0) {
             try {
-                console.time('[SPARKLINES] Cache API snapshot');
                 await fetchCacheApiSnapshot(true);
-                console.timeEnd('[SPARKLINES] Cache API snapshot');
                 
-                console.time('[SPARKLINES] localStorage cache processing');
                 const cached = localStorage.getItem(HISTORY_CACHE_KEY);
                 if (cached) {
                     const parsed = JSON.parse(cached);
@@ -2911,27 +2880,22 @@ const isValidForMinMax = (key, v) => {
                             
                             try {
                                 SparklineEngine.setHistory(w.id, wk, buffer, w.min, w.max, buffer);
-                                console.log('[SPARKLINES] Widget ' + w.id + ' initialized with latest point');
                             } catch (e) {
                                 console.warn('[SPARKLINES] Failed to initialize ' + w.id + ':', e);
                             }
                         });
                     }
                 }
-                console.timeEnd('[SPARKLINES] localStorage cache processing');
             } catch (e) {
                 console.warn('[SPARKLINES] Cache initialization failed:', e);
             }
         }
         
-        console.timeEnd('[SPARKLINES] loadSparklinesFirst total');
     };
 
     const loadHistoryInBackground = async () => {
-        console.time('[HISTORY] loadHistoryInBackground total');
         
         try {
-            console.log('[HISTORY] Loading full history in background...');
             
             const fetchHistory = async () => {
                 try {
@@ -3012,14 +2976,12 @@ const isValidForMinMax = (key, v) => {
 
             const fullHistory = await fetchHistory();
             if (fullHistory && fullHistory.length > 0) {
-                console.log('[HISTORY] Background load completed: ' + fullHistory.length + ' points');
             }
             
         } catch (e) {
             console.warn('[HISTORY] Background load failed:', e);
         }
         
-        console.timeEnd('[HISTORY] loadHistoryInBackground total');
     };
 
     // --- Loop de Alertas - IGUAL que React Desktop ---
