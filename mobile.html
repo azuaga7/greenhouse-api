@@ -2959,7 +2959,7 @@ const isValidForMinMax = (key, v) => {
                     const url = new URL(BASE_URL + '/api/data', window.location.origin);
                     url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
                     const res = await fetch(url);
-                    if (!res.ok) return;
+                    if (!res.ok) return [];
                     const raw = await res.json();
                     const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
 
@@ -3003,11 +3003,17 @@ const isValidForMinMax = (key, v) => {
 
                     // Precargar series server-side para Sparklines (historial profundo)
                     await preloadSparklineHistory();
-                } catch(e) { console.error("Error historial:", e); }
+                    return fullHistory;
+                } catch(e) { 
+                    console.error("Error historial:", e); 
+                    return [];
+                }
             };
 
-            await fetchHistory();
-            console.log('[HISTORY] Background load completed: ' + fullHistory.length + ' points');
+            const fullHistory = await fetchHistory();
+            if (fullHistory && fullHistory.length > 0) {
+                console.log('[HISTORY] Background load completed: ' + fullHistory.length + ' points');
+            }
             
         } catch (e) {
             console.warn('[HISTORY] Background load failed:', e);
