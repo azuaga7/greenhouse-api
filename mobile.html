@@ -1385,9 +1385,6 @@
             return val + unit;
         };
   
-
-        // Declaración global de Chart para compatibilidad con MobileChart
-        var Chart;
         
         const getGaugeColor = (val, key = "") => {
             const num = parseFloat(val);
@@ -1700,68 +1697,416 @@
             
             // Inyectar componente MobileChart desde el archivo original
             
-// MobileChart Component - Inline para browser
-const MobileChart = React.memo(({ widget, dataHistory, chartConfig, availableVariables, onChartConfigChange }) => {
-  const [chartInstance, setChartInstance] = React.useState(null);
-  const canvasRef = React.useRef(null);
+// MobileChart Template - Versión para HTML template (sin TypeScript, sin JSX)
+const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig, availableVariables = [], onChartConfigChange }) => {
+  // Usar valores proporcionados sin crear defaults
+  const safeDataHistory = dataHistory || [];
+  const safeChartConfig = chartConfig || {};
+  const safeAvailableVariables = availableVariables || [];
   
-  // Inicialización del chart con Chart.js
-  React.useEffect(() => {
-    if (!canvasRef.current || !window.Chart) return;
+  // Si no hay chartConfig.primaryY, usar widget.key (si existe)
+  if (!safeChartConfig.primaryY && widget?.key) {
+    safeChartConfig.primaryY = widget.key;
+  }
+
+  const canvasRef = React.useRef(null);
+  const chartRef = React.useRef(null);
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  
+  // Estados para datos reales (igual que React)
+  const [liveData, setLiveData] = React.useState([]);
+  const [seriesData, setSeriesData] = React.useState([]);
+  const [seriesLoading, setSeriesLoading] = React.useState(false);
+  
+  // Función normKey necesaria para MobileChartTemplate
+  const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
+  
+  // getScaleSettings - adaptado para template
+  const getScaleSettings = (key) => {
+    if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
     
+    const nk = normKey(key);
+    const w = (typeof CONFIG !== 'undefined' && CONFIG.dashboard) ? 
+      CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk) : null;
+    if (!w) return { min: undefined, max: undefined, format: undefined, unit: "" };
+    
+    // Si es estado digital, escala inicial 0-2
+    if (w.format === 'bool_onoff' || w.type === 'indicator' || w.type === 'control-relay') {
+      return { min: 0, max: 2, format: 'bool_onoff', unit: w.unit || "" };
+    }
+
+    const hasNoLimits = (w.min === 0 && w.max === 0) || (w.min === undefined && w.max === undefined);
+    return { 
+      min: hasNoLimits ? undefined : w.min, 
+      max: hasNoLimits ? undefined : w.max,
+      format: w.format,
+      unit: w.unit || ""
+    };
+  };
+
+  // Fetch de datos en tiempo real (igual que React)
+  const fetchLiveData = async () => {
+    try {
+      const baseUrl = (CONFIG && typeof CONFIG.BASE_URL === 'string') ? CONFIG.BASE_URL : '';
+      const res = await fetch(baseUrl + '/api/last');
+      if (!res.ok) {
+        console.warn('fetchLiveData failed:', res.status);
+        return;
+      }
+      const data = await res.json();
+      setLiveData(prev => {
+        const next = [...prev, data];
+        return next.length > 300 ? next.slice(-300) : next;
+      });
+    } catch (e) {
+      console.warn('fetchLiveData error:', e);
+    }
+  };
+
+  // Fetch de datos históricos (igual que React)
+  const fetchSeriesData = async () => {
+    try {
+      const isLive = safeChartConfig.timeRange === 'Ahora';
+      if (!safeChartConfig.primaryY || isLive) {
+        setSeriesData([]);
+        return;
+      }
+
+      setSeriesLoading(true);
+      const baseUrl = (CONFIG && typeof CONFIG.BASE_URL === 'string') ? CONFIG.BASE_URL : '';
+      const url = new URL(baseUrl + '/api/series', window.location.origin);
+      
+      const nowSec = Math.floor(Date.now() / 1000);
+      let fromTs = null, toTs = nowSec;
+      
+      if (safeChartConfig.timeRange === '24h') {
+        fromTs = nowSec - 86400;
+      } else if (safeChartConfig.timeRange === '7d') {
+        fromTs = nowSec - (7 * 86400);
+      }
+      
+      url.searchParams.set('channel', 'ingreso');
+      url.searchParams.set('keys', safeChartConfig.primaryY + (safeChartConfig.secondaryY ? ',' + safeChartConfig.secondaryY : ''));
+      url.searchParams.set('max_points', '1000');
+      if (fromTs != null) url.searchParams.set('from_ts', String(fromTs));
+      url.searchParams.set('to_ts', String(toTs));
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn('fetchSeriesData failed:', res.status);
+        return;
+      }
+      
+      const js = await res.json();
+      const series = js && js.series ? js.series : {};
+      const primaryKey = normKey(safeChartConfig.primaryY);
+      const secondaryKey = safeChartConfig.secondaryY ? normKey(safeChartConfig.secondaryY) : null;
+      
+      const merged = Object.entries(series).map(([timestamp, values]) => ({
+        timestamp: parseInt(timestamp) * 1000,
+        t: new Date(parseInt(timestamp) * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        v: values[primaryKey] || 0,
+        v2: secondaryKey ? (values[secondaryKey] || 0) : null,
+        fullTimestamp: parseInt(timestamp) * 1000
+      }));
+      
+      setSeriesData(merged);
+    } catch (e) {
+      console.warn('fetchSeriesData error:', e);
+      setSeriesData([]);
+    } finally {
+      setSeriesLoading(false);
+    }
+  };
+
+  // useEffect para inicializar datos
+  React.useEffect(() => {
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 5000); // Cada 5 segundos como React
+    return () => clearInterval(interval);
+  }, []);
+
+  // useEffect para datos históricos
+  React.useEffect(() => {
+    fetchSeriesData();
+  }, [safeChartConfig.primaryY, safeChartConfig.secondaryY, safeChartConfig.timeRange]);
+
+  // Determinar qué datos usar (igual que React)
+  const getCurrentData = () => {
+    if (safeChartConfig.timeRange === 'Ahora') {
+      return liveData.map(item => ({
+        t: new Date(item.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        v: item[normKey(safeChartConfig.primaryY)] || 0,
+        v2: safeChartConfig.secondaryY ? (item[normKey(safeChartConfig.secondaryY)] || 0) : null,
+        fullTimestamp: item.timestamp
+      }));
+    } else {
+      return seriesData.map(item => item);
+    }
+  };
+
+  const currentData = getCurrentData();
+
+  // Inicialización con Chart global
+  React.useEffect(() => {
+    if (!canvasRef.current || typeof window.Chart === 'undefined') return;
     const ctx = canvasRef.current.getContext('2d');
-    const chart = new window.Chart(ctx, {
+    if (!ctx) return;
+    
+    const pS = getScaleSettings(safeChartConfig.primaryY);
+    const sS = getScaleSettings(safeChartConfig.secondaryY || '');
+    
+    chartRef.current = new window.Chart(ctx, {
       type: 'line',
       data: {
-        labels: [],
-        datasets: [{
-          label: widget.label || 'Variable',
-          data: [],
-          borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56, 189, 248, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 0
-        }]
+        labels: currentData.map(d => d.t || ''),
+        datasets: [
+          {
+            label: 'Eje Principal',
+            data: currentData.map(d => d.v || 0),
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Eje Secundario',
+            data: currentData.map(d => d.v2 || 0),
+            borderColor: '#a855f7',
+            backgroundColor: 'rgba(168, 85, 247, 0.05)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            yAxisID: 'y1',
+            hidden: !safeChartConfig.secondaryY
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: '#f8fafc', font: { size: 11 } }
-          }
+        animation: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
         },
         scales: {
-          x: {
-            display: true,
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#9ca3af', font: { size: 10 } }
+          x: { 
+            display: false,
+            grid: { color: 'rgba(255,255,255,0.03)' },
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 9 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 8 
+            }
           },
           y: {
             display: true,
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#38bdf8', font: { size: 10 } }
+            position: 'left',
+            suggestedMin: pS.min,
+            suggestedMax: pS.max,
+            grid: { color: 'rgba(255,255,255,0.05)' }, 
+            ticks: { 
+              color: '#38bdf8', 
+              font: { size: 10 },
+              callback: (val) => window.formatValue ? window.formatValue(val, pS.format, "") : val
+            } 
+          },
+          y1: {
+            display: !!safeChartConfig.secondaryY,
+            position: 'right',
+            suggestedMin: sS.min,
+            suggestedMax: sS.max,
+            grid: { drawOnChartArea: false }, 
+            ticks: { 
+              color: '#a855f7', 
+              font: { size: 10 },
+              callback: (val) => window.formatValue ? window.formatValue(val, sS.format, "") : val
+            }
+          }
+        },
+        plugins: { 
+          legend: { 
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: {
+              color: '#f8fafc',
+              font: { size: 11, weight: 'bold' },
+              usePointStyle: true,
+              pointStyle: 'rectRounded',
+              padding: 15
+            }
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#fff',
+            titleFont: { size: 11, weight: 'bold' },
+            bodyFont: { size: 12 },
+            padding: 10,
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            callbacks: {
+              label: (item) => {
+                const label = item.dataset.label || '';
+                const value = item.formattedValue;
+                
+                const unitKey = item.datasetIndex === 0 ? safeChartConfig.primaryY : safeChartConfig.secondaryY;
+                if (!unitKey) {
+                  return label + ': ' + value;
+                }
+                
+                const scaleSettings = getScaleSettings(unitKey);
+                const unit = scaleSettings.unit || '';
+                return label + ': ' + value + unit;
+              }
+            }
           }
         }
       }
     });
-    
-    setChartInstance(chart);
-    return () => chart.destroy();
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
   }, []);
+
+  // Actualización de datos
+  React.useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart || !safeChartConfig.primaryY) return;
+    
+    const pS = getScaleSettings(safeChartConfig.primaryY);
+    const v1Label = (CONFIG.labels && CONFIG.labels[safeChartConfig.primaryY]) || safeChartConfig.primaryY || 'Variable 1';
+    const v2Label = (CONFIG.labels && CONFIG.labels[safeChartConfig.secondaryY]) || safeChartConfig.secondaryY || 'Variable 2';
+    
+    chart.data.labels = currentData.map(d => d.t);
+    chart.data.datasets[0].data = currentData.map(d => d.v);
+    chart.data.datasets[0].label = v1Label;
+    
+    if (safeChartConfig.secondaryY) {
+      chart.data.datasets[1].data = currentData.map(d => d.v2);
+      chart.data.datasets[1].label = v2Label;
+      chart.data.datasets[1].hidden = false;
+      chart.options.scales.y1.display = true;
+    } else {
+      chart.data.datasets[1].hidden = true;
+      chart.options.scales.y1.display = false;
+    }
+    
+    chart.update('none');
+    setIsInitialized(true); // Marcar como inicializado
+  }, [currentData, safeChartConfig]);
+
+  // Estado de carga inicial
+  if (!isInitialized || currentData.length === 0) {
+    return React.createElement('div', { 
+      className: 'mobile-chart-component',
+      style: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        height: '100%',
+        color: '#9ca3af',
+        fontSize: '14px'
+      }
+    }, [
+      React.createElement('div', { style: { textAlign: 'center' } }, [
+        React.createElement('div', { style: { fontSize: '24px', marginBottom: '10px' } }, '📊'),
+        React.createElement('div', { style: { marginBottom: '5px' } }, 'Cargando gráfico...'),
+        React.createElement('div', { style: { fontSize: '12px', opacity: 0.7 } }, 
+          currentData.length === 0 ? 'Esperando datos' : 'Inicializando...'
+        )
+      ])
+    ]);
+  }
+
+  // Variables para selectores
+  const chartVariables = (typeof CONFIG !== 'undefined' && CONFIG.dashboard) ? CONFIG.dashboard.widgets : [];
   
-  return React.createElement('canvas', {
-    ref: canvasRef,
-    style: { width: '100%', height: '100%' }
-  });
+  // Si no hay variables disponibles, mostrar mensaje
+  if (chartVariables.length === 0) {
+    return React.createElement('div', { 
+      className: 'mobile-chart-component',
+      style: { 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        height: '100%',
+        color: '#9ca3af',
+        fontSize: '14px'
+      }
+    }, [
+      React.createElement('div', { style: { textAlign: 'center' } }, [
+        React.createElement('div', { style: { fontSize: '24px', marginBottom: '10px' } }, '⚠️'),
+        React.createElement('div', { style: { marginBottom: '5px' } }, 'No hay variables disponibles'),
+        React.createElement('div', { style: { fontSize: '12px', opacity: 0.7 } }, 
+          'Configure variables en el dashboard'
+        )
+      ])
+    ]);
+  }
+
+  return React.createElement('div', { className: 'mobile-chart-component' }, [
+    // Controles
+    React.createElement('div', { className: 'mobile-chart-controls' }, [
+      React.createElement('div', { className: 'mobile-chart-axis-group' }, [
+        React.createElement('label', { className: 'mobile-chart-label primary' }, 'Eje Principal'),
+        React.createElement('select', {
+          className: 'mobile-chart-select primary',
+          value: safeChartConfig.primaryY,
+          onChange: (e) => {
+            if (onChartConfigChange) {
+              onChartConfigChange({ ...safeChartConfig, primaryY: e.target.value });
+            }
+          }
+        }, 
+          chartVariables.map(v => 
+            React.createElement('option', { key: v.key, value: v.key, style: { color: 'white' } }, v.label || v.key)
+          )
+        )
+      ]),
+      
+      React.createElement('div', { className: 'mobile-chart-axis-group' }, [
+        React.createElement('label', { className: 'mobile-chart-label secondary' }, 'Eje Secundario'),
+        React.createElement('select', {
+          className: 'mobile-chart-select secondary',
+          value: safeChartConfig.secondaryY || '',
+          onChange: (e) => {
+            if (onChartConfigChange) {
+              onChartConfigChange({ ...safeChartConfig, secondaryY: e.target.value || undefined });
+            }
+          }
+        }, [
+          React.createElement('option', { value: '', style: { color: 'white' } }, '(sin eje secundario)'),
+          ...(chartVariables.map(v => 
+            React.createElement('option', { key: v.key, value: v.key, style: { color: 'white' } }, v.label || v.key)
+          ))
+        ])
+      ])
+    ]),
+    
+    // Canvas
+    React.createElement('div', { className: 'mobile-chart-canvas-container' }, [
+      React.createElement('canvas', { 
+        ref: canvasRef,
+        className: 'mobile-chart-canvas'
+      })
+    ])
+  ]);
 });
 
-MobileChart.displayName = 'MobileChart';
-
+MobileChartTemplate.displayName = 'MobileChartTemplate';
+  
             
             
 // MOBILE TEMPLATE FINAL - CONSOLIDADO Y CORREGIDO
@@ -1991,11 +2336,14 @@ const AlertItem = React.memo(({ alert, alertType }) => {
                 React.createElement('span', { 
                     key: 'timestamp',
                     style: { 
-                        marginLeft: '8px', 
+                        marginLeft: 'auto', 
                         fontSize: '10px', 
-                        color: 'var(--text-muted)' 
+                        color: 'var(--text-muted)',
+                        textAlign: 'right'
                     } 
-                }, alert.timestamp || new Date().toLocaleString('es-ES'))
+                }, alert.timestamp 
+                    ? new Date(alert.timestamp).toLocaleString('es-ES')
+                    : new Date().toLocaleString('es-ES'))
             ]),
             React.createElement('div', { 
                 key: 'message',
@@ -2034,8 +2382,7 @@ const AlertItem = React.memo(({ alert, alertType }) => {
 });
 
 // Componente de gráficos con Chart.js
-// Declaración global de Chart para compatibilidad con MobileChart
-var Chart;
+// Chart.js se usa como window.Chart global (inyectado en el HTML)
 
 // === PUNTO 7: CONFIGURACIÓN DE ESCALA ===
 // getScaleSettings() - obtiene min/max desde widgets
@@ -2060,29 +2407,7 @@ const getScaleSettings = (key, availableVariables) => {
 };
 
 // === PUNTO 8: INICIALIZACIÓN CHART.JS ===
-// new Chart(ctx, config) con doble eje Y
-
-// Inicialización Chart.js como Desktop (igual para mobile)
-// NOTA: Chart.js debe estar disponible globalmente
-const initializeChart = (canvasRef, chartData, chartOptions) => {
-  const ChartGlobal = Chart;
-  if (canvasRef && chartData && ChartGlobal) {
-    
-    // Destruir chart anterior si existe
-    if (canvasRef.chart) {
-      canvasRef.chart.destroy();
-    }
-
-    // Crear nuevo Chart como Desktop
-    canvasRef.chart = new ChartGlobal(canvasRef, {
-      type: 'line',
-      data: chartData,
-      options: chartOptions
-    });
-
-    return canvasRef.chart;
-  }
-};
+// Chart.js se inicializa directamente en MobileChartTemplate (como en reactDashboardTemplate)
 const SparklineWidget = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
   // SparklineEngine debe estar disponible globalmente
   
@@ -2198,8 +2523,7 @@ const decodeGzipJson = async (arrayBuffer) => {
 };
 
 // --- Variables y funciones necesarias para MobileChart ---
-let mockDataHistory = {};
-let chartConfig = {};
+// Variables eliminadas - ahora se usa el estado del componente principal
 
 
 // === COMPONENTES MEMOIZADOS (fuera del componente principal) ===
@@ -3367,409 +3691,10 @@ const isValidForMinMax = (key, v) => {
 
     // --- Componentes Inline - Copiados desde MobileDashboardPreview.tsx ---
     
-    // Componente DashboardMobileChart inline - versión completa con Chart.js y controles de tiempo
-    const DashboardMobileChart = React.memo(({ widget }) => {
-        const [chartConfig, setChartConfig] = React.useState({
-            primaryY: widget.key || '',
-            secondaryY: '',
-            timeRange: 'Ahora'
-        });
-
-        const [isPortrait, setIsPortrait] = React.useState(window.innerHeight > window.innerWidth);
-        const chartRef = React.useRef(null);
-        const chartInstance = React.useRef(null);
-
-        React.useEffect(() => {
-            const handleOrientationChange = () => {
-                setIsPortrait(window.innerHeight > window.innerWidth);
-            };
-            
-            window.addEventListener('resize', handleOrientationChange);
-            return () => window.removeEventListener('resize', handleOrientationChange);
-        }, []);
-
-        const getScaleSettings = (key) => {
-            if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
-            const nk = normKey(key);
-            const variable = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
-            if (!variable) return { min: undefined, max: undefined, format: undefined, unit: "" };
-            
-            // Si es estado digital, escala inicial 0-2
-            if (variable.format === 'bool_onoff' || variable.type === 'indicator' || variable.type === 'control-relay') {
-                return { min: 0, max: 2, format: 'bool_onoff', unit: variable.unit || "" };
-            }
-            const hasNoLimits = (variable.min === 0 && variable.max === 0) || (variable.min === undefined && variable.max === undefined);
-            return { 
-                min: hasNoLimits ? undefined : variable.min, 
-                max: hasNoLimits ? undefined : variable.max,
-                format: variable.format,
-                unit: variable.unit || ""
-            };
-        };
-
-        const chartData = React.useMemo(() => {
-            if (!SparklineEngine) return { labels: [], datasets: [] };
-
-            const scaleSettings = getScaleSettings(chartConfig.primaryY || widget.key);
-            const data = SparklineEngine.getBuffer(widget.id, chartConfig.primaryY || widget.key, scaleSettings.min || 0, scaleSettings.max || 100);
-            const labels = data.map((_, i) => i.toString());
-            
-            const v1Label = CONFIG.labels[chartConfig.primaryY || widget.key] || widget.label || (chartConfig.primaryY || widget.key) || 'Variable 1';
-            const v2Label = CONFIG.labels[chartConfig.secondaryY] || chartConfig.secondaryY || 'Variable 2';
-            
-            const datasets = [{
-                label: v1Label,
-                data,
-                borderColor: '#38bdf8',
-                backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                yAxisID: 'y'
-            }];
-
-            // Add secondary axis if selected
-            if (chartConfig.secondaryY) {
-                const secondaryScaleSettings = getScaleSettings(chartConfig.secondaryY);
-                const secondaryData = SparklineEngine.getBuffer(widget.id + '_secondary', chartConfig.secondaryY, secondaryScaleSettings.min || 0, secondaryScaleSettings.max || 100);
-                datasets.push({
-                    label: v2Label,
-                    data: secondaryData,
-                    borderColor: '#a855f7',
-                    backgroundColor: 'rgba(168, 85, 247, 0.05)',
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 3,
-                    yAxisID: 'y1'
-                });
-            }
-
-            return { labels, datasets };
-        }, [widget.id, chartConfig.primaryY, chartConfig.secondaryY, widget.key]);
-
-        const chartOptions = React.useMemo(() => ({
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    align: 'end',
-                    labels: {
-                        color: '#f8fafc',
-                        font: { size: 11, weight: 'bold' },
-                        usePointStyle: true,
-                        pointStyle: 'rectRounded',
-                        padding: 15
-                    }
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    titleColor: '#fff',
-                    titleFont: { size: 11, weight: 'bold' },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1,
-                },
-            },
-            scales: {
-                x: {
-                    display: !isPortrait, // Mostrar eje X solo en horizontal
-                    grid: { color: 'rgba(255,255,255,0.03)' },
-                    ticks: { 
-                        color: '#9ca3af', 
-                        font: { size: 10 },
-                        maxTicksLimit: isPortrait ? 0 : 8 // Limitar ticks en horizontal
-                    } 
-                },
-                y: {
-                    display: true,
-                    position: 'left',
-                    beginAtZero: false,
-                    suggestedMin: widget.min,
-                    suggestedMax: widget.max,
-                    grid: { color: 'rgba(255,255,255,0.05)' }, 
-                    ticks: { 
-                        color: '#38bdf8', 
-                        font: { size: 10 }
-                    } 
-                },
-                y1: {
-                    display: !!chartConfig.secondaryY,
-                    position: 'right',
-                    beginAtZero: false,
-                    suggestedMin: widget.min,
-                    suggestedMax: widget.max,
-                    grid: { drawOnChartArea: false }, 
-                    ticks: { 
-                        color: '#a855f7', 
-                        font: { size: 10 }
-                    },
-                    type: 'linear',
-                    title: {
-                        display: true,
-                        text: 'Eje Secundario',
-                        color: '#a855f7',
-                        font: { size: 10, weight: 'bold' }
-                    }
-                }
-            },
-        }), [chartConfig.secondaryY, widget.min, widget.max, isPortrait]);
-
-        // Inicializar Chart.js - ESTABLE COMO WEB CHART
-        React.useEffect(() => {
-            const ChartGlobal = Chart;
-            if (!ChartGlobal || !chartRef.current) return;
-
-            const ctx = chartRef.current.getContext('2d');
-            
-            // Inicializar chart una sola vez con datos vacíos
-            chartInstance.current = new ChartGlobal(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Eje Principal',
-                            data: [],
-                            borderColor: '#38bdf8',
-                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 0,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Eje Secundario',
-                            data: [],
-                            borderColor: '#a855f7',
-                            backgroundColor: 'rgba(168, 85, 247, 0.05)',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.3,
-                            pointRadius: 0,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: chartOptions
-            });
-
-            // Cleanup solo cuando se desmonta el componente
-            return () => {
-                if (chartInstance.current) {
-                    chartInstance.current.destroy();
-                }
-            };
-        }, []); // ← DEPENDENCIAS VACÍAS = SE EJECUTA UNA SOLA VEZ
-
-        // Actualizar datos del chart sin destruirlo
-        React.useEffect(() => {
-            if (chartInstance.current && chartData) {
-                chartInstance.current.data = chartData;
-                chartInstance.current.options = chartOptions;
-                chartInstance.current.update('none'); // Actualizar sin animación para evitar flicker
-            }
-        }, [chartData, chartOptions]);
-
-        // Actualizar opciones de responsive cuando cambia orientación
-        React.useEffect(() => {
-            if (chartInstance.current) {
-                chartInstance.current.options.scales.x.display = !isPortrait;
-                chartInstance.current.update();
-            }
-        }, [isPortrait]);
-
-        return React.createElement('div', {
-            style: { 
-                display: 'flex', 
-                flexDirection: 'column', 
-                height: isPortrait ? 'auto' : '100%',
-                padding: isPortrait ? '10px' : '20px'
-            }
-        }, [
-            // Controles responsive
-            React.createElement('div', {
-                key: 'controls',
-                style: {
-                    display: 'flex',
-                    flexDirection: isPortrait ? 'column' : 'row',
-                    gap: isPortrait ? '10px' : '15px',
-                    marginBottom: isPortrait ? '10px' : '20px'
-                }
-            }, [
-                // Eje Y Principal
-                React.createElement('div', {
-                    key: 'primary',
-                    style: { flex: 1 }
-                }, [
-                    React.createElement('label', {
-                        key: 'label1',
-                        style: { fontSize: 9, color: '#38bdf8', textTransform: 'uppercase', marginBottom: 3, display: 'block', fontWeight: 800 }
-                    }, 'EJE Y PRINCIPAL'),
-                    React.createElement('select', {
-                        key: 'select1',
-                        value: chartConfig.primaryY || widget.key,
-                        onChange: (e) => setChartConfig(prev => ({ ...prev, primaryY: e.target.value })),
-                        style: { 
-                            width: '100%', 
-                            padding: '6px', 
-                            background: '#1e293b', 
-                            color: '#38bdf8', 
-                            border: '1px solid rgba(56, 189, 248, 0.4)', 
-                            borderRadius: 4, 
-                            fontSize: 10, 
-                            fontWeight: 'bold' 
-                        }
-                    }, 
-                        CONFIG.dashboard.widgets.map(v => 
-                            React.createElement('option', { 
-                                key: v.key, 
-                                value: v.key, 
-                                style: { color: 'white' } 
-                            }, v.label || v.key)
-                        )
-                    )
-                ]),
-                
-                // Eje Y Secundario
-                React.createElement('div', {
-                    key: 'secondary',
-                    style: { flex: 1 }
-                }, [
-                    React.createElement('label', {
-                        key: 'label2',
-                        style: { fontSize: 9, color: '#a855f7', textTransform: 'uppercase', marginBottom: 3, display: 'block', fontWeight: 800 }
-                    }, 'EJE Y SECUNDARIO'),
-                    React.createElement('select', {
-                        key: 'select2',
-                        value: chartConfig.secondaryY,
-                        onChange: (e) => setChartConfig(prev => ({ ...prev, secondaryY: e.target.value })),
-                        style: { 
-                            width: '100%', 
-                            padding: '6px', 
-                            background: '#1e293b', 
-                            color: '#a855f7', 
-                            border: '1px solid rgba(168, 85, 247, 0.4)', 
-                            borderRadius: 4, 
-                            fontSize: 10, 
-                            fontWeight: 'bold' 
-                        }
-                    }, [
-                        React.createElement('option', { 
-                            key: 'empty', 
-                            value: '', 
-                            style: { color: 'white' } 
-                        }, '(sin eje secundario)'),
-                        ...(CONFIG.dashboard.widgets.map(v => 
-                            React.createElement('option', { 
-                                key: v.key, 
-                                value: v.key, 
-                                style: { color: 'white' } 
-                            }, v.label || v.key)
-                        ) || [])
-                    ])
-                ]),
-                
-                // Time range solo en vertical
-                ...(isPortrait ? [
-                    React.createElement('div', {
-                        key: 'timerange',
-                        style: { display: 'flex', gap: 4 }
-                    }, [
-                        React.createElement('button', {
-                            key: 'live',
-                            onClick: () => setChartConfig(prev => ({ ...prev, timeRange: 'Ahora' })),
-                            style: {
-                                flex: 1,
-                                padding: '6px 2px',
-                                borderRadius: 4,
-                                border: chartConfig.timeRange === 'Ahora' ? '1px solid var(--adtec-accent, #facc15)' : '1px solid rgba(148,163,184,0.1)',
-                                background: chartConfig.timeRange === 'Ahora' ? 'rgba(56,189,248,0.1)' : '#1e293b',
-                                color: chartConfig.timeRange === 'Ahora' ? 'var(--adtec-accent, #facc15)' : '#9ca3af',
-                                fontSize: 8,
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                            }
-                        }, '📡 LIVE'),
-                        React.createElement('button', {
-                            key: '24h',
-                            onClick: () => setChartConfig(prev => ({ ...prev, timeRange: '24h' })),
-                            style: {
-                                flex: 1,
-                                padding: '6px 2px',
-                                borderRadius: 4,
-                                border: chartConfig.timeRange === '24h' ? '1px solid var(--adtec-accent, #facc15)' : '1px solid rgba(148,163,184,0.1)',
-                                background: chartConfig.timeRange === '24h' ? 'rgba(56,189,248,0.1)' : '#1e293b',
-                                color: chartConfig.timeRange === '24h' ? 'var(--adtec-accent, #facc15)' : '#9ca3af',
-                                fontSize: 8,
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                            }
-                        }, '📅 24H'),
-                        React.createElement('button', {
-                            key: '7d',
-                            onClick: () => setChartConfig(prev => ({ ...prev, timeRange: '7d' })),
-                            style: {
-                                flex: 1,
-                                padding: '6px 2px',
-                                borderRadius: 4,
-                                border: chartConfig.timeRange === '7d' ? '1px solid var(--adtec-accent, #facc15)' : '1px solid rgba(148,163,184,0.1)',
-                                background: chartConfig.timeRange === '7d' ? 'rgba(56,189,248,0.1)' : '#1e293b',
-                                color: chartConfig.timeRange === '7d' ? 'var(--adtec-accent, #facc15)' : '#9ca3af',
-                                fontSize: 8,
-                                fontWeight: 700,
-                                cursor: 'pointer'
-                            }
-                        }, '🗓️ 7D')
-                    ])
-                ] : [])
-            ]),
-            
-            // Gráfico
-            React.createElement('div', {
-                key: 'chart',
-                style: { 
-                    flex: 1, 
-                    position: 'relative', 
-                    minHeight: isPortrait ? 200 : 300,
-                    height: isPortrait ? 'auto' : '100%'
-                }
-            }, [
-                React.createElement('canvas', {
-                    key: 'canvas',
-                    ref: chartRef,
-                    style: { width: '100%', height: '100%' }
-                })
-            ]),
-            
-            // Mensaje informativo solo en vertical
-            ...(isPortrait ? [
-                React.createElement('div', {
-                    key: 'message',
-                    style: { 
-                        textAlign: 'center', 
-                        padding: '15px', 
-                        fontSize: '12px', 
-                        color: 'var(--text-muted, #64748b)',
-                        background: 'rgba(255,255,255,0.02)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(148, 163, 184, 0.1)',
-                        marginTop: '10px'
-                    }
-                }, [
-                    React.createElement('div', { key: 'icon', style: { marginBottom: '5px' } }, '💡'),
-                    React.createElement('div', { key: 'text' }, 'Para visualizar mejor el gráfico, rotar el dispositivo')
-                ])
-            ] : [])
-        ]);
-    });
+    // DashboardMobileChart eliminado - ahora se usa MobileChartTemplate inyectado desde MobileChart.tsx
+    
+    // Función normKey necesaria para MobileChartTemplate
+    const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
 
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
@@ -4193,7 +4118,38 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         key: 'chart-container',
                         style: { flex: 1, position: 'relative', minHeight: 120 }
                     }, [
-                        React.createElement(DashboardMobileChart, { key: 'chart', 'widget': w })
+                        React.createElement('div', {
+                            key: 'chart-wrapper',
+                            style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+                        }, [
+                            (() => {
+                                try {
+                                    return React.createElement(MobileChartTemplate, { 
+                                        key: 'chart', 
+                                        widget: w,
+                                        dataHistory: [], // El MobileChartTemplate maneja sus propios datos
+                                        chartConfig: chartConfig,
+                                        availableVariables: availableVariables,
+                                        onChartConfigChange: (newConfig) => setChartConfig(newConfig)
+                                    });
+                                } catch (error) {
+                                    console.error('Error rendering MobileChartTemplate:', error);
+                                    return React.createElement('div', {
+                                        key: 'error',
+                                        style: { 
+                                            color: '#ef4444', 
+                                            fontSize: '12px', 
+                                            textAlign: 'center',
+                                            padding: '20px'
+                                        }
+                                    }, [
+                                        React.createElement('div', { key: 'icon', style: { fontSize: '24px', marginBottom: '10px' } }, '⚠️'),
+                                        React.createElement('div', { key: 'text' }, 'Error al cargar el gráfico'),
+                                        React.createElement('div', { key: 'error-text', style: { fontSize: '10px', opacity: 0.7 } }, error.message)
+                                    ]);
+                                }
+                            })()
+                        ])
                     ])
                 ]);
             })();
@@ -4459,10 +4415,10 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                             ]),
                             React.createElement('div', { key: 'chart-wrapper', className: 'mobile-chart-wrapper' }, [
                                 React.createElement('div', { key: 'chart-inner', className: 'mobile-chart-inner' }, [
-                                    React.createElement(MobileChart, { 
+                                    React.createElement(MobileChartTemplate, { 
                                         key: 'chart',
                                         widget: chartWidget,
-                                        dataHistory: mockDataHistory,
+                                        dataHistory: [], // El MobileChartTemplate maneja sus propios datos
                                         chartConfig: chartConfig || {
                                             primaryY: chartWidget.key || availableVariables[0]?.key || '',
                                             secondaryY: '',

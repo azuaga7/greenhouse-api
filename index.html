@@ -1175,7 +1175,26 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
 const DashboardApp = () => {
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
-    const [alerts, setAlerts] = useState([]);
+    const [alerts, setAlerts] = useState([
+        {
+            type: 'CRITICAL',
+            msg: 'Alerta de prueba para visualizar contenedores',
+            value: 45.2,
+            ref: 40.0,
+            signal: 'sensor.temperatura',
+            timestamp: new Date().toISOString(),
+            ts: Date.now() / 1000
+        },
+        {
+            type: 'WARNING',
+            msg: 'Otra alerta de prueba - advertencia',
+            value: 85.5,
+            ref: 80.0,
+            signal: 'sensor.humedad',
+            timestamp: new Date(Date.now() - 300000).toISOString(),
+            ts: (Date.now() - 300000) / 1000
+        }
+    ]);
     const [controlState, setControlState] = useState({});
     const [pendingCommands, setPendingCommands] = useState({}); 
     // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
@@ -2281,14 +2300,14 @@ useEffect(() => {
         return base + '/api/download/xlsx_range?site=' + encodeURIComponent(site) + '&from_iso=' + encodeURIComponent(fromIso) + '&to_iso=' + encodeURIComponent(toIso);
     }, [BASE_URL, chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate, liveFirstIso, liveLastIso]);
     return (
-        <div className="adtec-dashboard-root">
-            <div className="tabs-nav">
+        <div className="adtec-dashboard-root" style={{ background: 'rgba(99, 102, 241, 0.05)', border: '2px solid #6366f1', borderRadius: '12px', padding: '10px', margin: '10px' }}>
+            <div className="tabs-nav" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10b981', borderRadius: '8px', padding: '8px', margin: '5px' }}>
                 {CONFIG.dashboard.tabs.map(t => (
                     <div 
                         key={t.id} 
                         className={"tab-btn " + (activeTabId === t.id ? "active" : "")} 
                         onClick={() => setActiveTabId(t.id)}
-                        style={{ position: 'relative' }}
+                        style={{ position: 'relative', background: activeTabId === t.id ? 'rgba(251, 146, 60, 0.2)' : 'rgba(156, 163, 175, 0.1)', border: activeTabId === t.id ? '2px solid #fb923c' : '1px solid #9ca3af', borderRadius: '6px', padding: '6px 10px', margin: '2px' }}
                     >
                         {t.icon && t.icon.length > 2 ? (
                             <i data-lucide={t.icon}></i>
@@ -2301,15 +2320,41 @@ useEffect(() => {
                     </div>
                 ))}
             </div>
-            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
+            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto', background: 'rgba(139, 92, 246, 0.05)', border: '2px solid #8b5cf6', borderRadius: '12px', padding: '10px' }}>
+                {currentTab.type === 'alerts' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '25px', marginBottom: '25px', borderBottom: '1px solid rgba(148, 163, 184, 0.1)', paddingBottom: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="logo-icon" style={{ width: 30, height: 30, borderRadius: 8, background: '#ef4444', boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)', border: '2px solid #fbbf24' }}>
+                                <div className="logo-icon-inner" style={{ fontSize: 9, background: 'rgba(251, 191, 36, 0.2)', borderRadius: '4px', padding: '2px' }}>ADTEC</div>
+                            </div>
+                            <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button 
+                                onClick={() => {
+                                    if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
+                                        const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
+                                        const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
+                                        setSeenUntil(maxMs);
+                                        setAlerts([]);
+                                    }
+                                }}
+                                style={{ padding: '6px 15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
+                            >
+                                MARCAR COMO LEÍDAS
+                            </button>
+                            <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
+                        </div>
+                    </div>
+                )}
                 {currentTab.type !== 'charts' && currentTab.type !== 'alerts' && (
-                    <div className="card-header">
-                        <div className="logo-section">
-                            <div className="logo-icon"><div className="logo-icon-inner">ADTEC</div></div>
+                    <div className="card-header" style={{ background: 'rgba(236, 72, 153, 0.1)', border: '1px solid #ec4899', borderRadius: '8px', padding: '10px', margin: '5px' }}>
+                        <div className="logo-section" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', borderRadius: '6px', padding: '8px' }}>
+                            <div className="logo-icon" style={{ background: 'rgba(251, 191, 36, 0.2)', border: '2px solid #fbbf24', borderRadius: '6px', padding: '4px' }}><div className="logo-icon-inner" style={{ background: 'rgba(239, 68, 68, 0.2)', borderRadius: '4px', padding: '2px' }}>ADTEC</div></div>
                             <span className="card-title">{currentTab.title}</span>
                         </div>
                         {currentTab.type === 'control' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59, 130, 246, 0.1)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
                                 <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
                                     {controlState.manual ? 'MANUAL' : 'AUTO'}
                                 </span>
@@ -2322,35 +2367,11 @@ useEffect(() => {
                         <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
                     </div>
                 )}
-                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"}>
+                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"} style={{ background: 'rgba(251, 146, 60, 0.05)', border: '1px solid #fb923c', borderRadius: '8px', padding: '8px', margin: '5px' }}>
                     {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
                     
                     {currentTab.type === 'alerts' ? (
                         <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '25px', marginBottom: '25px', borderBottom: '1px solid rgba(148, 163, 184, 0.1)', paddingBottom: '15px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div className="logo-icon" style={{ width: 30, height: 30, borderRadius: 8, background: '#ef4444', boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)' }}>
-                                        <div className="logo-icon-inner" style={{ fontSize: 9 }}>ADTEC</div>
-                                    </div>
-                                    <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <button 
-                                        onClick={() => {
-                                            if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
-                                                const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
-                                                const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
-                                                setSeenUntil(maxMs);
-                                                setAlerts([]);
-                                            }
-                                        }}
-                                        style={{ padding: '6px 15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', borderRadius: '6px', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
-                                    >
-                                        MARCAR COMO LEÍDAS
-                                    </button>
-                                    <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
-                                </div>
-                            </div>
                             {alerts.length === 0 ? (
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, margin: '0 25px' }}>
                                     <span style={{ fontSize: '48px', marginBottom: '15px' }}>🟢</span>
@@ -2361,7 +2382,7 @@ useEffect(() => {
                                 <div style={{ 
                                     maxHeight: '50vh', 
                                     overflowY: 'auto', 
-                                    margin: '0 25px 25px 25px'
+                                    margin: '0 25px 8px 25px'
                                 }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {alerts.map((a, i) => {
@@ -2396,6 +2417,37 @@ useEffect(() => {
                                     </div>
                                 </div>
                             )}
+                            {/* Contador horizontal de alertas por tipo */}
+                            <div style={{ 
+                                margin: '0 25px 25px 25px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '15px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: '#f8fafc',
+                                marginTop: 'auto'
+                            }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    📊 <span style={{ color: '#3b82f6' }}>ALERTAS:</span>
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626' }}>
+                                    🚨 <span style={{ color: '#f8fafc' }}>CRÍTICAS:</span>{alerts.filter(a => a.type === 'CRITICAL' || a.type === 'ALERT_CRITICAL').length}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#d97706' }}>
+                                    ⚠️ <span style={{ color: '#f8fafc' }}>ADVERTENCIAS:</span>{alerts.filter(a => a.type === 'WARN' || a.type === 'WARNING' || a.type === 'ALERT_WARNING').length}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#2563eb' }}>
+                                    ℹ️ <span style={{ color: '#f8fafc' }}>INFO:</span>{alerts.filter(a => a.type === 'INFO' || a.type === 'ALERT_INFO').length}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#7c3aed' }}>
+                                    🔄 <span style={{ color: '#f8fafc' }}>CAMBIOS:</span>{alerts.filter(a => a.type === 'STATE' || a.type === 'ALERT_STATE').length}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6b7280' }}>
+                                    🔴 <span style={{ color: '#f8fafc' }}>ALERT:</span>{alerts.filter(a => a.type === 'ALERT').length}
+                                </span>
+                            </div>
                         </>
                     ) : currentTab.type === 'charts' ? (
                         <div style={{ flex: 1, position: 'relative', overflowY: 'auto', padding: 25, display: 'flex', flexDirection: 'column' }}>
