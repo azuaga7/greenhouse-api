@@ -2098,10 +2098,10 @@ useEffect(() => {
         try {
             console.log('[HISTORY] Loading full history in background...');
             
-            // 🚀 NUEVO: Cargar en chunks más chicos para evitar errores QUIC
+            // 🚀 NUEVO: Cargar en chunks ultra pequeños para evitar errores QUIC
             const fetchHistoryInChunks = async () => {
-                const CHUNK_SIZE = 200; // Reducido de 1000 a 200
-                const TOTAL_LIMIT = 1000; // Reducido de 5000 a 1000
+                const CHUNK_SIZE = 50; // Reducido de 200 a 50
+                const TOTAL_LIMIT = 250; // Reducido de 1000 a 250
                 let allData = [];
                 
                 console.log('[HISTORY] Starting chunked fetch - CHUNK_SIZE:', CHUNK_SIZE, 'TOTAL_LIMIT:', TOTAL_LIMIT);
@@ -2135,7 +2135,7 @@ useEffect(() => {
                     // Fallback: intentar método original con limit menor
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
-                        fallbackUrl.searchParams.append('limit', '200'); // Reducido de 1000 a 200
+                        fallbackUrl.searchParams.append('limit', '50'); // Reducido de 200 a 50
                         
                         const res = await fetch(fallbackUrl);
                         if (!res.ok) throw new Error("Fallback failed");

@@ -2941,10 +2941,10 @@ const isValidForMinMax = (key, v) => {
         
         try {
             
-            // 🚀 NUEVO: Cargar en chunks para evitar errores HTTP/2
+            // 🚀 NUEVO: Cargar en chunks ultra pequeños para evitar errores QUIC
             const fetchHistoryInChunks = async () => {
-                const CHUNK_SIZE = 1000;
-                const TOTAL_LIMIT = 5000;
+                const CHUNK_SIZE = 50;  // Reducido de 200 a 50
+                const TOTAL_LIMIT = 250; // Reducido de 1000 a 250
                 let allData = [];
                 
                 console.log('[MOBILE HISTORY] Starting chunked fetch - CHUNK_SIZE:', CHUNK_SIZE, 'TOTAL_LIMIT:', TOTAL_LIMIT);
@@ -2977,7 +2977,7 @@ const isValidForMinMax = (key, v) => {
                     // Fallback: intentar método original con limit menor
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
-                        fallbackUrl.searchParams.append('limit', '1000');
+                        fallbackUrl.searchParams.append('limit', '50'); // Reducido de 200 a 50
                         
                         const res = await fetch(fallbackUrl);
                         if (!res.ok) throw new Error("Mobile fallback failed");
@@ -3005,14 +3005,17 @@ const isValidForMinMax = (key, v) => {
     // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
     const fetchAlerts = async () => {
         try {
-            // 🚀 NUEVO: Cargar alerts en chunks para evitar errores HTTP/2
+            // 🚀 NUEVO: Cargar en chunks más chicos para evitar errores QUIC
             const fetchAlertsInChunks = async () => {
-                const CHUNK_SIZE = 50; // 50 alerts por chunk
-                const TOTAL_LIMIT = 200;
+                const CHUNK_SIZE = 25;  // Reducido de 50 a 25
+                const TOTAL_LIMIT = 100; // Reducido de 200 a 100
                 let allAlerts = [];
+                
+                console.log('[MOBILE ALERTS] Starting chunked fetch - CHUNK_SIZE:', CHUNK_SIZE, 'TOTAL_LIMIT:', TOTAL_LIMIT);
                 
                 try {
                     for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+                        console.log('[MOBILE ALERTS] Fetching chunk offset:', offset);
                         const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
                         u.searchParams.set('limit', String(CHUNK_SIZE));
                         u.searchParams.set('offset', String(offset));
@@ -3024,10 +3027,13 @@ const isValidForMinMax = (key, v) => {
                         const chunk = Array.isArray(js) ? js : [];
                         allAlerts = allAlerts.concat(chunk);
                         
+                        console.log('[MOBILE ALERTS] Chunk', offset, 'loaded -', chunk.length, 'alerts');
+                        
                         // Pequeña pausa para no saturar HTTP/2
                         await new Promise(resolve => setTimeout(resolve, 30));
                     }
                     
+                    console.log('[MOBILE ALERTS] Chunked fetch completed - total alerts:', allAlerts.length);
                     return allAlerts;
                 } catch (e) {
                     console.warn('[MOBILE ALERTS] Chunked load failed, trying fallback:', e);
@@ -3035,7 +3041,7 @@ const isValidForMinMax = (key, v) => {
                     // Fallback: intentar método original con limit menor
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/alerts', window.location.origin);
-                        fallbackUrl.searchParams.set('limit', '50');
+                        fallbackUrl.searchParams.set('limit', '25'); // Reducido de 50 a 25
                         
                         const res = await fetch(fallbackUrl);
                         if (!res.ok) throw new Error("Mobile alerts fallback failed");
@@ -3057,21 +3063,7 @@ const isValidForMinMax = (key, v) => {
                 return { ...a, timestamp, __ts_ms: ms };
             }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
             
-            // Solo actualizar si hay cambios reales
-            setAlerts(prevAlerts => {
-                // Comparar arrays para evitar renders innecesarios
-                if (prevAlerts.length === normalized.length) {
-                    let hasChanges = false;
-                    for (let i = 0; i < prevAlerts.length; i++) {
-                        if (prevAlerts[i]?.__ts_ms !== normalized[i]?.__ts_ms) {
-                            hasChanges = true;
-                            break;
-                        }
-                    }
-                    if (!hasChanges) return prevAlerts;
-                }
-                return normalized;
-            });
+            setAlerts(normalized);
             
         } catch(e) { console.warn("Fallo Alertas:", e); }
     };
@@ -3086,7 +3078,7 @@ const isValidForMinMax = (key, v) => {
         run();
         const id = setInterval(() => { fetchAlerts(); }, ALERTS_POLL_MS);
         return () => { mounted = false; clearInterval(id); };
-    }, [BASE_URL]); // Eliminado alertsSeenUntilMs para evitar reinicios
+    }, [BASE_URL, alertsSeenUntilMs]);
 
     // --- Series Data Loading - IGUAL que React Desktop ---
     useEffect(() => {
@@ -4437,8 +4429,16 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         return React.createElement('div', { key: 'alerts-wrapper', className: 'mobile-alerts-wrapper' }, [
                             React.createElement('div', { key: 'alerts-inner', className: 'mobile-alerts-inner' }, [
                                 React.createElement(AlertsWidget, { 
-                                    key: 'alerts',
-                                    getWidgetValue: getWidgetValue 
+                                    key: 'alerts-widget',
+                                    alerts: alerts,
+                                    onClear: () => {
+                                        if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
+                                            const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
+                                            const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
+                                            setSeenUntil(maxMs);
+                                            setAlerts([]);
+                                        }
+                                    }
                                 })
                             ])
                         ]);
