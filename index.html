@@ -1886,10 +1886,10 @@ useEffect(() => {
 	// Poll de alertas (separado del loop live para no spamear el Bridge)
 	const fetchAlerts = async () => {
 		try {
-			// 🚀 NUEVO: Cargar alerts en chunks para evitar errores HTTP/2
+			// 🚀 NUEVO: Cargar alerts en chunks más chicos para evitar errores QUIC
 			const fetchAlertsInChunks = async () => {
-				const CHUNK_SIZE = 50; // 50 alerts por chunk
-				const TOTAL_LIMIT = 200;
+				const CHUNK_SIZE = 25; // Reducido de 50 a 25
+				const TOTAL_LIMIT = 100; // Reducido de 200 a 100
 				let allAlerts = [];
 				
 				try {
@@ -1916,7 +1916,7 @@ useEffect(() => {
 					// Fallback: intentar método original con limit menor
 					try {
 						const fallbackUrl = new URL(BASE_URL + '/api/alerts', window.location.origin);
-						fallbackUrl.searchParams.set('limit', '50');
+						fallbackUrl.searchParams.set('limit', '25'); // Reducido de 50 a 25
 						
 						const res = await fetch(fallbackUrl);
 						if (!res.ok) throw new Error("Alerts fallback failed");
@@ -2098,10 +2098,10 @@ useEffect(() => {
         try {
             console.log('[HISTORY] Loading full history in background...');
             
-            // 🚀 NUEVO: Cargar en chunks para evitar errores HTTP/2
+            // 🚀 NUEVO: Cargar en chunks más chicos para evitar errores QUIC
             const fetchHistoryInChunks = async () => {
-                const CHUNK_SIZE = 1000;
-                const TOTAL_LIMIT = 5000;
+                const CHUNK_SIZE = 200; // Reducido de 1000 a 200
+                const TOTAL_LIMIT = 1000; // Reducido de 5000 a 1000
                 let allData = [];
                 
                 console.log('[HISTORY] Starting chunked fetch - CHUNK_SIZE:', CHUNK_SIZE, 'TOTAL_LIMIT:', TOTAL_LIMIT);
@@ -2135,7 +2135,7 @@ useEffect(() => {
                     // Fallback: intentar método original con limit menor
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
-                        fallbackUrl.searchParams.append('limit', '1000');
+                        fallbackUrl.searchParams.append('limit', '200'); // Reducido de 1000 a 200
                         
                         const res = await fetch(fallbackUrl);
                         if (!res.ok) throw new Error("Fallback failed");
