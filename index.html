@@ -2104,8 +2104,12 @@ useEffect(() => {
                 const TOTAL_LIMIT = 5000;
                 let allData = [];
                 
+                console.log('[HISTORY] Starting chunked fetch - CHUNK_SIZE:', CHUNK_SIZE, 'TOTAL_LIMIT:', TOTAL_LIMIT);
+                
                 try {
                     for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+                        console.log('[HISTORY] Fetching chunk offset:', offset);
+                        
                         const url = new URL(BASE_URL + '/api/data', window.location.origin);
                         url.searchParams.append('limit', String(CHUNK_SIZE));
                         url.searchParams.append('offset', String(offset));
@@ -2117,10 +2121,13 @@ useEffect(() => {
                         const chunk = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
                         allData = allData.concat(chunk);
                         
+                        console.log('[HISTORY] Chunk', offset, 'loaded -', chunk.length, 'points');
+                        
                         // Pequeña pausa para no saturar HTTP/2
                         await new Promise(resolve => setTimeout(resolve, 50));
                     }
                     
+                    console.log('[HISTORY] Chunked fetch completed - total points:', allData.length);
                     return allData;
                 } catch (e) {
                     console.warn('[HISTORY] Chunked load failed, trying fallback:', e);

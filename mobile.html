@@ -2497,8 +2497,6 @@ const fetchUpdate = async () => {
                         Object.keys(next).forEach(key => {
                             const realVal = flat[key];
                             const desiredVal = next[key].value;
-                                });
-                            }
                             
                             const isMatch = (String(realVal) === String(desiredVal)) || 
                                           (realVal === 1 && desiredVal === true) || 
@@ -2555,7 +2553,10 @@ const fetchUpdate = async () => {
             setConnColor("#ef4444");
             console.warn("fetchUpdate failed:", e);
         }
-                }
+    };
+    
+    // Helper para obtener timestamp de alertas
+    const getAlertMs = (a) => {
         if (!a) return 0;
         if (a.ts != null) return Number(a.ts) * 1000;
         const iso = a.ts_iso || a.timestamp || a.time || a.date;
@@ -2912,7 +2913,80 @@ const isValidForMinMax = (key, v) => {
         } catch (e) {
             console.warn('[MOBILE HISTORY] Background load failed:', e);
         }
-    };    
+    };
+
+    // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
+    const fetchAlerts = async () => {
+        try {
+            // 🚀 NUEVO: Cargar alerts en chunks para evitar errores HTTP/2
+            const fetchAlertsInChunks = async () => {
+                const CHUNK_SIZE = 50; // 50 alerts por chunk
+                const TOTAL_LIMIT = 200;
+                let allAlerts = [];
+                
+                try {
+                    for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+                        const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
+                        u.searchParams.set('limit', String(CHUNK_SIZE));
+                        u.searchParams.set('offset', String(offset));
+                        
+                        const res = await fetch(u);
+                        if (!res.ok) throw new Error("Mobile alerts chunk " + offset + " failed: " + res.status);
+                        
+                        const js = await res.json();
+                        const chunk = Array.isArray(js) ? js : [];
+                        allAlerts = allAlerts.concat(chunk);
+                        
+                        // Pequeña pausa para no saturar HTTP/2
+                        await new Promise(resolve => setTimeout(resolve, 30));
+                    }
+                    
+                    return allAlerts;
+                } catch (e) {
+                    console.warn('[MOBILE ALERTS] Chunked load failed, trying fallback:', e);
+                    
+                    // Fallback: intentar método original con limit menor
+                    try {
+                        const fallbackUrl = new URL(BASE_URL + '/api/alerts', window.location.origin);
+                        fallbackUrl.searchParams.set('limit', '50');
+                        
+                        const res = await fetch(fallbackUrl);
+                        if (!res.ok) throw new Error("Mobile alerts fallback failed");
+                        
+                        const js = await res.json();
+                        return Array.isArray(js) ? js : [];
+                    } catch (fallbackError) {
+                        console.error('[MOBILE ALERTS] All methods failed:', fallbackError);
+                        return [];
+                    }
+                }
+            };
+            
+            const alertsData = await fetchAlertsInChunks();
+            
+            const normalized = alertsData.map((a) => {
+                const ms = getAlertMs(a);
+                const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
+                return { ...a, timestamp, __ts_ms: ms };
+            }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
+            
+            // Solo actualizar si hay cambios reales
+            setAlerts(prevAlerts => {
+                // Comparar arrays para evitar renders innecesarios
+                if (prevAlerts.length === normalized.length) {
+                    let hasChanges = false;
+                    for (let i = 0; i < prevAlerts.length; i++) {
+                        if (prevAlerts[i]?.__ts_ms !== normalized[i]?.__ts_ms) {
+                            hasChanges = true;
+                            break;
+                        }
+                    }
+                    if (!hasChanges) return prevAlerts;
+                }
+                return normalized;
+            });
+            
+        } catch(e) { console.warn("Fallo Alertas:", e); }
     };
 
     // --- Loop de Alertas - IGUAL que React Desktop ---
