@@ -2201,7 +2201,7 @@ let chartConfig = {};
 
 
 // --- Componente Principal Mobile Dashboard ---
-const MobileDashboardApp = React.memo(() => {
+const MobileDashboardApp = () => {
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
     const [alerts, setAlerts] = useState([]);
@@ -2956,7 +2956,13 @@ const isValidForMinMax = (key, v) => {
                         url.searchParams.append('limit', String(CHUNK_SIZE));
                         url.searchParams.append('offset', String(offset));
                         
-                        const res = await fetch(url);
+                        // 🔥 FORZAR HTTP/1.1 para evitar errores HTTP/2
+                        const res = await fetch(url, {
+                            headers: {
+                                'Connection': 'close',
+                                'Upgrade-Insecure-Requests': '1'
+                            }
+                        });
                         if (!res.ok) throw new Error("Mobile chunk " + offset + " failed: " + res.status);
                         
                         const raw = await res.json();
@@ -2974,12 +2980,18 @@ const isValidForMinMax = (key, v) => {
                 } catch (e) {
                     console.warn('[MOBILE HISTORY] Chunked load failed, trying fallback:', e);
                     
-                    // Fallback: intentar método original con limit menor
+                    // Fallback: intentar método original con HTTP/1.1
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
                         fallbackUrl.searchParams.append('limit', '50'); // Reducido de 200 a 50
                         
-                        const res = await fetch(fallbackUrl);
+                        // 🔥 FORZAR HTTP/1.1 para fallback
+                        const res = await fetch(fallbackUrl, {
+                            headers: {
+                                'Connection': 'close',
+                                'Upgrade-Insecure-Requests': '1'
+                            }
+                        });
                         if (!res.ok) throw new Error("Mobile fallback failed");
                         
                         const raw = await res.json();
@@ -3565,23 +3577,6 @@ const isValidForMinMax = (key, v) => {
     const AlertsWidget = React.memo(({ alerts, onClear }) => {
         // Ref para preservar posición del scroll - IGUAL que antes
         const scrollContainerRef = React.useRef(null);
-        
-        // Auto-scroll solo si el usuario está al final - IGUAL que React Desktop
-        React.useEffect(() => {
-            if (scrollContainerRef.current) {
-                const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
-                
-                // Solo auto-scroll si está al final (comportamiento natural)
-                if (isAtBottom) {
-                    setTimeout(() => {
-                        if (scrollContainerRef.current) {
-                            scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-                        }
-                    }, 100);
-                }
-            }
-        }, [alerts]); // Solo cuando cambian las alertas
         
         return React.createElement('div', { 
             key: 'alerts-container',

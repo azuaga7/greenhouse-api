@@ -2114,8 +2114,14 @@ useEffect(() => {
                         url.searchParams.append('limit', String(CHUNK_SIZE));
                         url.searchParams.append('offset', String(offset));
                         
-                        const res = await fetch(url);
-                        if (!res.ok) throw new Error("Chunk " + offset + " failed: " + res.status);
+                        // 🔥 FORZAR HTTP/1.1 para evitar errores HTTP/2
+                        const res = await fetch(url, {
+                            headers: {
+                                'Connection': 'close',
+                                'Upgrade-Insecure-Requests': '1'
+                            }
+                        });
+                        if (!res.ok) throw new Error("History chunk " + offset + " failed: " + res.status);
                         
                         const raw = await res.json();
                         const chunk = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
@@ -2132,12 +2138,18 @@ useEffect(() => {
                 } catch (e) {
                     console.warn('[HISTORY] Chunked load failed, trying fallback:', e);
                     
-                    // Fallback: intentar método original con limit menor
+                    // Fallback: intentar método original con HTTP/1.1
                     try {
                         const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
                         fallbackUrl.searchParams.append('limit', '50'); // Reducido de 200 a 50
                         
-                        const res = await fetch(fallbackUrl);
+                        // 🔥 FORZAR HTTP/1.1 para fallback
+                        const res = await fetch(fallbackUrl, {
+                            headers: {
+                                'Connection': 'close',
+                                'Upgrade-Insecure-Requests': '1'
+                            }
+                        });
                         if (!res.ok) throw new Error("Fallback failed");
                         
                         const raw = await res.json();
