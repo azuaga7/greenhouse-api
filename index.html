@@ -1585,7 +1585,66 @@ if (json) {
     }
 };
 
-const fetchHistory = async () => {
+    const loadCacheOnlyIfEmpty = async () => {
+        if (lastData && lastData.timestamp) return; // Ya hay datos
+        
+        try {
+            const cached = localStorage.getItem(HISTORY_CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const latestCached = parsed[0];
+                    
+                    // EXCLUIR COMPLETAMENTE CAMPOS DE CONEXIÓN
+                    const { gsm_stored_state, connection_status, ...sensorDataOnly } = latestCached;
+                    
+                    setLastData({
+                        ...sensorDataOnly,
+                        // NO incluir ningún campo de conexión
+                        _lastConnection: latestCached.timestamp // Solo timestamp como referencia
+                    });
+                    
+                    console.log('[CACHE] Loaded sensor values only - connection state ignored');
+                    
+                    // NO MODIFICAR connStatus NI connColor
+                    // Dejar que fetchUpdate() determine el estado real
+                }
+            }
+        } catch (e) {
+            console.warn('[CACHE] Error loading cache:', e);
+        }
+    };
+
+    const updateConnectionState = (liveData) => {
+        const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
+        const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
+        const rawReported = getVal(liveData, statusKey);
+        
+        let reportedState = (rawReported === undefined || rawReported === null) ? "DESCONECTADO" : String(rawReported);
+        
+        // Normalizar valores largos (timestamps accidentales)
+        if (/^d{6,}$/.test(reportedState)) {
+            reportedState = "ONLINE";
+        }
+        reportedState = reportedState.toUpperCase();
+        
+        // Determinar estado basado SOLO en datos live
+        if (reportedState === "ONLINE" || reportedState === "REG_OK") {
+            setConnStatus("SISTEMA ONLINE");
+            setConnColor("#10b981");
+        } else if (reportedState === "BUSCANDO") {
+            setConnStatus("BUSCANDO RED...");
+            setConnColor("#f59e0b");
+        } else if (reportedState === "OFFLINE") {
+            setConnStatus("ERROR: SIN CHIP");
+            setConnColor("#ef4444");
+        } else {
+            setConnStatus(reportedState);
+            setConnColor("#10b981");
+        }
+    };
+
+    const fetchHistory = async () => {
         try {
             await fetchCacheApiSnapshot(true);
             // 0) Seed rápido desde cache local (evita dashboard "en blanco" al cargar)
@@ -1597,7 +1656,7 @@ const fetchHistory = async () => {
                         if (Array.isArray(parsed) && parsed.length > 0) {
                             const cachedRows = parsed.map(r => normalizeRow(r));
                             setHistoryData(cachedRows);
-                            setLastData(cachedRows[cachedRows.length - 1]);
+                            // NO setLastData desde cache - dejar que loadCacheOnlyIfEmpty() lo maneje
                             if (chartConfig.timeRange === 'Ahora') {
                                 setLiveData(cachedRows.slice(-LIVE_PRELOAD_LIMIT));
                             }
@@ -1696,8 +1755,15 @@ const fetchHistory = async () => {
                     setLastArrivalLocal(Date.now());
                     // Mantener flat para compat visual dentro del template
                     setLastData(flat);
-	                    // Forzar refresco de sparklines en cada paquete nuevo
-	                    setSparkTick(t => t + 1);
+                    // NUEVO: Guardar solo el último punto en cache
+                    try {
+                        localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify([flat]));
+                        console.log('[CACHE] Updated with latest data:', flat.timestamp);
+                    } catch (e) {
+                        console.warn('[CACHE] Failed to update:', e);
+                    }
+                    // Forzar refresco de sparklines en cada paquete nuevo
+                    setSparkTick(t => t + 1);
                     // Sincronización de Estado Deseado
                     console.log('[REACT] Procesando pendingCommands:', Object.keys(pendingCommands));
                     setPendingCommands(prev => {
@@ -1737,32 +1803,9 @@ const fetchHistory = async () => {
     const rawVal = getVal(flat, wk);
     SparklineEngine.update(w.id, wk, rawVal, w.min || 0, w.max || 100, flat.timestamp);
 });
-                    // Estado reportado por el hardware
-	                    const connWidget = CONFIG.dashboard.widgets.find(w => w.type === 'connection');
-	                    // Prioridad: statusKey explícito > key del widget > fallback histórico
-	                    const statusKey = connWidget?.statusKey || connWidget?.key || 'gsm_stored_state';
-	                    const rawReported = getVal(flat, statusKey);
-                    let reportedState = (rawReported === undefined || rawReported === null) ? "DESCONECTADO" : String(rawReported);
-                    // Si el valor reportado es un número largo (timestamp o ID), no mostrarlo como estado.
-                    // Ej: 1073470396 suele ser un timestamp/ID accidentalmente mapeado.
-                    if (/^d{6,}$/.test(reportedState)) {
-                        reportedState = "ONLINE";
-                    }
-                    reportedState = reportedState.toUpperCase();
-                    
-                    if (reportedState === "ONLINE" || reportedState === "REG_OK") {
-                        setConnStatus("SISTEMA ONLINE");
-                        setConnColor("#10b981");
-                    } else if (reportedState === "BUSCANDO") {
-                        setConnStatus("BUSCANDO RED...");
-                        setConnColor("#f59e0b");
-                    } else if (reportedState === "OFFLINE") {
-                        setConnStatus("ERROR: SIN CHIP");
-                        setConnColor("#ef4444");
-                    } else {
-                        setConnStatus(reportedState);
-                        setConnColor("#10b981");
-                    }
+                    // ÚNICA FUENTE DE ESTADO DE CONEXIÓN
+                    console.log('[CONNECTION] Updating connection state from live data');
+                    updateConnectionState(flat);
                     if (chartConfig.timeRange === 'Ahora') {
                         setLiveData(prev => {
                             const next = [...prev, flat];
@@ -1783,10 +1826,14 @@ const fetchHistory = async () => {
                     }
                 }
             } else {
+                // Sin datos live - estado offline
+                console.log('[CONNECTION] No live data - setting offline');
                 setConnStatus("SIN DATOS");
-                setConnColor("#ef4444"); // Rojo
+                setConnColor("#ef4444");
             }
         } catch(e) {
+            // API offline - estado offline
+            console.log('[CONNECTION] API offline - setting offline');
             setConnStatus("API OFFLINE");
             setConnColor("#ef4444");
             console.error("Error actualización:", e);
@@ -1927,27 +1974,171 @@ useEffect(() => {
     useEffect(() => {
         let mounted = true;
         let intervalId = null;
+        let cacheTimeoutId = null;
+        
         const startLoop = async () => {
-            try {
-                // Asegurarnos de cargar historial antes de hacer la primera actualización live
-                await fetchHistory();
-            } catch (e) {
-                console.warn('fetchHistory falló en arranque', e);
-            }
-            if (!mounted) return;
+            console.time('[INIT] Total dashboard initialization');
+            
+            // 1. Cargar sparklines primero
+            console.time('[INIT] loadSparklinesFirst');
+            await loadSparklinesFirst();
+            console.timeEnd('[INIT] loadSparklinesFirst');
+            
+            // 2. Intentar obtener datos live inmediatamente
+            console.time('[INIT] fetchUpdate initial');
             try {
                 await fetchUpdate();
             } catch (e) {
                 console.warn('fetchUpdate inicial falló', e);
             }
+            console.timeEnd('[INIT] fetchUpdate initial');
+            
+            // 3. Si no hay datos live después de 2 segundos, cargar cache
+            cacheTimeoutId = setTimeout(async () => {
+                if (mounted && (!lastData || !lastData.timestamp)) {
+                    console.time('[INIT] loadCacheOnlyIfEmpty');
+                    await loadCacheOnlyIfEmpty();
+                    console.timeEnd('[INIT] loadCacheOnlyIfEmpty');
+                }
+            }, 2000); // 2 segundos timeout
+            
+            // 4. Cargar historial en background
+            setTimeout(async () => {
+                if (mounted) {
+                    console.time('[INIT] loadHistoryInBackground');
+                    await loadHistoryInBackground();
+                    console.timeEnd('[INIT] loadHistoryInBackground');
+                }
+            }, 5000); // 5 segundos después
+            
+            // 5. Iniciar loop live
             intervalId = setInterval(fetchUpdate, (CONFIG.refreshInterval ?? 1000));
+            console.log('[INIT] Live loop started');
+            
+            console.timeEnd('[INIT] Total dashboard initialization');
         };
+        
         startLoop();
+        
         return () => {
             mounted = false;
             if (intervalId) clearInterval(intervalId);
+            if (cacheTimeoutId) clearTimeout(cacheTimeoutId);
         };
     }, []);
+
+    const loadSparklinesFirst = async () => {
+        console.time('[SPARKLINES] loadSparklinesFirst total');
+        
+        // Sparklines que necesitan inicialización
+        const sparkWidgets = CONFIG.dashboard.widgets.filter(w => 
+            w.showSparkline || w.type === 'gauge' || w.showMinMax
+        );
+        
+        if (sparkWidgets.length > 0) {
+            try {
+                console.time('[SPARKLINES] Cache API snapshot');
+                await fetchCacheApiSnapshot(true);
+                console.timeEnd('[SPARKLINES] Cache API snapshot');
+                
+                console.time('[SPARKLINES] localStorage cache processing');
+                const cached = localStorage.getItem(HISTORY_CACHE_KEY);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        const latestPoint = parsed[0]; // 1 solo punto
+                        
+                        // INICIALIZAR SPARKLINES CON 1 PUNTO
+                        sparkWidgets.forEach(w => {
+                            const wk = normKey(w.key);
+                            const singlePoint = getVal(latestPoint, wk);
+                            
+                            // Buffer mínimo para sparklines (repetir el punto para tener algo)
+                            const buffer = singlePoint !== undefined ? [singlePoint] : [];
+                            
+                            try {
+                                SparklineEngine.setHistory(w.id, wk, buffer, w.min, w.max, buffer);
+                                console.log('[SPARKLINES] Widget ' + w.id + ' initialized with latest point');
+                            } catch (e) {
+                                console.warn('[SPARKLINES] Failed to initialize ' + w.id + ':', e);
+                            }
+                        });
+                    }
+                }
+                console.timeEnd('[SPARKLINES] localStorage cache processing');
+            } catch (e) {
+                console.warn('[SPARKLINES] Cache initialization failed:', e);
+            }
+        }
+        
+        console.timeEnd('[SPARKLINES] loadSparklinesFirst total');
+    };
+
+    const loadHistoryInBackground = async () => {
+        console.time('[HISTORY] loadHistoryInBackground total');
+        
+        try {
+            console.log('[HISTORY] Loading full history in background...');
+            
+            const url = new URL(BASE_URL + '/api/data', window.location.origin);
+            url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
+            const res = await fetch(url);
+            if (!res.ok) return;
+            
+            console.time('[HISTORY] API data fetch');
+            const raw = await res.json();
+            const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+            console.timeEnd('[HISTORY] API data fetch');
+            
+            if (fullHistory.length > 0) {
+                // Actualizar historyData sin pisar lastData
+                setHistoryData(prev => {
+                    if (!prev || prev.length === 0) return fullHistory;
+                    
+                    // Fusionar si es necesario
+                    const lastHistoryTs = new Date(prev[prev.length - 1].timestamp).getTime();
+                    const firstNewTs = new Date(fullHistory[0].timestamp).getTime();
+                    
+                    if (firstNewTs < lastHistoryTs) {
+                        console.log('[HISTORY] Merging with existing data');
+                        return [...fullHistory, ...prev];
+                    }
+                    return prev;
+                });
+                
+                console.time('[HISTORY] Data processing and sparklines');
+                // ENRIQUECER SPARKLINES CON HISTORIA COMPLETA
+                const todayStart = fullHistory[0]?.timestamp || null;
+                CONFIG.dashboard.widgets.forEach(w => {
+                    if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
+                        const wk = normKey(w.key);
+                        const hDataBuffer = fullHistory.map(d => getVal(d, wk))
+                            .filter(v => v !== undefined && v !== null && v !== '--');
+                        const hDataToday = (todayStart !== null)
+                            ? fullHistory.filter(d => (d.timestamp || d.ts_iso) >= todayStart)
+                                .map(d => getVal(d, wk))
+                                .filter(v => v !== undefined && v !== null && v !== '--')
+                            : [];
+                        
+                        try {
+                            SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
+                            console.log('[HISTORY] Enhanced ' + w.id + ' with ' + hDataBuffer.length + ' points');
+                        } catch (e) {
+                            console.warn('[HISTORY] Failed to enhance ' + w.id + ':', e);
+                        }
+                    }
+                });
+                console.timeEnd('[HISTORY] Data processing and sparklines');
+                
+                console.log('[HISTORY] Background load completed: ' + fullHistory.length + ' points');
+            }
+            
+        } catch (e) {
+            console.warn('[HISTORY] Background load failed:', e);
+        }
+        
+        console.timeEnd('[HISTORY] loadHistoryInBackground total');
+    };
     useEffect(() => {
         // Inicializar iconos Lucide de forma más robusta
         const initIcons = () => {
@@ -2301,17 +2492,6 @@ useEffect(() => {
                     ) : (
                         <div className="widgets-area">
                             {CONFIG.dashboard.widgets.filter(w => String(w.tabId) === String(activeTabId)).map(w => {
-                            // Debug: log para ver w.target
-                            if (w.type === 'control-relay' || w.type === 'control-vfd') {
-                                console.log('[REACT] Widget control:', {
-                                    type: w.type,
-                                    key: w.key,
-                                    target: w.target,
-                                    label: w.label,
-                                    widgetObject: w
-                                });
-                            }
-                            
                             const valStr = getWidgetValue(w.key);
                             const val = parseFloat(valStr);
                             const style = { left: w.x, top: w.y, width: w.w, height: w.h, position: 'absolute' };
