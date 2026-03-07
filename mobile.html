@@ -2555,45 +2555,7 @@ const fetchUpdate = async () => {
             setConnColor("#ef4444");
             console.warn("fetchUpdate failed:", e);
         }
-    };
-
-    // --- Poll de Alertas - IGUAL que React Desktop pero con optimización ---
-    const fetchAlerts = async () => {
-        try {
-            const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
-            u.searchParams.set('limit', '200');
-            const res = await fetch(u);
-            if (!res.ok) return;
-            const js = await res.json();
-            const arr = Array.isArray(js) ? js : [];
-            const normalized = arr.map((a) => {
-                const ms = getAlertMs(a);
-                const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
-                return { ...a, timestamp, __ts_ms: ms };
-            }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
-            
-            // Solo actualizar si hay cambios reales
-            setAlerts(prevAlerts => {
-                // Comparar arrays para evitar renders innecesarios
-                if (prevAlerts.length === normalized.length) {
-                    let hasChanges = false;
-                    for (let i = 0; i < prevAlerts.length; i++) {
-                        if (prevAlerts[i]?.__ts_ms !== normalized[i]?.__ts_ms) {
-                            hasChanges = true;
-                            break;
-                        }
-                    }
-                    if (!hasChanges) {
-                        return prevAlerts; // No hay cambios, mantener estado anterior
-                    }
                 }
-                return normalized;
-            });
-        } catch(e) { console.warn("Fallo Alertas:", e); }
-    };
-
-    // --- Helper para Alertas - IGUAL que React Desktop ---
-    const getAlertMs = (a) => {
         if (!a) return 0;
         if (a.ts != null) return Number(a.ts) * 1000;
         const iso = a.ts_iso || a.timestamp || a.time || a.date;
@@ -2897,91 +2859,60 @@ const isValidForMinMax = (key, v) => {
         
         try {
             
-            const fetchHistory = async () => {
+            // 🚀 NUEVO: Cargar en chunks para evitar errores HTTP/2
+            const fetchHistoryInChunks = async () => {
+                const CHUNK_SIZE = 1000;
+                const TOTAL_LIMIT = 5000;
+                let allData = [];
+                
                 try {
-                    await fetchCacheApiSnapshot(true);
-                    // 0) Seed rápido desde cache local (evita dashboard "en blanco" al cargar)
-                    if (!historyData || historyData.length === 0) {
-                        try {
-                            const cached = localStorage.getItem(HISTORY_CACHE_KEY);
-                            if (cached) {
-                                const parsed = JSON.parse(cached);
-                                if (Array.isArray(parsed) && parsed.length > 0) {
-                                    const cachedRows = parsed.map(r => normalizeRow(r));
-                                    setHistoryData(cachedRows);
-                                    // NO setLastData desde cache - dejar que loadCacheOnlyIfEmpty() lo maneje
-                                    if (chartConfig.timeRange === 'Ahora') {
-                                        setLiveData(cachedRows.slice(-LIVE_PRELOAD_LIMIT));
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            // ignore cache errors
-                        }
+                    for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+                        const url = new URL(BASE_URL + '/api/data', window.location.origin);
+                        url.searchParams.append('limit', String(CHUNK_SIZE));
+                        url.searchParams.append('offset', String(offset));
+                        
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error("Mobile chunk " + offset + " failed: " + res.status);
+                        
+                        const raw = await res.json();
+                        const chunk = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+                        allData = allData.concat(chunk);
+                        
+                        // Pequeña pausa para no saturar HTTP/2
+                        await new Promise(resolve => setTimeout(resolve, 50));
                     }
-
-                    const url = new URL(BASE_URL + '/api/data', window.location.origin);
-                    url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
-                    const res = await fetch(url);
-                    if (!res.ok) return [];
-                    const raw = await res.json();
-                    const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
-
-                    // 1) Guardar cache acotado
+                    
+                    return allData;
+                } catch (e) {
+                    console.warn('[MOBILE HISTORY] Chunked load failed, trying fallback:', e);
+                    
+                    // Fallback: intentar método original con limit menor
                     try {
-                        const slice = fullHistory.slice(-HISTORY_CACHE_LIMIT);
-                        localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(slice));
-                    } catch (e) {
-                        // ignore
+                        const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
+                        fallbackUrl.searchParams.append('limit', '1000');
+                        
+                        const res = await fetch(fallbackUrl);
+                        if (!res.ok) throw new Error("Mobile fallback failed");
+                        
+                        const raw = await res.json();
+                        return Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+                    } catch (fallbackError) {
+                        console.error('[MOBILE HISTORY] All methods failed:', fallbackError);
+                        return [];
                     }
-                    // Mantener el schema actual (array de filas normalizadas)
-                    setHistoryData(fullHistory);
-                    // Seed inicial: si hay histórico, mostrar el último valor (flat)
-                    if (fullHistory.length > 0) {
-                        const last = fullHistory[fullHistory.length - 1];
-                        setLastData(last);
-                    }
-                    // Cargar historial en los Sparklines y estadísticas usando fullHistory
-                    const todayStart = fullHistory.length > 0 ? (fullHistory[0].timestamp || null) : null;
-                    if (CONFIG && CONFIG.dashboard && SparklineEngine) {
-                        CONFIG.dashboard.widgets.forEach(w => {
-                            if (w.showSparkline || w.type === 'gauge' || w.showMinMax) {
-                                const wk = normKey(w.key);
-                                const hDataBuffer = fullHistory.map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--');
-                                const hDataToday = (todayStart !== null)
-                                    ? fullHistory.filter(d => (d.timestamp || d.ts_iso) >= todayStart).map(d => getVal(d, wk)).filter(v => v !== undefined && v !== null && v !== '--')
-                                    : [];
-                                try {
-                                    SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
-                                } catch (e) {
-                                    console.warn('SparklineEngine.setHistory falló para', w.id, e);
-                                }
-                            }
-                        });
-                    }
-                    // Si estamos en modo LIVE, inicializar liveData con los últimos puntos
-                    if (chartConfig.timeRange === 'Ahora') {
-                        const lastLive = fullHistory.slice(-LIVE_PRELOAD_LIMIT);
-                        setLiveData(lastLive);
-                    }
-
-                    // Precargar series server-side para Sparklines (historial profundo)
-                    await preloadSparklineHistory();
-                    return fullHistory;
-                } catch(e) { 
-                    console.error("Error historial:", e); 
-                    return [];
                 }
             };
-
-            const fullHistory = await fetchHistory();
+            
+            const fullHistory = await fetchHistoryInChunks();
+            
             if (fullHistory && fullHistory.length > 0) {
+                console.log('[MOBILE HISTORY] Background load completed: ' + fullHistory.length + ' points');
             }
             
         } catch (e) {
-            console.warn('[HISTORY] Background load failed:', e);
+            console.warn('[MOBILE HISTORY] Background load failed:', e);
         }
-        
+    };    
     };
 
     // --- Loop de Alertas - IGUAL que React Desktop ---

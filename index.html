@@ -1886,18 +1886,59 @@ useEffect(() => {
 	// Poll de alertas (separado del loop live para no spamear el Bridge)
 	const fetchAlerts = async () => {
 		try {
-			const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
-			u.searchParams.set('limit', '200');
-			const res = await fetch(u);
-			if (!res.ok) return;
-			const js = await res.json();
-			const arr = Array.isArray(js) ? js : [];
-			const normalized = arr.map(a => {
+			// 🚀 NUEVO: Cargar alerts en chunks para evitar errores HTTP/2
+			const fetchAlertsInChunks = async () => {
+				const CHUNK_SIZE = 50; // 50 alerts por chunk
+				const TOTAL_LIMIT = 200;
+				let allAlerts = [];
+				
+				try {
+					for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+						const u = new URL(BASE_URL + '/api/alerts', window.location.origin);
+						u.searchParams.set('limit', String(CHUNK_SIZE));
+						u.searchParams.set('offset', String(offset));
+						
+						const res = await fetch(u);
+						if (!res.ok) throw new Error("Alerts chunk " + offset + " failed: " + res.status);
+						
+						const js = await res.json();
+						const chunk = Array.isArray(js) ? js : [];
+						allAlerts = allAlerts.concat(chunk);
+						
+						// Pequeña pausa para no saturar HTTP/2
+						await new Promise(resolve => setTimeout(resolve, 30));
+					}
+					
+					return allAlerts;
+				} catch (e) {
+					console.warn('[ALERTS] Chunked load failed, trying fallback:', e);
+					
+					// Fallback: intentar método original con limit menor
+					try {
+						const fallbackUrl = new URL(BASE_URL + '/api/alerts', window.location.origin);
+						fallbackUrl.searchParams.set('limit', '50');
+						
+						const res = await fetch(fallbackUrl);
+						if (!res.ok) throw new Error("Alerts fallback failed");
+						
+						const js = await res.json();
+						return Array.isArray(js) ? js : [];
+					} catch (fallbackError) {
+						console.error('[ALERTS] All methods failed:', fallbackError);
+						return [];
+					}
+				}
+			};
+			
+			const alertsData = await fetchAlertsInChunks();
+			
+			const normalized = alertsData.map(a => {
 				const ms = getAlertMs(a);
 				const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
 				return { ...a, timestamp, __ts_ms: ms };
 			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
 			setAlerts(normalized);
+			
 		} catch(e) { console.warn("Fallo Alertas:", e); }
 	};
 
@@ -2057,15 +2098,51 @@ useEffect(() => {
         try {
             console.log('[HISTORY] Loading full history in background...');
             
-            const url = new URL(BASE_URL + '/api/data', window.location.origin);
-            url.searchParams.append('limit', String(HISTORY_PRELOAD_LIMIT));
-            const res = await fetch(url);
-            if (!res.ok) return;
+            // 🚀 NUEVO: Cargar en chunks para evitar errores HTTP/2
+            const fetchHistoryInChunks = async () => {
+                const CHUNK_SIZE = 1000;
+                const TOTAL_LIMIT = 5000;
+                let allData = [];
+                
+                try {
+                    for (let offset = 0; offset < TOTAL_LIMIT; offset += CHUNK_SIZE) {
+                        const url = new URL(BASE_URL + '/api/data', window.location.origin);
+                        url.searchParams.append('limit', String(CHUNK_SIZE));
+                        url.searchParams.append('offset', String(offset));
+                        
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error("Chunk " + offset + " failed: " + res.status);
+                        
+                        const raw = await res.json();
+                        const chunk = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+                        allData = allData.concat(chunk);
+                        
+                        // Pequeña pausa para no saturar HTTP/2
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    }
+                    
+                    return allData;
+                } catch (e) {
+                    console.warn('[HISTORY] Chunked load failed, trying fallback:', e);
+                    
+                    // Fallback: intentar método original con limit menor
+                    try {
+                        const fallbackUrl = new URL(BASE_URL + '/api/data', window.location.origin);
+                        fallbackUrl.searchParams.append('limit', '1000');
+                        
+                        const res = await fetch(fallbackUrl);
+                        if (!res.ok) throw new Error("Fallback failed");
+                        
+                        const raw = await res.json();
+                        return Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
+                    } catch (fallbackError) {
+                        console.error('[HISTORY] All methods failed:', fallbackError);
+                        return [];
+                    }
+                }
+            };
             
-            console.time('[HISTORY] API data fetch');
-            const raw = await res.json();
-            const fullHistory = Array.isArray(raw) ? raw.map(r => normalizeRow(r)) : [];
-            console.timeEnd('[HISTORY] API data fetch');
+            const fullHistory = await fetchHistoryInChunks();
             
             if (fullHistory.length > 0) {
                 // Actualizar historyData sin pisar lastData
@@ -2077,13 +2154,11 @@ useEffect(() => {
                     const firstNewTs = new Date(fullHistory[0].timestamp).getTime();
                     
                     if (firstNewTs < lastHistoryTs) {
-                        console.log('[HISTORY] Merging with existing data');
                         return [...fullHistory, ...prev];
                     }
                     return prev;
                 });
                 
-                console.time('[HISTORY] Data processing and sparklines');
                 // ENRIQUECER SPARKLINES CON HISTORIA COMPLETA
                 const todayStart = fullHistory[0]?.timestamp || null;
                 CONFIG.dashboard.widgets.forEach(w => {
@@ -2096,16 +2171,13 @@ useEffect(() => {
                                 .map(d => getVal(d, wk))
                                 .filter(v => v !== undefined && v !== null && v !== '--')
                             : [];
-                        
                         try {
                             SparklineEngine.setHistory(w.id, wk, hDataBuffer, w.min, w.max, hDataToday);
-                            console.log('[HISTORY] Enhanced ' + w.id + ' with ' + hDataBuffer.length + ' points');
                         } catch (e) {
-                            console.warn('[HISTORY] Failed to enhance ' + w.id + ':', e);
+                            console.warn('SparklineEngine.setHistory falló para', w.id, e);
                         }
                     }
                 });
-                console.timeEnd('[HISTORY] Data processing and sparklines');
                 
                 console.log('[HISTORY] Background load completed: ' + fullHistory.length + ' points');
             }
@@ -2113,8 +2185,6 @@ useEffect(() => {
         } catch (e) {
             console.warn('[HISTORY] Background load failed:', e);
         }
-        
-        console.timeEnd('[HISTORY] loadHistoryInBackground total');
     };
     useEffect(() => {
         // Inicializar iconos Lucide de forma más robusta
