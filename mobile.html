@@ -767,7 +767,7 @@
 /* Contenedor interno de alertas */
 .mobile-alerts-inner {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
 }
 
@@ -2083,10 +2083,6 @@ const initializeChart = (canvasRef, chartData, chartOptions) => {
     return canvasRef.chart;
   }
 };
-
-// === PUNTO 9: CREACIÓN DE SPARKLINE ===
-// Componente de minigráficos SVG para mobile
-
 const SparklineWidget = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
   // SparklineEngine debe estar disponible globalmente
   
@@ -2172,6 +2168,12 @@ const SparklineWidget = React.memo(({ id, variableKey, min, max, inverted, value
       })
     ])
   ]);
+}, (prevProps, nextProps) => {
+  // Solo re-renderizar si las props importantes cambiaron
+  return prevProps.id === nextProps.id &&
+         prevProps.variableKey === nextProps.variableKey &&
+         prevProps.value === nextProps.value &&
+         prevProps.historyTick === nextProps.historyTick;
 });
 
 // --- Cache API Snapshot - datos gzip comprimidos ---
@@ -2200,6 +2202,183 @@ let mockDataHistory = {};
 let chartConfig = {};
 
 
+// === COMPONENTES MEMOIZADOS (fuera del componente principal) ===
+
+// Función de comparación personalizada para alertas
+const alertsEqual = (a, b) => {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i++) {
+        const x = a[i];
+        const y = b[i];
+        if (!x || !y) return false;
+        if (
+            x.__ts_ms !== y.__ts_ms ||
+            x.msg !== y.msg ||
+            x.message !== y.message ||
+            x.type !== y.type ||
+            x.value !== y.value ||
+            x.ref !== y.ref ||
+            x.signal !== y.signal ||
+            x.timestamp !== y.timestamp
+        ) {
+            return false;
+        }
+    }
+    return true;
+};
+
+// Componente AlertsWidget memoizado con preservación de scroll
+const AlertsWidget = React.memo(function AlertsWidget({ alerts, onClear }) {
+    const scrollContainerRef = React.useRef(null);
+    const prevFirstKeyRef = React.useRef(null);
+    const prevScrollTopRef = React.useRef(0);
+    const prevScrollHeightRef = React.useRef(0);
+
+    const list = Array.isArray(alerts) ? alerts : [];
+
+    React.useLayoutEffect(() => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+        prevScrollTopRef.current = el.scrollTop;
+        prevScrollHeightRef.current = el.scrollHeight;
+    }, [list]);
+
+    React.useLayoutEffect(() => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+
+        const first = list[0];
+        const firstKey = first
+            ? String(first.__ts_ms || '0') + '|' + String(first.signal || '') + '|' + String(first.msg || first.message || '')
+            : null;
+
+        const prevFirstKey = prevFirstKeyRef.current;
+
+        if (prevFirstKey && firstKey && prevFirstKey !== firstKey) {
+            const delta = el.scrollHeight - prevScrollHeightRef.current;
+            el.scrollTop = prevScrollTopRef.current + delta;
+        }
+
+        prevFirstKeyRef.current = firstKey;
+    }, [list]);
+
+    return React.createElement('div', {
+        key: 'alerts-container',
+        style: {
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            minHeight: 0
+        }
+    }, [
+        React.createElement('div', {
+            key: 'header',
+            style: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                margin: '15px',
+                marginBottom: '15px',
+                borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+                paddingBottom: '15px',
+                flexShrink: 0
+            }
+        }, [
+            React.createElement('h3', {
+                key: 'title',
+                style: {
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    color: '#f8fafc',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                }
+            }, [
+                '🚨 Centro de Notificaciones',
+                React.createElement('span', {
+                    key: 'badge',
+                    style: {
+                        fontSize: '12px',
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        color: '#ef4444',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontWeight: 'normal'
+                    }
+                }, list.length + ' activas')
+            ]),
+            React.createElement('button', {
+                key: 'clear-btn',
+                onClick: onClear,
+                style: {
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    color: '#ef4444',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                }
+            }, '🗑️ LIMPIAR')
+        ]),
+
+        React.createElement('div', {
+            key: 'content',
+            ref: scrollContainerRef,
+            style: {
+                flex: 1,
+                overflowY: 'auto',
+                padding: '0 15px 15px',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0
+            }
+        }, [
+            list.length === 0
+                ? React.createElement('div', {
+                    key: 'empty',
+                    style: {
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: 0.5
+                    }
+                }, [
+                    React.createElement('span', { key: 'icon', style: { fontSize: '48px', marginBottom: '15px' } }, '✅'),
+                    React.createElement('p', { key: 'title', style: { fontSize: '14px', fontWeight: '600' } }, 'Sistema en estado óptimo'),
+                    React.createElement('p', { key: 'subtitle', style: { fontSize: '12px' } }, 'No hay alertas registradas en este momento.')
+                ])
+                : React.createElement('div', { key: 'list' },
+                    list.map((alert, i) => {
+                        const alertType = ALERT_TYPES[alert.type] || DEFAULT_ALERT_TYPE;
+                        const itemKey =
+                            String(alert.__ts_ms || '0') + '_' +
+                            String(alert.signal || '') + '_' +
+                            String(alert.msg || alert.message || '') + '_' +
+                            String(i);
+
+                        return React.createElement(AlertItem, {
+                            key: itemKey,
+                            alert,
+                            alertType
+                        });
+                    })
+                )
+        ])
+    ]);
+}, (prevProps, nextProps) => {
+    return prevProps.onClear === nextProps.onClear &&
+           alertsEqual(prevProps.alerts || [], nextProps.alerts || []);
+});
+
 // --- Componente Principal Mobile Dashboard ---
 const MobileDashboardApp = () => {
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
@@ -2212,6 +2391,16 @@ const MobileDashboardApp = () => {
     const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
     const [dayStatsLive, setDayStatsLive] = useState({}); // min/max runtime: seed snapshot then extend with live
     const cacheApiDayFromRef = useRef(null);
+
+    // Callback estable para limpiar alertas
+    const handleClearAlerts = useCallback(() => {
+        if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
+            const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
+            const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
+            setSeenUntil(maxMs);
+            setAlerts([]);
+        }
+    }, [alerts, setSeenUntil, setAlerts]);
     const [cacheApiEtag, setCacheApiEtag] = useState(null);
     const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
@@ -3075,7 +3264,16 @@ const isValidForMinMax = (key, v) => {
                 return { ...a, timestamp, __ts_ms: ms };
             }).filter((a) => (a.__ts_ms || 0) > alertsSeenUntilMs);
             
-            setAlerts(normalized);
+            setAlerts(prev => {
+                const prevList = Array.isArray(prev) ? prev : [];
+                const nextList = Array.isArray(normalized) ? normalized : [];
+
+                if (alertsEqual(prevList, nextList)) {
+                    return prev;
+                }
+
+                return nextList;
+            });
             
         } catch(e) { console.warn("Fallo Alertas:", e); }
     };
@@ -3573,134 +3771,6 @@ const isValidForMinMax = (key, v) => {
         ]);
     });
 
-    // Componente AlertsWidget inline - COMPORTAMIENTO IGUAL A REACT DESKTOP
-    const AlertsWidget = React.memo(({ alerts, onClear }) => {
-        // Ref para preservar posición del scroll - IGUAL que antes
-        const scrollContainerRef = React.useRef(null);
-        
-        return React.createElement('div', { 
-            key: 'alerts-container',
-            style: { 
-                display: 'flex', 
-                flexDirection: 'column', 
-                height: '100%' 
-            }
-        }, [
-            // Header con botón limpiar - IGUAL que React Desktop
-            React.createElement('div', { 
-                key: 'header',
-                style: { 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    margin: '15px', 
-                    marginBottom: '15px', 
-                    borderBottom: '1px solid rgba(148, 163, 184, 0.1)', 
-                    paddingBottom: '15px',
-                    flexShrink: 0
-                }
-            }, [
-                React.createElement('h3', { 
-                    key: 'title',
-                    style: { 
-                        fontSize: '16px', 
-                        fontWeight: 'bold', 
-                        color: '#f8fafc', 
-                        margin: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }
-                }, [
-                    '🚨 Centro de Notificaciones',
-                    React.createElement('span', { 
-                        key: 'badge',
-                        style: { 
-                            fontSize: '12px', 
-                            background: 'rgba(239, 68, 68, 0.2)', 
-                            color: '#ef4444', 
-                            padding: '2px 8px', 
-                            borderRadius: '12px',
-                            fontWeight: 'normal'
-                        }
-                    }, (alerts || []).length + ' activas')
-                ]),
-                React.createElement('button', {
-                    key: 'clear-btn',
-                    onClick: onClear,
-                    style: { 
-                        background: 'rgba(239, 68, 68, 0.1)', 
-                        color: '#ef4444', 
-                        border: '1px solid rgba(239, 68, 68, 0.3)', 
-                        borderRadius: '6px', 
-                        padding: '6px 12px', 
-                        fontSize: '11px', 
-                        fontWeight: 'bold',
-                        cursor: 'pointer'
-                    }
-                }, '🗑️ LIMPIAR')
-            ]),
-            
-            // SOLO este contenedor se re-renderiza - IGUAL que React Desktop
-            React.createElement('div', { 
-                key: 'content',
-                ref: scrollContainerRef,
-                style: { 
-                    flex: 1,
-                    overflowY: 'auto', 
-                    padding: '0 15px 15px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: 0
-                } 
-            }, [
-                (alerts || []).length === 0 
-                    ? React.createElement('div', { 
-                        key: 'empty', 
-                        style: { 
-                            flex: 1, 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            opacity: 0.5 
-                        }
-                    }, [
-                        React.createElement('span', { key: 'icon', style: { fontSize: '48px', marginBottom: '15px' } }, '✅'),
-                        React.createElement('p', { key: 'title', style: { fontSize: '14px', fontWeight: '600' } }, 'Sistema en estado óptimo'),
-                        React.createElement('p', { key: 'subtitle', style: { fontSize: '12px' } }, 'No hay alertas registradas en este momento.')
-                    ])
-                    : React.createElement('div', { key: 'list' }, 
-                        (alerts || []).map((alert, i) => {
-                            const alertType = ALERT_TYPES[alert.type] || DEFAULT_ALERT_TYPE;
-                            return React.createElement(AlertItem, {
-                                key: alert.__ts_ms || i,
-                                alert: alert,
-                                alertType: alertType
-                            });
-                        })
-                    )
-            ])
-        ]);
-    }, (prevProps, nextProps) => {
-        // Comparación personalizada para evitar renders innecesarios
-        const prevAlerts = prevProps.alerts || [];
-        const nextAlerts = nextProps.alerts || [];
-        
-        if (prevAlerts.length !== nextAlerts.length) {
-            return false; // Cambió el tamaño, necesita render
-        }
-        
-        // Comparar timestamps para detectar cambios reales
-        for (let i = 0; i < prevAlerts.length; i++) {
-            if (prevAlerts[i]?.__ts_ms !== nextAlerts[i]?.__ts_ms) {
-                return false; // Cambió alguna alerta, necesita render
-            }
-        }
-        
-        return true; // No hay cambios, evitar render
-    });
-
     // Función renderMobileWidget - EXACTAMENTE IGUAL que React Desktop con renderizado condicional
     const availableVariables = CONFIG.availableVariables || [];
     const renderMobileWidget = (w) => {
@@ -4165,14 +4235,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         React.createElement(AlertsWidget, { 
                             key: 'alerts-widget',  // Key estable para el widget
                             alerts: alerts,         // Props directas como React Desktop
-                            onClear: () => {
-                                if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
-                                    const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
-                                    const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
-                                    setSeenUntil(maxMs);
-                                    setAlerts([]);
-                                }
-                            }
+                            onClear: handleClearAlerts
                         })
                     ])
                 ]);
@@ -4426,14 +4489,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                 React.createElement(AlertsWidget, { 
                                     key: 'alerts-widget',
                                     alerts: alerts,
-                                    onClear: () => {
-                                        if (confirm('¿Marcar todas las alertas actuales como leídas?')) {
-                                            const msList = (alerts || []).map(getAlertMs).filter(n => typeof n === 'number' && isFinite(n));
-                                            const maxMs = Math.max(Date.now(), ...(msList.length ? msList : [0]));
-                                            setSeenUntil(maxMs);
-                                            setAlerts([]);
-                                        }
-                                    }
+                                    onClear: handleClearAlerts
                                 })
                             ])
                         ]);
