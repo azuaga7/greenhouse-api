@@ -1757,9 +1757,15 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
   const safeChartConfig = chartConfig || {};
   const safeAvailableVariables = availableVariables || [];
   
-  // Si no hay chartConfig.primaryY, usar widget.key (si existe)
-  if (!safeChartConfig.primaryY && widget?.key) {
-    safeChartConfig.primaryY = widget.key;
+  // Prioridad de selección: 1) widget.key, 2) chartConfig.primaryY, 3) availableVariables[0]
+  if (!safeChartConfig.primaryY) {
+    if (widget?.key) {
+      safeChartConfig.primaryY = widget.key;
+    } else if (safeChartConfig.primaryY) {
+      // Ya tiene valor, mantenerlo
+    } else if (safeAvailableVariables.length > 0) {
+      safeChartConfig.primaryY = safeAvailableVariables[0].key;
+    }
   }
 
   const canvasRef = React.useRef(null);
@@ -4224,8 +4230,8 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                         key: 'chart', 
                                         widget: w,
                                         dataHistory: [], // El MobileChartTemplate maneja sus propios datos
-                                        chartConfig: chartConfig,
-                                        availableVariables: availableVariables,
+                                        chartConfig: chartConfig,  // Confiar en la lógica interna del MobileChartTemplate
+                                        availableVariables: CONFIG.dashboard.variables || [],  // ← Usar mismas variables que reactTemplate
                                         onChartConfigChange: (newConfig) => setChartConfig(newConfig)
                                     });
                                 } catch (error) {
@@ -4516,17 +4522,12 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                         widget: chartWidget,
                                         dataHistory: [], // El MobileChartTemplate maneja sus propios datos
                                         chartConfig: chartConfig || {
-                                            primaryY: chartWidget.key || availableVariables[0]?.key || '',
+                                            primaryY: chartWidget.key || (CONFIG.dashboard.variables && CONFIG.dashboard.variables[0]?.key) || '',
                                             secondaryY: '',
                                             timeRange: 'Ahora'
                                         },
-                                        availableVariables: availableVariables,
-                                        onChartConfigChange: (newConfig) => {
-                                            // Actualizar chartConfig si es necesario
-                                            if (typeof setChartConfig === 'function') {
-                                                setChartConfig(newConfig);
-                                            }
-                                        }
+                                        availableVariables: CONFIG.dashboard.variables || [],  
+                                        onChartConfigChange: (newConfig) => setChartConfig(newConfig)
                                     })
                                 ])
                             ])
