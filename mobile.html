@@ -35,6 +35,59 @@
   --mobile-container-height: 720px;
 }
 
+/* ==================== CONTADOR DE ALERTAS MOBILE ==================== */
+.mobile-alert-counter {
+  position: sticky;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 8px 15px;
+  margin: 0 15px 15px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f8fafc;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.mobile-alert-counter .main-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #3b82f6;
+}
+
+.mobile-alert-counter .alert-type {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mobile-alert-counter .critical {
+  color: #dc2626;
+}
+
+.mobile-alert-counter .warning {
+  color: #d97706;
+}
+
+.mobile-alert-counter .info {
+  color: #2563eb;
+}
+
+.mobile-alert-counter .state {
+  color: #7c3aed;
+}
+
+.mobile-alert-counter .alert {
+  color: #6b7280;
+}
+
 /* ==================== CONTENEDORES PRINCIPALES ==================== */
 /* Overlay principal del preview - capa oscura fullscreen */
 .mobile-dashboard-root {
@@ -1748,14 +1801,19 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
   const fetchLiveData = async () => {
     try {
       const baseUrl = (CONFIG && typeof CONFIG.BASE_URL === 'string') ? CONFIG.BASE_URL : '';
+      console.log('[MobileChartTemplate] Fetching live data from:', baseUrl + '/api/last');
+      
       const res = await fetch(baseUrl + '/api/last');
       if (!res.ok) {
         console.warn('fetchLiveData failed:', res.status);
         return;
       }
       const data = await res.json();
+      console.log('[MobileChartTemplate] Live data received:', data);
+      
       setLiveData(prev => {
         const next = [...prev, data];
+        console.log('[MobileChartTemplate] liveData length:', next.length);
         return next.length > 300 ? next.slice(-300) : next;
       });
     } catch (e) {
@@ -1833,14 +1891,39 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
 
   // Determinar qué datos usar (igual que React)
   const getCurrentData = () => {
+    console.log('[MobileChartTemplate] getCurrentData called:', {
+      timeRange: safeChartConfig.timeRange,
+      primaryY: safeChartConfig.primaryY,
+      secondaryY: safeChartConfig.secondaryY,
+      liveDataLength: liveData.length,
+      seriesDataLength: seriesData.length
+    });
+    
     if (safeChartConfig.timeRange === 'Ahora') {
-      return liveData.map(item => ({
-        t: new Date(item.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-        v: item[normKey(safeChartConfig.primaryY)] || 0,
-        v2: safeChartConfig.secondaryY ? (item[normKey(safeChartConfig.secondaryY)] || 0) : null,
-        fullTimestamp: item.timestamp
-      }));
+      const processed = liveData.map(item => {
+        const primaryKey = normKey(safeChartConfig.primaryY);
+        const secondaryKey = safeChartConfig.secondaryY ? normKey(safeChartConfig.secondaryY) : null;
+        
+        console.log('[MobileChartTemplate] Processing item:', {
+          item,
+          primaryKey,
+          secondaryKey,
+          primaryValue: item[primaryKey],
+          secondaryValue: secondaryKey ? item[secondaryKey] : null
+        });
+        
+        return {
+          t: new Date(item.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+          v: item[primaryKey] || 0,
+          v2: secondaryKey ? (item[secondaryKey] || 0) : null,
+          fullTimestamp: item.timestamp
+        };
+      });
+      
+      console.log('[MobileChartTemplate] Processed live data:', processed);
+      return processed;
     } else {
+      console.log('[MobileChartTemplate] Using series data:', seriesData);
       return seriesData.map(item => item);
     }
   };
@@ -2007,7 +2090,7 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     setIsInitialized(true); // Marcar como inicializado
   }, [currentData, safeChartConfig]);
 
-  // Estado de carga inicial
+  // Estado de carga inicial - versión corregida
   if (!isInitialized || currentData.length === 0) {
     return React.createElement('div', { 
       className: 'mobile-chart-component',
@@ -2030,8 +2113,17 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     ]);
   }
 
-  // Variables para selectores
+  // Variables para selectores - usar misma fuente que el template
   const chartVariables = (typeof CONFIG !== 'undefined' && CONFIG.dashboard) ? CONFIG.dashboard.widgets : [];
+  
+  console.log('[MobileChartTemplate] Variables disponibles:', {
+    hasConfig: typeof CONFIG !== 'undefined',
+    hasDashboard: !!CONFIG.dashboard,
+    widgetsCount: chartVariables.length,
+    widgets: chartVariables,
+    availableVariablesCount: safeAvailableVariables.length,
+    availableVariables: safeAvailableVariables
+  });
   
   // Si no hay variables disponibles, mostrar mensaje
   if (chartVariables.length === 0) {
@@ -2099,7 +2191,11 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     React.createElement('div', { className: 'mobile-chart-canvas-container' }, [
       React.createElement('canvas', { 
         ref: canvasRef,
-        className: 'mobile-chart-canvas'
+        className: 'mobile-chart-canvas',
+        style: {
+          width: '100%',
+          height: '100%'
+        }
       })
     ])
   ]);
@@ -4046,7 +4142,7 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 const targetKey = w.target || w.key;
                 const freq = parseFloat(controlState[targetKey] || 0);
                 const vfdState = getWidgetValue(w.key);
-                const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE';
+                const vfdIsOn = vfdState === 'ON' || vfdState === 'ACTIVO' || vfdState === 'TRUE' || false;
                 const isManual = !!controlState.manual;
                 const pending = pendingCommands[targetKey + '_state'];
                 
@@ -4454,9 +4550,9 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                     // Normal widgets grid (IGUAL que View y Preview)
                     return currentTabWidgets.length === 0 ? (
                         React.createElement('div', { key: 'empty', className: 'mobile-empty-state' }, [
-                            React.createElement('div', { key: 'empty-icon', className: 'mobile-empty-state-icon' }, '📱'),
-                            React.createElement('div', { key: 'empty-text', className: 'mobile-empty-state-text' }, 'Dashboard móvil vacío'),
-                            React.createElement('div', { key: 'empty-subtext', className: 'mobile-empty-state-subtext' }, 'Agrega widgets usando el panel lateral')
+                            React.createElement('div', { key: 'icon', style: { fontSize: '48px', marginBottom: '15px' } }, '✅'),
+                            React.createElement('p', { key: 'title', style: { fontSize: '14px', fontWeight: '600' } }, 'Sistema en estado óptimo'),
+                            React.createElement('p', { key: 'subtitle', style: { fontSize: '12px' } }, 'No hay alertas registradas en este momento.')
                         ])
                     ) : (
                         React.createElement('div', { key: 'grid', className: 'mobile-dashboard-grid' }, 
@@ -4478,83 +4574,6 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         )
                     );
                 })()
-            ]),
-
-            // Fixed Bottom Control Panel - Only for Control Tabs (IGUAL que preview)
-            currentTabData?.type === 'control' && React.createElement('div', {
-                key: 'control-panel',
-                style: {
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0, 
-                    background: 'var(--surface)',
-                    borderTop: '1px solid var(--border)',
-                    padding: '12px 20px',
-                    zIndex: 1000
-                }
-            }, [
-                React.createElement('div', {
-                    key: 'control-content',
-                    style: { 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        gap: '12px'
-                    }
-                }, [
-                    React.createElement('span', {
-                        key: 'control-text',
-                        style: { 
-                            fontSize: '12px', 
-                            fontWeight: 700, 
-                            color: controlState?.manual ? '#facc15' : '#6b7280',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px'
-                        }
-                    }, controlState?.manual ? '🔧 Manual' : '🤖 Automático'),
-                    React.createElement('div', {
-                        key: 'control-toggle',
-                        style: { 
-                            display: 'flex', 
-                            background: '#1e293b', 
-                            borderRadius: '20px', 
-                            padding: '2px',
-                            border: '1px solid rgba(148,163,184,0.2)'
-                        }
-                    }, [
-                        React.createElement('button', {
-                            key: 'manual-btn',
-                            style: {
-                                padding: '8px 16px',
-                                background: controlState?.manual ? '#facc15' : 'transparent',
-                                border: 'none',
-                                borderRadius: '18px',
-                                color: controlState?.manual ? '#000' : '#6b7280',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            },
-                            onClick: () => sendControl('manual', true)
-                        }, 'MANUAL'),
-                        React.createElement('button', {
-                            key: 'auto-btn',
-                            style: {
-                                padding: '8px 16px',
-                                background: !controlState?.manual ? '#10b981' : 'transparent',
-                                border: 'none',
-                                borderRadius: '18px',
-                                color: !controlState?.manual ? '#fff' : '#6b7280',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            },
-                            onClick: () => sendControl('manual', false)
-                        }, 'AUTO')
-                    ])
-                ])
             ])
         ])
     ]);
