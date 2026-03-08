@@ -288,12 +288,55 @@
     }
 
     .alert-card-item {
-        background: rgba(30, 41, 59, 0.5);
         border-radius: 12px;
         display: flex;
         overflow: hidden;
-        border: 1px solid rgba(148, 163, 184, 0.1);
         transition: transform 0.2s;
+        border-left: 4px solid #ef4444 !important;
+        background: rgba(239, 68, 68, 0.15);
+        border-top: 1px solid rgba(239, 68, 68, 0.4);
+        border-right: 1px solid rgba(239, 68, 68, 0.4);
+        border-bottom: 1px solid rgba(239, 68, 68, 0.4);
+    }
+    
+    .alert-card-item.alert-critical {
+        border-left-color: #dc2626 !important;
+        background: rgba(220, 38, 38, 0.15);
+        border-top-color: rgba(220, 38, 38, 0.4);
+        border-right-color: rgba(220, 38, 38, 0.4);
+        border-bottom-color: rgba(220, 38, 38, 0.4);
+    }
+    
+    .alert-card-item.alert-warning {
+        border-left-color: #d97706 !important;
+        background: rgba(217, 119, 6, 0.15);
+        border-top-color: rgba(217, 119, 6, 0.4);
+        border-right-color: rgba(217, 119, 6, 0.4);
+        border-bottom-color: rgba(217, 119, 6, 0.4);
+    }
+    
+    .alert-card-item.alert-info {
+        border-left-color: #2563eb !important;
+        background: rgba(37, 99, 235, 0.15);
+        border-top-color: rgba(37, 99, 235, 0.4);
+        border-right-color: rgba(37, 99, 235, 0.4);
+        border-bottom-color: rgba(37, 99, 235, 0.4);
+    }
+    
+    .alert-card-item.alert-state {
+        border-left-color: #7c3aed !important;
+        background: rgba(124, 58, 237, 0.15);
+        border-top-color: rgba(124, 58, 237, 0.4);
+        border-right-color: rgba(124, 58, 237, 0.4);
+        border-bottom-color: rgba(124, 58, 237, 0.4);
+    }
+    
+    .alert-card-item.alert-default {
+        border-left-color: #0891b2 !important;
+        background: rgba(8, 145, 178, 0.15);
+        border-top-color: rgba(8, 145, 178, 0.4);
+        border-right-color: rgba(8, 145, 178, 0.4);
+        border-bottom-color: rgba(8, 145, 178, 0.4);
     }
     
     .alert-card-side {
@@ -324,6 +367,26 @@
         padding: 2px 8px;
         border-radius: 4px;
         letter-spacing: 0.05em;
+    }
+    
+    .alert-card-tag.tag-critical {
+        background: #dc2626;
+    }
+    
+    .alert-card-tag.tag-warning {
+        background: #d97706;
+    }
+    
+    .alert-card-tag.tag-info {
+        background: #2563eb;
+    }
+    
+    .alert-card-tag.tag-state {
+        background: #7c3aed;
+    }
+    
+    .alert-card-tag.tag-default {
+        background: #0891b2;
     }
 
     .alert-card-time {
@@ -732,6 +795,9 @@ const HISTORY_CACHE_LIMIT = 1500;
 const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 // Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
 const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
+
+// Importar estilos CSS para dashboard
+const { dashboardStyles } = window.__ADTEC_TEMPLATES__ || {};
 
 // Diccionario de tipos de alerta con colores característicos
 // Mapeo exacto desde desplegable Alert Manager → valores API
@@ -2300,14 +2366,15 @@ useEffect(() => {
         return base + '/api/download/xlsx_range?site=' + encodeURIComponent(site) + '&from_iso=' + encodeURIComponent(fromIso) + '&to_iso=' + encodeURIComponent(toIso);
     }, [BASE_URL, chartConfig.timeRange, chartConfig.fromDate, chartConfig.toDate, liveFirstIso, liveLastIso]);
     return (
-        <div className="adtec-dashboard-root" style={{ background: 'rgba(99, 102, 241, 0.05)', border: '2px solid #6366f1', borderRadius: '12px', padding: '10px', margin: '10px' }}>
-            <div className="tabs-nav" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10b981', borderRadius: '8px', padding: '8px', margin: '5px' }}>
+        <div className="adtec-dashboard-root">
+            {dashboardStyles && <style>{dashboardStyles}</style>}
+            <div className="tabs-nav">
                 {CONFIG.dashboard.tabs.map(t => (
                     <div 
                         key={t.id} 
                         className={"tab-btn " + (activeTabId === t.id ? "active" : "")} 
                         onClick={() => setActiveTabId(t.id)}
-                        style={{ position: 'relative', background: activeTabId === t.id ? 'rgba(251, 146, 60, 0.2)' : 'rgba(156, 163, 175, 0.1)', border: activeTabId === t.id ? '2px solid #fb923c' : '1px solid #9ca3af', borderRadius: '6px', padding: '6px 10px', margin: '2px' }}
+                        style={{ position: 'relative' }}
                     >
                         {t.icon && t.icon.length > 2 ? (
                             <i data-lucide={t.icon}></i>
@@ -2320,12 +2387,12 @@ useEffect(() => {
                     </div>
                 ))}
             </div>
-            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto', background: 'rgba(139, 92, 246, 0.05)', border: '2px solid #8b5cf6', borderRadius: '12px', padding: '10px' }}>
+            <div className="adtec-card" style={{ width: currentTab.width + 'px', minHeight: currentTab.height + 'px', margin: '0 auto' }}>
                 {currentTab.type === 'alerts' && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '25px', marginBottom: '25px', borderBottom: '1px solid rgba(148, 163, 184, 0.1)', paddingBottom: '15px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div className="logo-icon" style={{ width: 30, height: 30, borderRadius: 8, background: '#ef4444', boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)', border: '2px solid #fbbf24' }}>
-                                <div className="logo-icon-inner" style={{ fontSize: 9, background: 'rgba(251, 191, 36, 0.2)', borderRadius: '4px', padding: '2px' }}>ADTEC</div>
+                            <div className="logo-icon" style={{ width: 30, height: 30, borderRadius: 8, background: '#ef4444', boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)' }}>
+                                <div className="logo-icon-inner" style={{ fontSize: 9 }}>ADTEC</div>
                             </div>
                             <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Centro de Notificaciones</h2>
                         </div>
@@ -2348,13 +2415,13 @@ useEffect(() => {
                     </div>
                 )}
                 {currentTab.type !== 'charts' && currentTab.type !== 'alerts' && (
-                    <div className="card-header" style={{ background: 'rgba(236, 72, 153, 0.1)', border: '1px solid #ec4899', borderRadius: '8px', padding: '10px', margin: '5px' }}>
-                        <div className="logo-section" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', borderRadius: '6px', padding: '8px' }}>
-                            <div className="logo-icon" style={{ background: 'rgba(251, 191, 36, 0.2)', border: '2px solid #fbbf24', borderRadius: '6px', padding: '4px' }}><div className="logo-icon-inner" style={{ background: 'rgba(239, 68, 68, 0.2)', borderRadius: '4px', padding: '2px' }}>ADTEC</div></div>
+                    <div className="card-header">
+                        <div className="logo-section">
+                            <div className="logo-icon"><div className="logo-icon-inner">ADTEC</div></div>
                             <span className="card-title">{currentTab.title}</span>
                         </div>
                         {currentTab.type === 'control' && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59, 130, 246, 0.1)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.05)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(148,163,184,0.1)' }}>
                                 <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
                                     {controlState.manual ? 'MANUAL' : 'AUTO'}
                                 </span>
@@ -2367,7 +2434,7 @@ useEffect(() => {
                         <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
                     </div>
                 )}
-                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"} style={{ background: 'rgba(251, 146, 60, 0.05)', border: '1px solid #fb923c', borderRadius: '8px', padding: '8px', margin: '5px' }}>
+                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"}>
                     {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
                     
                     {currentTab.type === 'alerts' ? (
@@ -2388,18 +2455,28 @@ useEffect(() => {
                                         {alerts.map((a, i) => {
                                             const alertType = ALERT_TYPES[a.type] || DEFAULT_ALERT_TYPE;
                                             
+                                            // Mapear tipo de alerta a clase CSS
+                                            const getAlertClass = (type) => {
+                                              if (type === 'CRITICAL' || type === 'ALERT_CRITICAL') return 'alert-critical';
+                                              if (type === 'WARNING' || type === 'WARN' || type === 'ALERT_WARNING') return 'alert-warning';
+                                              if (type === 'INFO' || type === 'ALERT_INFO') return 'alert-info';
+                                              if (type === 'STATE' || type === 'ALERT_STATE') return 'alert-state';
+                                              return 'alert-default';
+                                            };
+                                            
+                                            const getTagClass = (type) => {
+                                              if (type === 'CRITICAL' || type === 'ALERT_CRITICAL') return 'tag-critical';
+                                              if (type === 'WARNING' || type === 'WARN' || type === 'ALERT_WARNING') return 'tag-warning';
+                                              if (type === 'INFO' || type === 'ALERT_INFO') return 'tag-info';
+                                              if (type === 'STATE' || type === 'ALERT_STATE') return 'tag-state';
+                                              return 'tag-default';
+                                            };
+                                            
                                             return (
-                                            <div key={i} className="alert-card-item" style={{
-                                                borderLeft: `4px solid ${alertType.color}`,
-                                                background: alertType.bgColor,
-                                                border: `1px solid ${alertType.borderColor}`
-                                            }}>
+                                            <div key={i} className={`alert-card-item ${getAlertClass(a.type)}`}>
                                                 <div className="alert-card-content">
                                                     <div className="alert-card-header">
-                                                        <span className="alert-card-tag" style={{
-                                                            background: alertType.color,
-                                                            color: 'white'
-                                                        }}>
+                                                        <span className={`alert-card-tag ${getTagClass(a.type)}`}>
                                                             {alertType.label}
                                                         </span>
                                                         <span className="alert-card-time">{new Date(a.timestamp).toLocaleString('es-ES')}</span>
