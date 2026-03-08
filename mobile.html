@@ -1789,6 +1789,13 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
   // Función normKey necesaria para MobileChartTemplate
   const normKey = (k) => (typeof k === 'string' && k.startsWith('kv.')) ? k.slice(3) : k;
   
+  // Time Range Buttons - igual que React Desktop
+  const timeRangeButtons = [
+    { id: 'Ahora', label: '📡 LIVE' },
+    { id: '24h', label: '📅 24H' },
+    { id: '7d', label: '🗓️ 7D' }
+  ];
+  
   // getScaleSettings - adaptado para template
   const getScaleSettings = (key) => {
     if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
@@ -2207,6 +2214,34 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
         ])
       ])
     ]),
+    
+    // Time Range Controls
+    React.createElement('div', { className: 'mobile-chart-time-controls' }, 
+      timeRangeButtons.map(range => 
+        React.createElement('button', {
+          key: range.id,
+          onClick: () => {
+            if (onChartConfigChange) {
+              onChartConfigChange({
+                ...safeChartConfig,
+                timeRange: range.id
+              });
+            }
+          },
+          className: 'mobile-chart-time-button ' + (safeChartConfig.timeRange === range.id ? 'active' : ''),
+          style: {
+            padding: '8px 12px',
+            border: '1px solid #374151',
+            borderRadius: '6px',
+            backgroundColor: safeChartConfig.timeRange === range.id ? '#3b82f6' : '#1f2937',
+            color: 'white',
+            fontSize: '12px',
+            cursor: 'pointer',
+            marginRight: '8px'
+          }
+        }, range.label)
+      )
+    ),
     
     // Canvas
     React.createElement('div', { className: 'mobile-chart-canvas-container' }, [
