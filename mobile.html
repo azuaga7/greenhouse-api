@@ -1752,6 +1752,12 @@
             
 // MobileChart Template - Versión para HTML template (sin TypeScript, sin JSX)
 const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig, availableVariables = [], onChartConfigChange }) => {
+  // Constantes iguales a reactDashboardTemplate
+  const LIVE_MAX_POINTS = 100;
+  const MAX_POINTS = 1000;
+  const LIVE_PRELOAD_LIMIT = 50;
+  const HISTORY_CACHE_LIMIT = 250;
+  
   // Usar valores proporcionados sin crear defaults
   const safeDataHistory = dataHistory || [];
   const safeChartConfig = chartConfig || {};
@@ -1765,6 +1771,9 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
       // Ya tiene valor, mantenerlo
     } else if (safeAvailableVariables.length > 0) {
       safeChartConfig.primaryY = safeAvailableVariables[0].key;
+    } else {
+      // Último recurso - variable por defecto hardcoded
+      safeChartConfig.primaryY = 'kv.temp'; // Temperatura por defecto
     }
   }
 
@@ -1820,7 +1829,7 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
       setLiveData(prev => {
         const next = [...prev, data];
         console.log('[MobileChartTemplate] liveData length:', next.length);
-        return next.length > 300 ? next.slice(-300) : next;
+        return next.length > LIVE_MAX_POINTS ? next.slice(-LIVE_MAX_POINTS) : next;  // Usar constante
       });
     } catch (e) {
       console.warn('fetchLiveData error:', e);
@@ -1851,7 +1860,7 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
       
       url.searchParams.set('channel', 'ingreso');
       url.searchParams.set('keys', safeChartConfig.primaryY + (safeChartConfig.secondaryY ? ',' + safeChartConfig.secondaryY : ''));
-      url.searchParams.set('max_points', '1000');
+      url.searchParams.set('max_points', String(MAX_POINTS));  // Usar constante
       if (fromTs != null) url.searchParams.set('from_ts', String(fromTs));
       url.searchParams.set('to_ts', String(toTs));
 
@@ -1895,7 +1904,7 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     fetchSeriesData();
   }, [safeChartConfig.primaryY, safeChartConfig.secondaryY, safeChartConfig.timeRange]);
 
-  // Determinar qué datos usar (igual que React)
+  // Determinar qué datos usar (igual que React) con filtros de día/noche
   const getCurrentData = () => {
     console.log('[MobileChartTemplate] getCurrentData called:', {
       timeRange: safeChartConfig.timeRange,
@@ -1905,8 +1914,25 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
       seriesDataLength: seriesData.length
     });
     
+    let filtered = safeChartConfig.timeRange === 'Ahora' ? liveData : seriesData;
+    
+    // Aplicar filtros de día/noche como en reactDashboardTemplate
+    if (safeChartConfig.timeRange !== 'Ahora') {
+      if (safeChartConfig.filter === 'day') {
+        filtered = filtered.filter(d => {
+          const h = new Date(d.fullTimestamp || d.timestamp).getHours();
+          return h >= 7 && h < 19;
+        });
+      } else if (safeChartConfig.filter === 'night') {
+        filtered = filtered.filter(d => {
+          const h = new Date(d.fullTimestamp || d.timestamp).getHours();
+          return h < 7 || h >= 19;
+        });
+      }
+    }
+    
     if (safeChartConfig.timeRange === 'Ahora') {
-      const processed = liveData.map(item => {
+      const processed = filtered.map(item => {
         const primaryKey = normKey(safeChartConfig.primaryY);
         const secondaryKey = safeChartConfig.secondaryY ? normKey(safeChartConfig.secondaryY) : null;
         
@@ -1926,11 +1952,11 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
         };
       });
       
-      console.log('[MobileChartTemplate] Processed live data:', processed);
+      console.log('[MobileChartTemplate] Processed data:', processed);
       return processed;
     } else {
-      console.log('[MobileChartTemplate] Using series data:', seriesData);
-      return seriesData.map(item => item);
+      console.log('[MobileChartTemplate] Using series data:', filtered);
+      return filtered.map(item => item);
     }
   };
 
@@ -2096,39 +2122,28 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     setIsInitialized(true); // Marcar como inicializado
   }, [currentData, safeChartConfig]);
 
-  // Estado de carga inicial - versión corregida
-  if (!isInitialized || currentData.length === 0) {
-    return React.createElement('div', { 
-      className: 'mobile-chart-component',
-      style: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        height: '100%',
-        color: '#9ca3af',
-        fontSize: '14px'
-      }
-    }, [
-      React.createElement('div', { style: { textAlign: 'center' } }, [
-        React.createElement('div', { style: { fontSize: '24px', marginBottom: '10px' } }, '📊'),
-        React.createElement('div', { style: { marginBottom: '5px' } }, 'Cargando gráfico...'),
-        React.createElement('div', { style: { fontSize: '12px', opacity: 0.7 } }, 
-          currentData.length === 0 ? 'Esperando datos' : 'Inicializando...'
-        )
-      ])
-    ]);
+  // Validación adicional para diagnóstico
+  if (currentData.length > 0) {
+    const hasValidData = currentData.some(item => 
+      typeof item.v === 'number' && !isNaN(item.v) && item.v !== null
+    );
+    
+    if (!hasValidData) {
+      console.warn('[MobileChartTemplate] Todos los valores son 0 o inválidos:', currentData);
+    }
   }
-
-  // Variables para selectores - usar misma fuente que el template
-  const chartVariables = (typeof CONFIG !== 'undefined' && CONFIG.dashboard) ? CONFIG.dashboard.widgets : [];
+  const chartVariables = (typeof CONFIG !== 'undefined' && CONFIG.dashboard) ? 
+    (CONFIG.dashboard.variables || CONFIG.dashboard.autoVariables || []) : [];
   
   console.log('[MobileChartTemplate] Variables disponibles:', {
     hasConfig: typeof CONFIG !== 'undefined',
     hasDashboard: !!CONFIG.dashboard,
-    widgetsCount: chartVariables.length,
-    widgets: chartVariables,
+    hasDashboardVariables: !!(CONFIG.dashboard.variables || CONFIG.dashboard.autoVariables || []),
+    chartVariablesCount: chartVariables.length,
+    chartVariables: chartVariables,
     availableVariablesCount: safeAvailableVariables.length,
-    availableVariables: safeAvailableVariables
+    availableVariables: safeAvailableVariables,
+    finalPrimaryY: safeChartConfig.primaryY
   });
   
   // Si no hay variables disponibles, mostrar mensaje
