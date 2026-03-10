@@ -1843,54 +1843,88 @@ const MobileChartTemplate = React.memo(({ widget, dataHistory = [], chartConfig,
     }
   };
 
-  // Fetch de datos históricos (igual que React)
+  // Fetch de datos históricos (igual que React Desktop)
   const fetchSeriesData = async () => {
     try {
-      const isLive = safeChartConfig.timeRange === 'Ahora';
-      if (!safeChartConfig.primaryY || isLive) {
+      const isLive = chartConfig.timeRange === 'Ahora';
+      if (!chartConfig.primaryY || isLive) {
         setSeriesData([]);
         return;
       }
 
       setSeriesLoading(true);
       const baseUrl = (CONFIG && typeof CONFIG.BASE_URL === 'string') ? CONFIG.BASE_URL : '';
-      const url = new URL(baseUrl + '/api/series', window.location.origin);
       
+      const y1 = normKey(chartConfig.primaryY);
+      const y2 = chartConfig.secondaryY ? normKey(chartConfig.secondaryY) : null;
+
       const nowSec = Math.floor(Date.now() / 1000);
       let fromTs = null, toTs = nowSec;
-      
-      if (safeChartConfig.timeRange === '24h') {
+
+      // Determinar rango (igual que React Desktop)
+      if (chartConfig.timeRange === '24h') {
         fromTs = nowSec - 86400;
-      } else if (safeChartConfig.timeRange === '7d') {
+      } else if (chartConfig.timeRange === '7d') {
         fromTs = nowSec - (7 * 86400);
       }
-      
-      url.searchParams.set('channel', 'ingreso');
-      url.searchParams.set('keys', safeChartConfig.primaryY + (safeChartConfig.secondaryY ? ',' + safeChartConfig.secondaryY : ''));
-      url.searchParams.set('max_points', String(MAX_POINTS));  // Usar constante
-      if (fromTs != null) url.searchParams.set('from_ts', String(fromTs));
-      url.searchParams.set('to_ts', String(toTs));
 
-      const res = await fetch(url);
-      if (!res.ok) {
-        console.warn('fetchSeriesData failed:', res.status);
-        return;
+      const buildSeriesUrl = (key) => {
+        const u = new URL(baseUrl + '/api/series', window.location.origin);
+        u.searchParams.set('channel', 'ingreso');
+        u.searchParams.set('key', key);
+        u.searchParams.set('max_points', String(MAX_POINTS));
+
+        // nunca enviar null
+        if (fromTs != null) u.searchParams.set('from_ts', String(fromTs));
+        u.searchParams.set('to_ts', String(toTs));
+        return u;
+      };
+
+      const fetchSeries = async (key) => {
+        const u = buildSeriesUrl(key);
+        const res = await fetch(u);
+        if (!res.ok) return [];
+        const js = await res.json();
+        const pts = Array.isArray(js?.points) ? js.points : [];
+        return pts.map(p => {
+          const ts = p?.[0];
+          const v = p?.[1];
+          return {
+            timestamp: new Date(ts * 1000).toISOString(),
+            [key]: v
+          };
+        });
+      };
+
+      const rows1 = await fetchSeries(y1);
+      let merged = rows1;
+
+      if (y2 && y2 !== y1) {
+        const rows2 = await fetchSeries(y2);
+        // Merge por timestamp (igual que React Desktop)
+        const map = new Map();
+        for (const r of (rows1 || [])) {
+          if (!r || !r.timestamp) continue;
+          map.set(r.timestamp, r);
+        }
+        for (const r of (rows2 || [])) {
+          if (!r || !r.timestamp) continue;
+          const prev = map.get(r.timestamp);
+          map.set(r.timestamp, prev ? { ...prev, ...r } : { ...r });
+        }
+        merged = Array.from(map.values()).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       }
-      
-      const js = await res.json();
-      const series = js && js.series ? js.series : {};
-      const primaryKey = normKey(safeChartConfig.primaryY);
-      const secondaryKey = safeChartConfig.secondaryY ? normKey(safeChartConfig.secondaryY) : null;
-      
-      const merged = Object.entries(series).map(([timestamp, values]) => ({
-        timestamp: parseInt(timestamp) * 1000,
-        t: new Date(parseInt(timestamp) * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-        v: values[primaryKey] || 0,
-        v2: secondaryKey ? (values[secondaryKey] || 0) : null,
-        fullTimestamp: parseInt(timestamp) * 1000
+
+      // Convertir al formato esperado por el chart (igual que React Desktop)
+      const chartData = merged.map(item => ({
+        timestamp: parseInt(item.timestamp) * 1000,
+        t: new Date(parseInt(item.timestamp) * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+        v: item[y1] || 0,
+        v2: y2 ? (item[y2] || 0) : null,
+        fullTimestamp: parseInt(item.timestamp) * 1000
       }));
-      
-      setSeriesData(merged);
+
+      setSeriesData(chartData);
     } catch (e) {
       console.warn('fetchSeriesData error:', e);
       setSeriesData([]);
