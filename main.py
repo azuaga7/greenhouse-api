@@ -27,16 +27,7 @@ except ImportError:
     def _iter_archive_chunks(s, e): return []
     def _ungzip_to_cache(p): return p
 
-try:
-    from invernIA import register_invernia_routes
-except ImportError:
-    def register_invernia_routes(app):
-        return None
-
 app = FastAPI(title="ADTEC Bridge API (Desktop+Mobile Unified)")
-
-# Registrar rutas de InvernIA si está disponible
-register_invernia_routes(app)
 
 DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
@@ -413,6 +404,14 @@ async def api_control_state_any(request: Request):
     # Igual dejamos la opción de inyectar si el request ya es POST/PUT.
     inject_mobile = request.method in ("POST", "PUT")
     return await proxy_stream(request, full_url, inject_mobile=inject_mobile)
+
+# InvernIA proxy (todos los métodos al droplet)
+@app.api_route("/api/invernIA/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
+async def api_invernia_proxy(path: str, request: Request):
+    qs = str(request.url.query)
+    url = f"{BRIDGE_HTTP_BASE}/api/invernIA/{path}"
+    full_url = f"{url}?{qs}" if qs else url
+    return await proxy_stream(request, full_url)
 
 if __name__ == "__main__":
     import uvicorn
