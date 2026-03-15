@@ -27,7 +27,16 @@ except ImportError:
     def _iter_archive_chunks(s, e): return []
     def _ungzip_to_cache(p): return p
 
+try:
+    from invernIA import register_invernia_routes
+except ImportError:
+    def register_invernia_routes(app):
+        return None
+
 app = FastAPI(title="ADTEC Bridge API (Desktop+Mobile Unified)")
+
+# Registrar rutas de InvernIA si está disponible
+register_invernia_routes(app)
 
 DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
