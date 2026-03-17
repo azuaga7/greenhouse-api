@@ -12,9 +12,7 @@
     <script src="libs/chart.umd.js"></script>
     <script src="libs/chart.umd.min.js"></script>
     <script src="libs/lucide.min.js"></script>
-    <script src="libs/marked.min.js"></script>
     <script src="libs/pako.min.js"></script>
-    <script src="libs/purify.min.js"></script>
     <script src="libs/xlsx.full.min.js"></script>
 
     <style>
@@ -167,9 +165,9 @@
         margin-top: 25px; padding: 15px 20px; 
         background: rgba(250,204,21,0.05); border-radius: 10px; 
         border: 1px solid rgba(250,204,21,0.2); display: flex; 
-        gap: 15px; align-Items: center;
+        gap: 15px; alignItems: center;
     }
-    .adtec-security-banner p { margin: 0; font-Size: 11px; color: #fbbf24; line-Height: 1.5; }
+    .adtec-security-banner p { margin: 0; fontSize: 11px; color: #fbbf24; lineHeight: 1.5; }
 
 
     .vfd-dial {
@@ -427,100 +425,6 @@
         --grad-end: var(--gauge-pct-0, #10b981);
     }
 
-    /* Estilos para Markdown content en mensajes de IA */
-    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-        margin: 8px 0 4px 0;
-        font-weight: 600;
-        line-height: 1.3;
-    }
-    .markdown-content h1 { 
-        font-size: 16px; 
-        color: #c4b5fd; 
-        border-bottom: 1px solid rgba(139, 92, 246, 0.3);
-        padding-bottom: 2px;
-    }
-    .markdown-content h2 { 
-        font-size: 14px; 
-        color: #e9d5ff; 
-    }
-    .markdown-content h3 { 
-        font-size: 13px; 
-        color: #f3e8ff; 
-    }
-    
-    .markdown-content p { 
-        margin: 6px 0; 
-        line-height: 1.4; 
-    }
-    
-    .markdown-content ul, .markdown-content ol { 
-        margin: 6px 0; 
-        padding-left: 16px; 
-    }
-    .markdown-content li { 
-        margin: 2px 0; 
-        line-height: 1.3;
-    }
-    
-    .markdown-content strong, .markdown-content b { 
-        font-weight: 600; 
-        color: #f9fafb; 
-    }
-    
-    .markdown-content em, .markdown-content i { 
-        font-style: italic; 
-        color: #e2e8f0; 
-    }
-    
-    .markdown-content code { 
-        background: rgba(139, 92, 246, 0.2); 
-        padding: 2px 4px; 
-        border-radius: 3px; 
-        font-family: 'Courier New', monospace; 
-        font-size: 12px;
-        color: #e9d5ff;
-        border: 1px solid rgba(139, 92, 246, 0.3);
-    }
-    
-    .markdown-content pre {
-        background: rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(139, 92, 246, 0.3);
-        border-radius: 6px;
-        padding: 8px;
-        margin: 6px 0;
-        overflow-x: auto;
-    }
-    
-    .markdown-content pre code {
-        background: transparent;
-        border: none;
-        padding: 0;
-        font-size: 11px;
-    }
-    
-    .markdown-content hr { 
-        border: none; 
-        border-top: 1px solid rgba(139, 92, 246, 0.3); 
-        margin: 8px 0; 
-    }
-    
-    .markdown-content blockquote {
-        border-left: 3px solid rgba(139, 92, 246, 0.5);
-        padding-left: 12px;
-        margin: 6px 0;
-        font-style: italic;
-        color: #e2e8f0;
-    }
-    
-    .markdown-content a {
-        color: #a78bfa;
-        text-decoration: underline;
-    }
-    
-    .markdown-content a:hover {
-        color: #c4b5fd;
-    }
-
         body { 
             margin: 0; 
             padding: 0; 
@@ -545,7 +449,7 @@
             
         window.CONFIG = {
             BASE_URL: '',
-            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"},{"id":"6","name":"Invernia","icon":"cpu","title":"InvernIA - IA Assistant","width":1000,"height":700,"type":"ai-assistant"}],"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"x":620,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"x":490,"y":50,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":50,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"x":710,"y":520,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":660,"y":560,"w":250,"h":85,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"x":160,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":240,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"x":130,"y":450,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"x":510,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":480,"y":200,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"x":480,"y":420,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"x":480,"y":310,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"x":720,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":420,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":310,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":200,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":120,"y":60,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":120,"y":230,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":120,"y":400,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}],"aiConfig":{"model":"gemini-2.5-flash","baseUrl":"https://generativelanguage.googleapis.com","systemPrompt":"Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas.","aiAssistantEnabled":true,"assistantName":"InvernIA","providerLabel":"Google Gemini","modelLabel":"Gemini 2.5 Flash"}},
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"},{"id":"6","name":"Invernia","icon":"cpu","title":"InvernIA - IA Assistant","width":1000,"height":700,"type":"ai-assistant"}],"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"x":620,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"x":490,"y":50,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":50,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"x":710,"y":520,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":660,"y":560,"w":250,"h":85,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"x":160,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":240,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"x":130,"y":450,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"x":510,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":480,"y":200,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"x":480,"y":420,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"x":480,"y":310,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"x":720,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":420,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":310,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":200,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":120,"y":60,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":120,"y":230,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":120,"y":400,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}],"aiConfig":{"apiKey":"AIzaSyCZF6ke9k0HSKW2sJhNHhvbD_APnz-4Wlw","model":"gemini-pro","baseUrl":"https://generativelanguage.googleapis.com","systemPrompt":"Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas."}},
             labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura Sector 3","ds18b20_2_TEMP_OUT":"Temperatura Sector 2","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","ds18b20_1_TEMP_OUT":"Temperatura Sector 1","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS","gsm_1_CITY_COUNTRY":"City, Country"},
             refreshInterval: 1000,
             
@@ -895,21 +799,6 @@ const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
 
 // Importar estilos CSS para dashboard
 const { dashboardStyles } = window.__ADTEC_TEMPLATES__ || {};
-
-// Helper para renderizar Markdown de forma segura
-const renderMarkdown = (content) => {
-    if (!content || typeof content !== 'string') return content;
-    
-    try {
-        // Convertir Markdown a HTML
-        const html = marked.parse(content);
-        // Sanitizar HTML para seguridad
-        return DOMPurify.sanitize(html);
-    } catch (e) {
-        console.warn('Error parsing markdown:', e);
-        return content; // Fallback a texto plano
-    }
-};
 
 // Diccionario de tipos de alerta con colores característicos
 // Mapeo exacto desde desplegable Alert Manager → valores API
@@ -1396,7 +1285,7 @@ const DashboardApp = () => {
     }, [liveData]);
     const [seriesData, setSeriesData] = useState([]);
     const [seriesLoading, setSeriesLoading] = useState(false);
-     const [chartConfig, setChartConfig] = useState({
+    const [chartConfig, setChartConfig] = useState({
         ...CONFIG.chartConfig,
         filter: 'all',
         fromDate: '',
@@ -1412,7 +1301,7 @@ const DashboardApp = () => {
     const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
     const [isLearning, setIsLearning] = useState(true);
     const BASE_URL = CONFIG.BASE_URL || "";
-    // --- ACK local de alertas (no borra historial en el Bridge) ---
+
     // === ESTADOS DE IA ===
     const [aiMessages, setAiMessages] = useState([
         {
@@ -1426,38 +1315,69 @@ const DashboardApp = () => {
     const [aiInput, setAiInput] = useState('');
     const [aiBusy, setAiBusy] = useState(false);
     const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
-    // Configuración de IA para la UI (solo flags no sensibles)
-    const [aiConfig, setAiConfig] = useState({
-        model: 'gemini-2.5-flash',
-        baseUrl: 'https://generativelanguage.googleapis.com',
-        systemPrompt: 'Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas.',
-        // NO incluir apiKey en el frontend
-        aiAssistantEnabled: CONFIG.aiConfig?.aiAssistantEnabled || false,
-        assistantName: CONFIG.aiConfig?.assistantName || 'InvernIA',
-        providerLabel: CONFIG.aiConfig?.providerLabel || 'Google Gemini',
-        modelLabel: CONFIG.aiConfig?.modelLabel || 'Gemini 2.5 Flash'
-    });
+    const normalizeKey = (k) => (typeof k === "string" && k.startsWith("kv.")) ? k.slice(3) : k;
+
+const DashboardApp = () => {
+    const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
+    const [lastData, setLastData] = useState({});
+    const [alerts, setAlerts] = useState([
+        {
+            type: 'CRITICAL',
+            msg: 'Alerta de prueba para visualizar contenedores',
+            value: 45.2,
+            ref: 40.0,
+            signal: 'sensor.temperatura',
+            timestamp: new Date().toISOString(),
+            ts: Date.now() / 1000
+        },
+        {
+            type: 'WARNING',
+            msg: 'Otra alerta de prueba - advertencia',
+            value: 85.5,
+            ref: 80.0,
+            signal: 'sensor.humedad',
+            timestamp: new Date(Date.now() - 300000).toISOString(),
+            ts: (Date.now() - 300000) / 1000
+        }
+    ]);
+    const [controlState, setControlState] = useState({});
+    const [pendingCommands, setPendingCommands] = useState({}); 
+    // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
+    const [sparkTick, setSparkTick] = useState(0);
+    const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
+    const [dayStatsLive, setDayStatsLive] = useState({}); // min/max runtime: seed snapshot then extend with live
+    const cacheApiDayFromRef = useRef(null);
+    const [connStatus, setConnStatus] = useState('🔴 Desconectado');
+    const [connColor, setConnColor] = useState('#f59e0b');
+    const [lastPacketTime, setLastPacketTime] = useState(0);
+    const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
+    const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
+    const [isLearning, setIsLearning] = useState(true);
+    const BASE_URL = CONFIG.BASE_URL || "";
+
+    // === ESTADOS DE IA ===
+    const [aiMessages, setAiMessages] = useState([
+        {
+            id: 'welcome',
+            role: 'assistant',
+            kind: 'text',
+            content: '¡Hola! Soy InvernIA. Puedo analizar telemetría, alertas, control, generar gráficos, tablas y exports.',
+            data: null,
+        }
+    ]);
+    const [aiInput, setAiInput] = useState('');
+    const [aiBusy, setAiBusy] = useState(false);
+    const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
     const aiScrollRef = useRef(null);
 
-    // URLs por defecto según modelo
-    const getDefaultUrl = (model) => {
-        switch (model) {
-            case 'gemini-2.5-flash': return 'https://generativelanguage.googleapis.com';
-            case 'gemini-pro': return 'https://generativelanguage.googleapis.com';
-            case 'gpt-4': return 'https://api.openai.com/v1';
-            case 'claude': return 'https://api.anthropic.com';
-            default: return 'https://api.example.com';
-        }
-    };
-
-    // Actualizar configuración cuando cambia el modelo
-    const handleModelChange = (model) => {
-        setAiConfig(prev => ({
-            ...prev,
-            model,
-            baseUrl: prev.baseUrl || getDefaultUrl(model)
-        }));
-    };
+    // === CHART CONFIG ===
+    const [chartConfig, setChartConfig] = useState({
+        ...CONFIG.chartConfig,
+        filter: 'all',
+        fromDate: '',
+        toDate: '',
+        timeRange: '24h'
+    });
 
     // === ALERTS SEEN UNTIL ===
     const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
@@ -1478,14 +1398,33 @@ const DashboardApp = () => {
         return Number.isFinite(t) ? t : 0;
     };
 
-    // Helpers: datetime-local (sin timezone explícito, usa local del browser)
+    // === HELPERS ===
     const pad2dt = (n) => String(n).padStart(2, '0');
     const toDatetimeLocal = (ts) => {
         const d = (ts instanceof Date) ? ts : new Date(ts);
         if (!(d instanceof Date) || isNaN(d.getTime())) return '';
         return d.getFullYear() + '-' + pad2dt(d.getMonth()+1) + '-' + pad2dt(d.getDate()) + 'T' + pad2dt(d.getHours()) + ':' + pad2dt(d.getMinutes());
     };
-    // Memoria persistente para ubicación (Latching)
+
+    // === WIDGET VALUE SHARED ===
+    const getWidgetValueShared = (key, data, widgets) => {
+        if (!data || !key) return '--';
+        
+        // Primero buscar en data directo
+        if (data[key] !== undefined && data[key] !== null) {
+            return data[key];
+        }
+        
+        // Buscar en widgets con el mismo key
+        const widget = widgets.find(w => w.key === key);
+        if (widget && widget.value !== undefined) {
+            return widget.value;
+        }
+        
+        return '--';
+    };
+
+    // === MEMORIA PERSISTENTE PARA UBICACIÓN ===
     const [lastValidLocation, setLastValidLocation] = useState({ city: '--', coord: '--' });
     useEffect(() => {
         const currentLoc = getWidgetValueShared('gsm_location', lastData, CONFIG.dashboard.widgets);
@@ -1502,14 +1441,11 @@ const DashboardApp = () => {
     const currentTab = useMemo(() => 
         CONFIG.dashboard.tabs.find(t => String(t.id) === String(activeTabId)) || CONFIG.dashboard.tabs[0] || { width: 1000, height: 700 }
     , [activeTabId, CONFIG.dashboard.tabs]);
-    
     useEffect(() => {
         if (!chartConfig.primaryY && CONFIG.dashboard.variables && CONFIG.dashboard.variables.length > 0) {
             setChartConfig(prev => ({ ...prev, primaryY: CONFIG.dashboard.variables[0].key }));
         }
     }, []);
-
-    // === NORMALIZE KEY ===
     const normalizeKey = (k) => (typeof k === "string" && k.startsWith("kv.")) ? k.slice(3) : k;
         const normalizeRow = (obj) => { const out = {}; for (const [k,v] of Object.entries(obj||{})) out[normalizeKey(k)] = v; return out; };
 
@@ -2148,6 +2084,7 @@ useEffect(() => {
 				const timestamp = a.ts_iso || a.timestamp || (ms ? new Date(ms).toISOString() : new Date().toISOString());
 				return { ...a, timestamp, __ts_ms: ms };
 			}).filter(a => (a.__ts_ms || 0) > alertsSeenUntilMs);
+
 			setAlerts(normalized);
 		} catch(e) {
 			console.warn("Fallo Alertas:", e);
@@ -2163,7 +2100,7 @@ useEffect(() => {
 		run();
 		const id = setInterval(() => { fetchAlerts(); }, ALERTS_POLL_MS);
 		return () => { mounted = false; clearInterval(id); };
-	}, [BASE_URL]);
+	}, [BASE_URL, alertsSeenUntilMs]);
 
     // === HEALTH CHECK DE INVERNIA ===
     useEffect(() => {
@@ -2522,45 +2459,6 @@ useEffect(() => {
 
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-                {/* Soporte para data.rows (formato simple con meta) */}
-                {data.rows && Array.isArray(data.rows) && data.rows.length > 0 && (
-                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 10, padding: 10 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: '#93c5fd' }}>
-                            Datos Tabulares ({data.meta?.count ?? data.rows.length} filas)
-                        </div>
-                        {data.meta?.count && data.meta.count > data.rows.length && (
-                            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>
-                                Mostrando primeras {data.rows.length} de {data.meta.count} filas
-                            </div>
-                        )}
-                        <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid rgba(148,163,184,0.12)' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                                <thead>
-                                    <tr>
-                                        {/* Inferir columnas desde la primera fila */}
-                                        {data.rows.length > 0 && Object.keys(data.rows[0]).slice(0, 8).map(col => (
-                                            <th key={col} style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.12)', color: '#93c5fd' }}>
-                                                {col}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.rows.slice(0, 20).map((row, idx) => (
-                                        <tr key={idx}>
-                                            {Object.keys(data.rows[0]).slice(0, 8).map(col => (
-                                                <td key={col} style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.08)', color: '#e5e7eb' }}>
-                                                    {String(row[col] ?? '')}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
                 {data.stats && Array.isArray(data.stats) && data.stats.length > 0 && (
                     <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 10, padding: 10 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: '#93c5fd' }}>Stats</div>
@@ -2718,122 +2616,19 @@ useEffect(() => {
                 })
             });
 
-            const status = res.status;
-            const statusText = res.statusText;
-            const contentType = res.headers.get('content-type') || '';
-
-            const rawText = await res.text();
-
-            console.log('[InvernIA][UI][HTTP]', {
-                url: BASE_URL + '/api/invernIA/query',
-                status,
-                statusText,
-                contentType,
-                ok: res.ok
-            });
-
-            console.log('[InvernIA][UI][RAW_TEXT]', rawText);
-
-            let js = null;
-            try {
-                js = rawText ? JSON.parse(rawText) : null;
-            } catch (parseErr) {
-                console.error('[InvernIA][UI][PARSE_ERROR]', parseErr);
-                throw new Error(
-                    'Respuesta no JSON desde /api/invernIA/query. status=' +
-                    status +
-                    ' content-type=' +
-                    contentType +
-                    ' body=' +
-                    rawText.slice(0, 300)
-                );
-            }
-
-            console.log('[InvernIA][UI][RAW_RESPONSE]', js);
-
-            const hasRows = Array.isArray(js?.data?.rows) && js.data.rows.length > 0;
-            const hasTable = !!js?.data?.table;
-            const hasStats = !!js?.data?.stats;
-            const hasChart = !!js?.data?.chart;
-            const hasExport = !!js?.data?.export;
-            const hasConfigProposal = !!js?.data?.configProposal;
-            const hasText = typeof js?.data?.text === 'string' && js.data.text.trim().length > 0;
-
-            console.log('[InvernIA][UI][RESPONSE_KIND]', {
-                ok: js?.ok,
-                kind: js?.kind,
-                hasText,
-                hasRows,
-                hasTable,
-                hasStats,
-                hasChart,
-                hasExport,
-                hasConfigProposal
-            });
-
-            const hasUsefulPayload =
-                hasText ||
-                hasRows ||
-                hasTable ||
-                hasStats ||
-                hasChart ||
-                hasExport ||
-                hasConfigProposal;
-
-            const resolvedKind =
-                js?.kind ||
-                (hasRows ? 'table' :
-                hasTable ? 'table' :
-                hasStats ? 'stats' :
-                hasChart ? 'chart' :
-                hasExport ? 'export' :
-                hasConfigProposal ? 'config' :
-                'text');
-
-            const resolvedContent =
-                hasText ? js.data.text :
-                hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
-                hasTable ? (js?.message || 'Tabla generada correctamente.') :
-                hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
-                hasChart ? (js?.message || 'Gráfico generado correctamente.') :
-                hasExport ? (js?.message || 'Exportación generada correctamente.') :
-                hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
-                (js?.message || 'Consulta resuelta.');
+            const js = await res.json();
 
             setAiMessages(prev => prev.map(msg => {
                 if (msg.id !== typingId) return msg;
-
-                if (!res.ok) {
-                    return {
-                        ...msg,
-                        kind: 'text',
-                        content: `Error HTTP ${status}: ${statusText || 'fallo en consulta'}.`,
-                        data: js?.data || null,
-                        error: js?.error || rawText || `http_${status}` 
-                    };
-                }
-
-                if (js?.ok !== true || !hasUsefulPayload) {
-                    return {
-                        ...msg,
-                        kind: 'text',
-                        content: 'No se pudo resolver la consulta en este momento.',
-                        data: js?.data || null,
-                        error: js?.error || 'empty_or_invalid_response'
-                    };
-                }
-
                 return {
                     ...msg,
-                    kind: resolvedKind,
-                    content: resolvedContent,
+                    kind: js.kind || 'text',
+                    content: js?.data?.text || js?.message || 'Consulta resuelta.',
                     data: js?.data || null,
                     error: js?.error || null
                 };
             }));
         } catch (e) {
-            console.error('[InvernIA][UI][SEND_ERROR]', e);
-
             setAiMessages(prev => prev.map(msg => {
                 if (msg.id !== typingId) return msg;
                 return {
@@ -2841,7 +2636,7 @@ useEffect(() => {
                     kind: 'text',
                     content: 'No se pudo resolver la consulta en este momento.',
                     data: null,
-                    error: String(e && e.message ? e.message : e)
+                    error: String(e)
                 };
             }));
         } finally {
@@ -2917,7 +2712,7 @@ useEffect(() => {
                         <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
                     </div>
                 )}
-                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"} style={currentTab.type === 'ai-assistant' ? {maxHeight: '582px', overflow: 'hidden'} : {}}>
+                <div className={currentTab.type === 'charts' ? "card-body-flat" : "card-body"}>
                     {currentTab.type !== 'charts' && <div className="grid-bg"></div>}
                     
                     {currentTab.type === 'alerts' ? (
@@ -3169,29 +2964,39 @@ useEffect(() => {
                         </div>
                     ) : currentTab.type === 'ai-assistant' ? (
                         <>
-                            <div style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column',
-                                height: '100%',
-                                minHeight: '100%',
-                                flex: 1,
-                                background: 'var(--surface)',
-                                borderRadius: 12,
-                                overflow: 'hidden'
-                            }}>
-                                {/* Contenedor de mensajes con scroll fijo - Sin header específico, usa el header general */}
-                                <div
-                                    ref={aiScrollRef}
-                                    style={{ 
-                                        flex: 1,
-                                        minHeight: 0,
-                                        overflowY: 'auto', 
-                                        padding: '15px', 
-                                        display: 'flex', 
-                                        flexDirection: 'column', 
-                                        gap: '12px'
-                                    }}
-                                >
+                            {/* Header del AI Assistant - Igual que header de alertas */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '25px', marginBottom: '25px', borderBottom: '1px solid rgba(148, 163, 184, 0.1)', paddingBottom: '15px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div className="logo-icon" style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(139, 92, 246, 0.8)', boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' }}>
+                                        <div className="logo-icon-inner" style={{ fontSize: 9 }}>🤖</div>
+                                    </div>
+                                    <h2 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>InvernIA Assistant</h2>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ 
+                                        padding: '6px 15px', 
+                                        background: aiHealth.ok ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', 
+                                        border: aiHealth.ok ? '1px solid #22c55e' : '1px solid #ef4444', 
+                                        borderRadius: '6px', 
+                                        color: aiHealth.ok ? '#22c55e' : '#ef4444', 
+                                        fontWeight: 'bold', 
+                                        fontSize: '11px' 
+                                    }}>
+                                        {aiHealth.ok ? '🟢 ONLINE' : '🔴 OFFLINE'}
+                                    </div>
+                                    <div style={{ fontSize: '11px', fontWeight: '800', color: connColor }}>{connStatus}</div>
+                                </div>
+                            </div>
+
+                            {/* Contenedor de mensajes con scroll fijo - Igual que alertas */}
+                            <div
+                                ref={aiScrollRef}
+                                style={{ 
+                                    maxHeight: '50vh', 
+                                    overflowY: 'auto', 
+                                    margin: '0 25px 8px 25px'
+                                }}
+                            >
                                 {aiMessages.length === 0 ? (
                                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, margin: '0 25px' }}>
                                         <span style={{ fontSize: '48px', marginBottom: '15px' }}>🤖</span>
@@ -3215,26 +3020,25 @@ useEffect(() => {
                                                 <span style={{ fontSize: 16 }}>
                                                     {msg.role === 'assistant' ? '🤖' : '👤'}
                                                 </span>
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div style={{
-                                                        background: msg.role === 'assistant'
-                                                            ? 'rgba(139, 92, 246, 0.15)'
-                                                            : 'rgba(59, 130, 246, 0.15)',
-                                                        color: msg.role === 'assistant' ? '#e9d5ff' : '#dbeafe',
-                                                        padding: '10px 12px',
-                                                        borderRadius: msg.role === 'user'
-                                                            ? '12px 4px 12px 12px'
-                                                            : '12px 12px 12px 4px',
-                                                        fontSize: 13,
-                                                        border: msg.role === 'assistant'
-                                                            ? '1px solid rgba(139, 92, 246, 0.3)'
-                                                            : '1px solid rgba(59, 130, 246, 0.3)'
-                                                    }}
+
+                                                <div style={{ maxWidth: '85%' }}>
+                                                    <div
+                                                        style={{
+                                                            background: msg.role === 'assistant'
+                                                                ? 'rgba(139, 92, 246, 0.15)'
+                                                                : 'rgba(59, 130, 246, 0.15)',
+                                                            color: msg.role === 'assistant' ? '#e9d5ff' : '#dbeafe',
+                                                            padding: '10px 12px',
+                                                            borderRadius: msg.role === 'user'
+                                                                ? '12px 4px 12px 12px'
+                                                                : '12px 12px 12px 4px',
+                                                            fontSize: 13,
+                                                            border: msg.role === 'assistant'
+                                                                ? '1px solid rgba(139, 92, 246, 0.3)'
+                                                                : '1px solid rgba(59, 130, 246, 0.3)'
+                                                        }}
                                                     >
-                                                        {msg.role === 'assistant' && msg.kind === 'text' 
-                                                            ? <div className="markdown-content" dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
-                                                            : <div>{msg.content}</div>
-                                                        }
+                                                        {msg.content}
                                                     </div>
                                                     {msg.role === 'assistant' && renderAiDataBlock(msg)}
                                                 </div>
@@ -3244,18 +3048,14 @@ useEffect(() => {
                                 )}
                             </div>
 
-                            {/* Área de Input y Controles */}
+                            {/* Input footer - Igual que footer de alertas */}
                             <div style={{ 
+                                margin: '0 25px 25px 25px',
                                 borderTop: '1px solid var(--border)', 
-                                background: 'var(--panel-bg)'
+                                background: 'var(--panel-bg)',
+                                padding: '15px 0'
                             }}>
-                                {/* Input */}
-                                <div style={{ 
-                                    padding: '15px', 
-                                    display: 'flex', 
-                                    gap: 8, 
-                                    alignItems: 'center'
-                                }}>
+                                <div style={{ padding: '0 15px', display: 'flex', gap: 8 }}>
                                     <input
                                         type="text"
                                         value={aiInput}
@@ -3269,7 +3069,7 @@ useEffect(() => {
                                         placeholder="💬 Escribe una consulta para InvernIA..."
                                         style={{
                                             flex: 1,
-                                            padding: '8px 12px',
+                                            padding: '10px 14px',
                                             background: 'var(--surface)',
                                             border: '1px solid var(--border)',
                                             color: 'var(--text)',
@@ -3282,7 +3082,7 @@ useEffect(() => {
                                         onClick={sendAiMessage}
                                         disabled={aiBusy || !(aiInput || '').trim()}
                                         style={{
-                                            padding: '8px 12px',
+                                            padding: '10px 14px',
                                             background: aiBusy ? 'rgba(148,163,184,0.35)' : 'var(--adtec-accent)',
                                             border: 'none',
                                             color: aiBusy ? '#cbd5e1' : '#08111f',
@@ -3295,68 +3095,6 @@ useEffect(() => {
                                         {aiBusy ? 'Analizando...' : 'Enviar'}
                                     </button>
                                 </div>
-
-                                {/* Barra de Controles Inferior */}
-                                <div style={{ 
-                                    padding: '8px 15px', 
-                                    borderTop: '1px solid var(--border)',
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center'
-                                }}>
-                                    {/* Izquierda: Info del Asistente */}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <span style={{ fontSize: 14, fontWeight: 600 }}>Modelo InvernIA</span>
-                                        <span style={{ 
-                                            padding: '4px 8px', 
-                                            fontSize: 11, 
-                                            background: 'var(--surface)', 
-                                            border: '1px solid var(--border)', 
-                                            color: 'var(--text)', 
-                                            borderRadius: 4,
-                                            fontWeight: 'bold'
-                                        }}>
-                                            {aiConfig.model === 'gemini-pro' ? 'Gemini Pro' : 
-                                             aiConfig.model === 'gpt-4' ? 'GPT-4' : 
-                                             aiConfig.model === 'claude' ? 'Claude' : 'Gemini Pro'}
-                                        </span>
-                                    </div>
-
-                                    {/* Derecha: Acciones */}
-                                    <div style={{ display: 'flex', gap: 8 }}>
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            fontSize: 14, 
-                                            cursor: 'pointer', 
-                                            color: 'var(--text-muted)',
-                                            padding: '4px'
-                                        }}>
-                                            ⚙️
-                                        </button>
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            fontSize: 14, 
-                                            cursor: 'pointer', 
-                                            color: 'var(--text-muted)',
-                                            padding: '4px'
-                                        }}>
-                                            📤
-                                        </button>
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            fontSize: 14, 
-                                            cursor: 'pointer', 
-                                            color: 'var(--text-muted)',
-                                            padding: '4px'
-                                        }}>
-                                            🔄
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                             </div>
                         </>
                     ) : (
@@ -3651,7 +3389,8 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                                                     <span style={{ fontSize: 20 }}>📍</span>
                                                 <div>
                                                 <div style={{ fontSize: 12, color: 'white', fontWeight: 600 }}>{city || 'Ubicación Pro'}</div>
-                                                <div style={{ fontSize: 10, opacity: 0.6, wordBreak: 'break-all' }}>{coords || 'Detectando GPS...'}</div>
+                                                <div style={{ fontSize: 10, opacity: 0.6, wordBreak: 'break-all' }}>{coords || 'Detectando GPS...'}
+                                                </div>
                                                 </div>
                                             </div>
                                         );
@@ -3661,34 +3400,13 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
                         })}
                         </div>
                     )}
-                    
-                
-                    
                 </div>
-                    {/* Banner de seguridad para pestaña de control - dentro del card-body */}
-                    {currentTab.type === 'control' && (
-                        <div style={{ 
-                            marginTop: 25, 
-                            padding: '15px 20px', 
-                            background: 'rgba(250,204,21,0.05)', 
-                            borderRadius: 10, 
-                            border: '1px solid rgba(250,204,21,0.2)', 
-                            display: 'flex', 
-                            gap: 15, 
-                            alignItems: 'center'
-                        }}>
-                            <span style={{ fontSize: 20 }}>⚠️</span>
-                            <p style={{ margin: 0, fontSize: 11, color: '#fbbf24', lineHeight: 1.5 }}>
-                                <strong>MODO DE SEGURIDAD:</strong> Los controles remotos solo tienen efecto si el sistema está en <strong>MODO MANUAL</strong>. Esto evita conflictos con la lógica automática del invernadero.
-                            </p>
-                        </div>
-                    )}
-
-                 </div>
+            </div>
         </div>
     );
 };
 ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
+
             
             // Inicializar iconos después de que React termine
             setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
