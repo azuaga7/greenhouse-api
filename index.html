@@ -2718,7 +2718,36 @@ useEffect(() => {
                 })
             });
 
-            const js = await res.json();
+            const status = res.status;
+            const statusText = res.statusText;
+            const contentType = res.headers.get('content-type') || '';
+
+            const rawText = await res.text();
+
+            console.log('[InvernIA][UI][HTTP]', {
+                url: BASE_URL + '/api/invernIA/query',
+                status,
+                statusText,
+                contentType,
+                ok: res.ok
+            });
+
+            console.log('[InvernIA][UI][RAW_TEXT]', rawText);
+
+            let js = null;
+            try {
+                js = rawText ? JSON.parse(rawText) : null;
+            } catch (parseErr) {
+                console.error('[InvernIA][UI][PARSE_ERROR]', parseErr);
+                throw new Error(
+                    'Respuesta no JSON desde /api/invernIA/query. status=' +
+                    status +
+                    ' content-type=' +
+                    contentType +
+                    ' body=' +
+                    rawText.slice(0, 300)
+                );
+            }
 
             console.log('[InvernIA][UI][RAW_RESPONSE]', js);
 
@@ -2731,68 +2760,80 @@ useEffect(() => {
             const hasText = typeof js?.data?.text === 'string' && js.data.text.trim().length > 0;
 
             console.log('[InvernIA][UI][RESPONSE_KIND]', {
-              ok: js?.ok,
-              kind: js?.kind,
-              hasText,
-              hasRows,
-              hasTable,
-              hasStats,
-              hasChart,
-              hasExport,
-              hasConfigProposal
+                ok: js?.ok,
+                kind: js?.kind,
+                hasText,
+                hasRows,
+                hasTable,
+                hasStats,
+                hasChart,
+                hasExport,
+                hasConfigProposal
             });
 
             const hasUsefulPayload =
-              hasText ||
-              hasRows ||
-              hasTable ||
-              hasStats ||
-              hasChart ||
-              hasExport ||
-              hasConfigProposal;
+                hasText ||
+                hasRows ||
+                hasTable ||
+                hasStats ||
+                hasChart ||
+                hasExport ||
+                hasConfigProposal;
 
             const resolvedKind =
-              js?.kind ||
-              (hasRows ? 'table' :
-               hasTable ? 'table' :
-               hasStats ? 'stats' :
-               hasChart ? 'chart' :
-               hasExport ? 'export' :
-               hasConfigProposal ? 'config' :
-               'text');
+                js?.kind ||
+                (hasRows ? 'table' :
+                hasTable ? 'table' :
+                hasStats ? 'stats' :
+                hasChart ? 'chart' :
+                hasExport ? 'export' :
+                hasConfigProposal ? 'config' :
+                'text');
 
             const resolvedContent =
-              hasText ? js.data.text :
-              hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
-              hasTable ? (js?.message || 'Tabla generada correctamente.') :
-              hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
-              hasChart ? (js?.message || 'Gráfico generado correctamente.') :
-              hasExport ? (js?.message || 'Exportación generada correctamente.') :
-              hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
-              (js?.message || 'Consulta resuelta.');
+                hasText ? js.data.text :
+                hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
+                hasTable ? (js?.message || 'Tabla generada correctamente.') :
+                hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
+                hasChart ? (js?.message || 'Gráfico generado correctamente.') :
+                hasExport ? (js?.message || 'Exportación generada correctamente.') :
+                hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
+                (js?.message || 'Consulta resuelta.');
 
             setAiMessages(prev => prev.map(msg => {
-              if (msg.id !== typingId) return msg;
+                if (msg.id !== typingId) return msg;
 
-              if (js?.ok !== true || !hasUsefulPayload) {
+                if (!res.ok) {
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: `Error HTTP ${status}: ${statusText || 'fallo en consulta'}.`,
+                        data: js?.data || null,
+                        error: js?.error || rawText || `http_${status}` 
+                    };
+                }
+
+                if (js?.ok !== true || !hasUsefulPayload) {
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: 'No se pudo resolver la consulta en este momento.',
+                        data: js?.data || null,
+                        error: js?.error || 'empty_or_invalid_response'
+                    };
+                }
+
                 return {
-                  ...msg,
-                  kind: 'text',
-                  content: 'No se pudo resolver la consulta en este momento.',
-                  data: js?.data || null,
-                  error: js?.error || 'empty_or_invalid_response'
+                    ...msg,
+                    kind: resolvedKind,
+                    content: resolvedContent,
+                    data: js?.data || null,
+                    error: js?.error || null
                 };
-              }
-
-              return {
-                ...msg,
-                kind: resolvedKind,
-                content: resolvedContent,
-                data: js?.data || null,
-                error: js?.error || null
-              };
             }));
         } catch (e) {
+            console.error('[InvernIA][UI][SEND_ERROR]', e);
+
             setAiMessages(prev => prev.map(msg => {
                 if (msg.id !== typingId) return msg;
                 return {
@@ -2800,7 +2841,7 @@ useEffect(() => {
                     kind: 'text',
                     content: 'No se pudo resolver la consulta en este momento.',
                     data: null,
-                    error: String(e)
+                    error: String(e && e.message ? e.message : e)
                 };
             }));
         } finally {
