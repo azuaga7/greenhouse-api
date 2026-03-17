@@ -2522,6 +2522,45 @@ useEffect(() => {
 
         return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
+                {/* Soporte para data.rows (formato simple con meta) */}
+                {data.rows && Array.isArray(data.rows) && data.rows.length > 0 && (
+                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 10, padding: 10 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: '#93c5fd' }}>
+                            Datos Tabulares ({data.meta?.count ?? data.rows.length} filas)
+                        </div>
+                        {data.meta?.count && data.meta.count > data.rows.length && (
+                            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>
+                                Mostrando primeras {data.rows.length} de {data.meta.count} filas
+                            </div>
+                        )}
+                        <div style={{ overflowX: 'auto', borderRadius: 8, border: '1px solid rgba(148,163,184,0.12)' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                                <thead>
+                                    <tr>
+                                        {/* Inferir columnas desde la primera fila */}
+                                        {data.rows.length > 0 && Object.keys(data.rows[0]).slice(0, 8).map(col => (
+                                            <th key={col} style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.12)', color: '#93c5fd' }}>
+                                                {col}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.rows.slice(0, 20).map((row, idx) => (
+                                        <tr key={idx}>
+                                            {Object.keys(data.rows[0]).slice(0, 8).map(col => (
+                                                <td key={col} style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.08)', color: '#e5e7eb' }}>
+                                                    {String(row[col] ?? '')}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
                 {data.stats && Array.isArray(data.stats) && data.stats.length > 0 && (
                     <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 10, padding: 10 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 8, color: '#93c5fd' }}>Stats</div>
@@ -2681,15 +2720,77 @@ useEffect(() => {
 
             const js = await res.json();
 
+            console.log('[InvernIA][UI][RAW_RESPONSE]', js);
+
+            const hasRows = Array.isArray(js?.data?.rows) && js.data.rows.length > 0;
+            const hasTable = !!js?.data?.table;
+            const hasStats = !!js?.data?.stats;
+            const hasChart = !!js?.data?.chart;
+            const hasExport = !!js?.data?.export;
+            const hasConfigProposal = !!js?.data?.configProposal;
+            const hasText = typeof js?.data?.text === 'string' && js.data.text.trim().length > 0;
+
+            console.log('[InvernIA][UI][RESPONSE_KIND]', {
+              ok: js?.ok,
+              kind: js?.kind,
+              hasText,
+              hasRows,
+              hasTable,
+              hasStats,
+              hasChart,
+              hasExport,
+              hasConfigProposal
+            });
+
+            const hasUsefulPayload =
+              hasText ||
+              hasRows ||
+              hasTable ||
+              hasStats ||
+              hasChart ||
+              hasExport ||
+              hasConfigProposal;
+
+            const resolvedKind =
+              js?.kind ||
+              (hasRows ? 'table' :
+               hasTable ? 'table' :
+               hasStats ? 'stats' :
+               hasChart ? 'chart' :
+               hasExport ? 'export' :
+               hasConfigProposal ? 'config' :
+               'text');
+
+            const resolvedContent =
+              hasText ? js.data.text :
+              hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
+              hasTable ? (js?.message || 'Tabla generada correctamente.') :
+              hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
+              hasChart ? (js?.message || 'Gráfico generado correctamente.') :
+              hasExport ? (js?.message || 'Exportación generada correctamente.') :
+              hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
+              (js?.message || 'Consulta resuelta.');
+
             setAiMessages(prev => prev.map(msg => {
-                if (msg.id !== typingId) return msg;
+              if (msg.id !== typingId) return msg;
+
+              if (js?.ok !== true || !hasUsefulPayload) {
                 return {
-                    ...msg,
-                    kind: js.kind || 'text',
-                    content: js?.data?.text || js?.message || 'Consulta resuelta.',
-                    data: js?.data || null,
-                    error: js?.error || null
+                  ...msg,
+                  kind: 'text',
+                  content: 'No se pudo resolver la consulta en este momento.',
+                  data: js?.data || null,
+                  error: js?.error || 'empty_or_invalid_response'
                 };
+              }
+
+              return {
+                ...msg,
+                kind: resolvedKind,
+                content: resolvedContent,
+                data: js?.data || null,
+                error: js?.error || null
+              };
             }));
         } catch (e) {
             setAiMessages(prev => prev.map(msg => {
