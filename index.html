@@ -569,8 +569,20 @@
             
             const isDateStr = typeof val === 'string' && (val.includes('T') || (val.includes('-') && val.includes(':')));
 
-            // Formatos de Tiempo y Fecha
-            if (format?.startsWith('datetime') || format?.startsWith('time') || isDateStr) {
+            // Formatos de tiempo específicos (time_hm, time_hms) - MANEJAR PRIMERO
+            if (format === 'time_hm' || format === 'time_hms') {
+                if (!isNum) return "--"; // Validar que sea numérico para formatos de tiempo
+                // Convertir milisegundos a segundos
+                const totalSeconds = Math.floor(num / 1000);
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                if (format === 'time_hm') return `${h}:${m.toString().padStart(2, '0')}`;
+                return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            // Formatos de Tiempo y Fecha (excluyendo time_hm/time_hms que ya se manejaron)
+            if (format?.startsWith('datetime') || isDateStr) {
                 try {
                     const d = new Date(val);
                     if (!isNaN(d.getTime())) {
@@ -598,8 +610,7 @@
                         
                         if (format?.startsWith('datetime')) return `${timeWithSuffix}|${date}`;
                         
-                        // Si es un formato de tiempo específico (time_hm, time_hms, etc.)
-                        if (format?.startsWith('time')) return timeWithSuffix;
+                        return timeWithSuffix;
                     }
                 } catch (e) { }
             }
@@ -2807,18 +2818,36 @@ useEffect(() => {
                     return {
                         ...msg,
                         kind: 'text',
-                        content: `Error HTTP ${status}: ${statusText || 'fallo en consulta'}.`,
-                        data: js?.data || null,
-                        error: js?.error || rawText || `http_${status}` 
+                        content: 'Error HTTP ' + status + ': ' + (statusText || 'fallo en consulta') + '.',
+                        data: js || null,
+                        error: js?.error || rawText || ('http_' + status)
                     };
                 }
 
-                if (js?.ok !== true || !hasUsefulPayload) {
+                if (js?.ok !== true) {
+                    const stageText = js?.stage ? ' [' + js.stage + ']' : '';
+                    const errText =
+                        (typeof js?.error === 'string' && js.error.trim())
+                            ? js.error.trim()
+                            : (typeof js?.message === 'string' && js.message.trim())
+                                ? js.message.trim()
+                                : 'No se pudo resolver la consulta en este momento.';
+
                     return {
                         ...msg,
                         kind: 'text',
-                        content: 'No se pudo resolver la consulta en este momento.',
-                        data: js?.data || null,
+                        content: 'InvernIA no pudo resolver la consulta' + stageText + ': ' + errText,
+                        data: js || null,
+                        error: js?.error || 'query_failed'
+                    };
+                }
+
+                if (!hasUsefulPayload) {
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: js?.message || 'Respuesta vacía o sin payload útil.',
+                        data: js || null,
                         error: js?.error || 'empty_or_invalid_response'
                     };
                 }
