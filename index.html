@@ -11,7 +11,7 @@
     <script src="libs/babel.min.js"></script>
     <script src="libs/chart.umd.js"></script>
     <script src="libs/chart.umd.min.js"></script>
-    <script src="libs/docx.min.js"></script>
+    <script src="libs/docx.js"></script>
     <script src="libs/filesaver.min.js"></script>
     <script src="libs/lucide.min.js"></script>
     <script src="libs/marked.min.js"></script>
@@ -1458,7 +1458,7 @@ const DashboardApp = () => {
     const [aiBusy, setAiBusy] = useState(false);
     const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
     // Estados para typing simulado
-    const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+    const [typingMessageId, setTypingMessageId] = useState(null);
     const [typingContent, setTypingContent] = useState('');
     const [typingFullContent, setTypingFullContent] = useState('');
     // Configuración de IA para la UI (solo flags no sensibles)
@@ -1495,7 +1495,7 @@ const DashboardApp = () => {
     };
 
     // === FUNCIÓN DE TYPING SIMULADO ===
-    const startTypingEffect = useCallback((messageId: string, fullContent: string) => {
+    const startTypingEffect = useCallback((messageId, fullContent) => {
         setTypingMessageId(messageId);
         setTypingFullContent(fullContent);
         setTypingContent('');
