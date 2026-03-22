@@ -11,6 +11,8 @@
     <script src="libs/babel.min.js"></script>
     <script src="libs/chart.umd.js"></script>
     <script src="libs/chart.umd.min.js"></script>
+    <script src="libs/docx.min.js"></script>
+    <script src="libs/filesaver.min.js"></script>
     <script src="libs/lucide.min.js"></script>
     <script src="libs/marked.min.js"></script>
     <script src="libs/pako.min.js"></script>
@@ -37,6 +39,22 @@
         --error-title-color: #ef4444;
         --error-button-bg: #38bdf8;
         --error-button-text: #0f172a;
+    }
+    
+    /* Typing cursor animation */
+    .typing-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.2em;
+        background-color: #38bdf8;
+        animation: blink 1s infinite;
+        margin-left: 2px;
+        vertical-align: text-bottom;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1430,13 +1448,19 @@ const DashboardApp = () => {
             id: 'welcome',
             role: 'assistant',
             kind: 'text',
-            content: '¡Hola! Soy InvernIA. Puedo analizar telemetría, alertas, control, generar gráficos, tablas y exports.',
+            content: '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.',
             data: null,
+            isTyping: false,
+            timestamp: new Date().toISOString()
         }
     ]);
     const [aiInput, setAiInput] = useState('');
     const [aiBusy, setAiBusy] = useState(false);
     const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
+    // Estados para typing simulado
+    const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+    const [typingContent, setTypingContent] = useState('');
+    const [typingFullContent, setTypingFullContent] = useState('');
     // Configuración de IA para la UI (solo flags no sensibles)
     const [aiConfig, setAiConfig] = useState({
         model: 'gemini-2.5-flash',
@@ -1469,6 +1493,186 @@ const DashboardApp = () => {
             baseUrl: prev.baseUrl || getDefaultUrl(model)
         }));
     };
+
+    // === FUNCIÓN DE TYPING SIMULADO ===
+    const startTypingEffect = useCallback((messageId: string, fullContent: string) => {
+        setTypingMessageId(messageId);
+        setTypingFullContent(fullContent);
+        setTypingContent('');
+        
+        let currentIndex = 0;
+        const typingSpeed = 15; // ms entre caracteres
+        
+        const typeNextChar = () => {
+            if (currentIndex < fullContent.length) {
+                setTypingContent(fullContent.slice(0, currentIndex + 1));
+                currentIndex++;
+                setTimeout(typeNextChar, typingSpeed);
+            } else {
+                // Terminó el typing
+                setTypingMessageId(null);
+                setTypingContent('');
+                setTypingFullContent('');
+                
+                // Actualizar el mensaje para marcar que ya no está typing
+                setAiMessages(prev => prev.map(msg => 
+                    msg.id === messageId ? { ...msg, isTyping: false } : msg
+                ));
+            }
+        };
+        
+        // Iniciar el efecto
+        setTimeout(typeNextChar, 100);
+    }, []);
+
+    // === FUNCIÓN PARA MOSTRAR MENSAJE DE BIENVENIDA CON TYPING ===
+    const showWelcomeMessageWithTyping = useCallback(() => {
+        const welcomeContent = '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.';
+        const welcomeId = 'welcome_' + Date.now();
+        
+        // Agregar mensaje vacío con typing
+        setAiMessages([{
+            id: welcomeId,
+            role: 'assistant',
+            kind: 'text',
+            content: '',
+            data: null,
+            isTyping: true,
+            timestamp: new Date().toISOString()
+        }]);
+        
+        // Iniciar efecto typing
+        setTimeout(() => {
+            startTypingEffect(welcomeId, welcomeContent);
+        }, 500);
+    }, [startTypingEffect]);
+
+    // === FUNCIÓN PARA EXPORTAR CHAT ===
+    const handleExportChat = useCallback(() => {
+        try {
+            // Crear contenido del documento DOCX
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        // Título
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Conversación con InvernIA",
+                                    bold: true,
+                                    size: 32
+                                })
+                            ],
+                            heading: "Title",
+                            alignment: "center"
+                        }),
+                        // Espacio
+                        new Paragraph({
+                            children: [new TextRun({ text: "" })]
+                        }),
+                        // Fecha de exportación
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Exportado: " + new Date().toLocaleString('es-PY'),
+                                    italics: true,
+                                    size: 20
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        // Espacio
+                        new Paragraph({
+                            children: [new TextRun({ text: "" })]
+                        }),
+                        // Mensajes
+                        ...aiMessages.map(msg => [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: (msg.role === 'user' ? '👤 Usuario' : '🤖 InvernIA') + ":",
+                                        bold: true,
+                                        color: msg.role === 'user' ? "4F46E5" : "7C3AED"
+                                    })
+                                ]
+                            }),
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: msg.content,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: {
+                                    after: 200
+                                }
+                            }),
+                            // Timestamp
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: msg.timestamp ? fmtPYTime(new Date(msg.timestamp)) : '--:--:--',
+                                        italics: true,
+                                        size: 18,
+                                        color: "6B7280"
+                                    })
+                                ],
+                                alignment: msg.role === 'user' ? "left" : "right"
+                            }),
+                            new Paragraph({
+                                children: [new TextRun({ text: "" })]
+                            })
+                        ]).flat()
+                    ]
+                }]
+            });
+
+            // Generar y descargar
+            Packer.toBlob(doc).then(blob => {
+                const fileName = "invernia_chat_" + new Date().toISOString().slice(0, 10) + ".docx";
+                saveAs(blob, fileName);
+            });
+        } catch (error) {
+            console.error('Error al exportar chat:', error);
+            alert('Error al exportar el chat. Por favor, inténtalo de nuevo.');
+        }
+    }, [aiMessages]);
+    const handleClearChat = useCallback(() => {
+        // Limpiar completamente
+        setAiMessages([]);
+        
+        // Mostrar mensaje de bienvenida con typing después de un breve momento
+        setTimeout(() => {
+            showWelcomeMessageWithTyping();
+        }, 300);
+    }, [showWelcomeMessageWithTyping]);
+
+    // === DETECCIÓN DE PRIMERA CARGA ===
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+    useEffect(() => {
+        if (!hasLoadedOnce && aiMessages.length === 1 && aiMessages[0].id === 'welcome') {
+            // Primera carga: reemplazar mensaje estático con typing
+            setTimeout(() => {
+                showWelcomeMessageWithTyping();
+                setHasLoadedOnce(true);
+            }, 1000);
+        }
+    }, [hasLoadedOnce, aiMessages.length, showWelcomeMessageWithTyping]);
+
+    // === DETECCIÓN DE SOLO MENSAJE DEFAULT ===
+    const isOnlyWelcomeMessage = useMemo(() => {
+        return aiMessages.length === 1 && 
+               aiMessages[0].id === 'welcome' && 
+               !aiMessages[0].isTyping;
+    }, [aiMessages]);
+
+    // === TYPING AL CAMBIAR PESTAÑA ===
+    useEffect(() => {
+        if (isOnlyWelcomeMessage) {
+            showWelcomeMessageWithTyping();
+        }
+    }, [activeTabId]); // Solo depende del cambio de pestaña
 
     // === ALERTS SEEN UNTIL ===
     const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
@@ -2196,7 +2400,8 @@ useEffect(() => {
         if (aiScrollRef.current) {
             aiScrollRef.current.scrollTop = aiScrollRef.current.scrollHeight;
         }
-    }, [aiMessages]);
+    }, [aiMessages, typingMessageId, typingContent]);
+
     const displayData = useMemo(() => {
         const isLive = chartConfig.timeRange === 'Ahora';
         let filtered = isLive ? liveData : seriesData;
@@ -2703,9 +2908,10 @@ useEffect(() => {
                 id: typingId,
                 role: 'assistant',
                 kind: 'text',
-                content: 'Analizando…',
+                content: '',
                 data: null,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                isTyping: true
             }
         ]);
 
@@ -2811,16 +3017,26 @@ useEffect(() => {
                 hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
                 (js?.message || 'Consulta resuelta.');
 
+            // Guardar respuesta completa y iniciar typing
+            const finalContent = resolvedContent;
+            const finalData = js?.data || null;
+            const finalError = js?.error || null;
+            
+            // Iniciar efecto de typing con el contenido completo
+            startTypingEffect(typingId, finalContent);
+            
+            // Actualizar mensaje con datos pero sin mostrar contenido todavía
             setAiMessages(prev => prev.map(msg => {
                 if (msg.id !== typingId) return msg;
-
+                
                 if (!res.ok) {
                     return {
                         ...msg,
                         kind: 'text',
                         content: 'Error HTTP ' + status + ': ' + (statusText || 'fallo en consulta') + '.',
                         data: js || null,
-                        error: js?.error || rawText || ('http_' + status)
+                        error: js?.error || rawText || ('http_' + status),
+                        isTyping: false
                     };
                 }
 
@@ -2838,7 +3054,8 @@ useEffect(() => {
                         kind: 'text',
                         content: 'InvernIA no pudo resolver la consulta' + stageText + ': ' + errText,
                         data: js || null,
-                        error: js?.error || 'query_failed'
+                        error: js?.error || 'query_failed',
+                        isTyping: false
                     };
                 }
 
@@ -2848,16 +3065,18 @@ useEffect(() => {
                         kind: 'text',
                         content: js?.message || 'Respuesta vacía o sin payload útil.',
                         data: js || null,
-                        error: js?.error || 'empty_or_invalid_response'
+                        error: js?.error || 'empty_or_invalid_response',
+                        isTyping: false
                     };
                 }
 
                 return {
                     ...msg,
                     kind: resolvedKind,
-                    content: resolvedContent,
-                    data: js?.data || null,
-                    error: js?.error || null
+                    content: '', // El contenido se mostrará con el efecto typing
+                    data: finalData,
+                    error: finalError,
+                    isTyping: true // Mantener isTyping true hasta que termine el efecto
                 };
             }));
         } catch (e) {
@@ -2876,7 +3095,8 @@ useEffect(() => {
                             endpoint: BASE_URL + '/api/invernIA/query'
                         }
                     },
-                    error: errMsg
+                    error: errMsg,
+                    isTyping: false
                 };
             }));
         } finally {
@@ -3263,13 +3483,47 @@ useEffect(() => {
                                                         fontSize: 13,
                                                         border: msg.role === 'assistant'
                                                             ? '1px solid rgba(139, 92, 246, 0.3)'
-                                                            : '1px solid rgba(59, 130, 246, 0.3)'
+                                                            : '1px solid rgba(59, 130, 246, 0.3)',
+                                                        position: 'relative'
                                                     }}
                                                     >
                                                         {msg.role === 'assistant' && msg.kind === 'text' 
-                                                            ? <div className="markdown-content" dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
-                                                            : <div>{msg.content}</div>
+                                                            ? (
+                                                                <div className="markdown-content">
+                                                                    {msg.isTyping && typingMessageId === msg.id ? (
+                                                                        <>
+                                                                            <span dangerouslySetInnerHTML={{ __html: renderMarkdown(typingContent) }} />
+                                                                            <span className="typing-cursor">|</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                            : (
+                                                                <div>
+                                                                    {msg.isTyping && typingMessageId === msg.id ? (
+                                                                        <>
+                                                                            <span>{typingContent}</span>
+                                                                            <span className="typing-cursor">|</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span>{msg.content}</span>
+                                                                    )}
+                                                                </div>
+                                                            )
                                                         }
+                                                        
+                                                        {/* Timestamp */}
+                                                        <div style={{
+                                                            fontSize: '10px',
+                                                            opacity: 0.6,
+                                                            marginTop: '6px',
+                                                            textAlign: msg.role === 'user' ? 'left' : 'right',
+                                                            color: msg.role === 'assistant' ? '#d8b4fe' : '#93c5fd'
+                                                        }}>
+                                                            {msg.timestamp ? fmtPYTime(new Date(msg.timestamp)) : '--:--:--'}
+                                                        </div>
                                                     </div>
                                                     {msg.role === 'assistant' && renderAiDataBlock(msg)}
                                                 </div>
@@ -3369,24 +3623,30 @@ useEffect(() => {
                                         }}>
                                             ⚙️
                                         </button>
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            fontSize: 14, 
-                                            cursor: 'pointer', 
-                                            color: 'var(--text-muted)',
-                                            padding: '4px'
-                                        }}>
+                                        <button 
+                                            onClick={handleExportChat}
+                                            style={{ 
+                                                background: 'none', 
+                                                border: 'none', 
+                                                fontSize: 14, 
+                                                cursor: 'pointer', 
+                                                color: 'var(--text-muted)',
+                                                padding: '4px'
+                                            }}
+                                        >
                                             📤
                                         </button>
-                                        <button style={{ 
-                                            background: 'none', 
-                                            border: 'none', 
-                                            fontSize: 14, 
-                                            cursor: 'pointer', 
-                                            color: 'var(--text-muted)',
-                                            padding: '4px'
-                                        }}>
+                                        <button 
+                                            onClick={handleClearChat}
+                                            style={{ 
+                                                background: 'none', 
+                                                border: 'none', 
+                                                fontSize: 14, 
+                                                cursor: 'pointer', 
+                                                color: 'var(--text-muted)',
+                                                padding: '4px'
+                                            }}
+                                        >
                                             🔄
                                         </button>
                                     </div>
