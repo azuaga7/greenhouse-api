@@ -1456,6 +1456,7 @@ const DashboardApp = () => {
     ]);
     const [aiInput, setAiInput] = useState('');
     const [aiBusy, setAiBusy] = useState(false);
+    const [typingDots, setTypingDots] = useState('');
     const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
     // Estados para typing simulado
     const [typingMessageId, setTypingMessageId] = useState(null);
@@ -1559,14 +1560,14 @@ const DashboardApp = () => {
     const handleExportChat = useCallback(() => {
         try {
             // Crear contenido del documento DOCX
-            const doc = new Document({
+            const doc = new docx.Document({
                 sections: [{
                     properties: {},
                     children: [
                         // Título
-                        new Paragraph({
+                        new docx.Paragraph({
                             children: [
-                                new TextRun({
+                                new docx.TextRun({
                                     text: "Conversación con InvernIA",
                                     bold: true,
                                     size: 32
@@ -1576,13 +1577,13 @@ const DashboardApp = () => {
                             alignment: "center"
                         }),
                         // Espacio
-                        new Paragraph({
-                            children: [new TextRun({ text: "" })]
+                        new docx.Paragraph({
+                            children: [new docx.TextRun({ text: "" })]
                         }),
                         // Fecha de exportación
-                        new Paragraph({
+                        new docx.Paragraph({
                             children: [
-                                new TextRun({
+                                new docx.TextRun({
                                     text: "Exportado: " + new Date().toLocaleString('es-PY'),
                                     italics: true,
                                     size: 20
@@ -1591,23 +1592,23 @@ const DashboardApp = () => {
                             alignment: "center"
                         }),
                         // Espacio
-                        new Paragraph({
-                            children: [new TextRun({ text: "" })]
+                        new docx.Paragraph({
+                            children: [new docx.TextRun({ text: "" })]
                         }),
                         // Mensajes
                         ...aiMessages.map(msg => [
-                            new Paragraph({
+                            new docx.Paragraph({
                                 children: [
-                                    new TextRun({
+                                    new docx.TextRun({
                                         text: (msg.role === 'user' ? '👤 Usuario' : '🤖 InvernIA') + ":",
                                         bold: true,
                                         color: msg.role === 'user' ? "4F46E5" : "7C3AED"
                                     })
                                 ]
                             }),
-                            new Paragraph({
+                            new docx.Paragraph({
                                 children: [
-                                    new TextRun({
+                                    new docx.TextRun({
                                         text: msg.content,
                                         size: 22
                                     })
@@ -1617,9 +1618,9 @@ const DashboardApp = () => {
                                 }
                             }),
                             // Timestamp
-                            new Paragraph({
+                            new docx.Paragraph({
                                 children: [
-                                    new TextRun({
+                                    new docx.TextRun({
                                         text: msg.timestamp ? fmtPYTime(new Date(msg.timestamp)) : '--:--:--',
                                         italics: true,
                                         size: 18,
@@ -1628,8 +1629,8 @@ const DashboardApp = () => {
                                 ],
                                 alignment: msg.role === 'user' ? "left" : "right"
                             }),
-                            new Paragraph({
-                                children: [new TextRun({ text: "" })]
+                            new docx.Paragraph({
+                                children: [new docx.TextRun({ text: "" })]
                             })
                         ]).flat()
                     ]
@@ -1637,7 +1638,7 @@ const DashboardApp = () => {
             });
 
             // Generar y descargar
-            Packer.toBlob(doc).then(blob => {
+            docx.Packer.toBlob(doc).then(blob => {
                 const fileName = "invernia_chat_" + new Date().toISOString().slice(0, 10) + ".docx";
                 saveAs(blob, fileName);
             });
@@ -1681,6 +1682,22 @@ const DashboardApp = () => {
             showWelcomeMessageWithTyping();
         }
     }, [activeTabId]); // Solo depende del cambio de pestaña
+
+    // === ANIMACIÓN DE PUNTOS PROGRESIVOS ===
+    useEffect(() => {
+        if (!aiBusy) {
+            setTypingDots('');
+            return;
+        }
+
+        let dots = '';
+        const interval = setInterval(() => {
+            dots = dots.length >= 3 ? '' : dots + '.';
+            setTypingDots(dots);
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [aiBusy]);
 
     // === ALERTS SEEN UNTIL ===
     const [alertsSeenUntilMs, setAlertsSeenUntilMs] = useState(() => {
@@ -3589,7 +3606,7 @@ useEffect(() => {
                                             fontWeight: 700
                                         }}
                                     >
-                                        {aiBusy ? 'Analizando...' : 'Enviar'}
+                                        {aiBusy ? 'Analizando' + typingDots : 'Enviar'}
                                     </button>
                                 </div>
 
