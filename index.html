@@ -1510,14 +1510,22 @@ const DashboardApp = () => {
                 setTimeout(typeNextChar, typingSpeed);
             } else {
                 // Terminó el typing
-                setTypingMessageId(null);
-                setTypingContent('');
-                setTypingFullContent('');
                 
-                // Actualizar el mensaje para marcar que ya no está typing
+                // 1. Primero establecer el contenido final en el mensaje
                 setAiMessages(prev => prev.map(msg => 
-                    msg.id === messageId ? { ...msg, isTyping: false } : msg
+                    msg.id === messageId ? { 
+                        ...msg, 
+                        content: fullContent,  // Establece el contenido final
+                        isTyping: false 
+                    } : msg
                 ));
+                
+                // 2. Luego limpiar los estados de typing (con un pequeño delay)
+                setTimeout(() => {
+                    setTypingMessageId(null);
+                    setTypingContent('');
+                    setTypingFullContent('');
+                }, 50);
             }
         };
         
