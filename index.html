@@ -2915,6 +2915,8 @@ useEffect(() => {
         const prompt = (aiInput || '').trim();
         if (!prompt || aiBusy) return;
 
+        const endpoint = BASE_URL + '/api/invernIA/query';
+
         const userMsg = {
             id: 'u_' + Date.now(),
             role: 'user',
@@ -2943,10 +2945,20 @@ useEffect(() => {
         setAiInput('');
         setAiBusy(true);
 
+        let phase = 'fetch';
+        let res = null as Response | null;
+        let rawText = '';
+        let js: any = null;
+        let timeoutId: any = null;
+
         try {
-            const res = await fetch(BASE_URL + '/api/invernIA/query', {
+            const controller = new AbortController();
+            timeoutId = setTimeout(() => controller.abort(), 65000);
+
+            res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
                 body: JSON.stringify({
                     prompt,
                     context: {
@@ -2964,23 +2976,34 @@ useEffect(() => {
             const statusText = res.statusText;
             const contentType = res.headers.get('content-type') || '';
 
-            const rawText = await res.text();
-
-            console.log('[InvernIA][UI][HTTP]', {
-                url: BASE_URL + '/api/invernIA/query',
+            console.log('[InvernIA][UI][HTTP_HEADERS]', {
+                endpoint,
+                phase,
                 status,
                 statusText,
                 contentType,
                 ok: res.ok
             });
 
+            phase = 'read_text';
+            rawText = await res.text();
+
             console.log('[InvernIA][UI][RAW_TEXT]', rawText);
 
-            let js = null;
+            phase = 'parse_json';
             try {
                 js = rawText ? JSON.parse(rawText) : null;
-            } catch (parseErr) {
-                console.error('[InvernIA][UI][PARSE_ERROR]', parseErr);
+            } catch (parseErr: any) {
+                console.error('[InvernIA][UI][PARSE_ERROR]', {
+                    endpoint,
+                    phase,
+                    status,
+                    contentType,
+                    rawTextHead: rawText.slice(0, 500),
+                    errorName: parseErr?.name,
+                    errorMessage: parseErr?.message
+                });
+
                 throw new Error(
                     'Respuesta no JSON desde /api/invernIA/query. status=' +
                     status +
@@ -2993,6 +3016,8 @@ useEffect(() => {
 
             console.log('[InvernIA][UI][RAW_RESPONSE]', js);
 
+            phase = 'validate_payload';
+
             const hasRows = Array.isArray(js?.data?.rows) && js.data.rows.length > 0;
             const hasTable = !!js?.data?.table;
             const hasStats = !!js?.data?.stats;
@@ -3000,18 +3025,6 @@ useEffect(() => {
             const hasExport = !!js?.data?.export;
             const hasConfigProposal = !!js?.data?.configProposal;
             const hasText = typeof js?.data?.text === 'string' && js.data.text.trim().length > 0;
-
-            console.log('[InvernIA][UI][RESPONSE_KIND]', {
-                ok: js?.ok,
-                kind: js?.kind,
-                hasText,
-                hasRows,
-                hasTable,
-                hasStats,
-                hasChart,
-                hasExport,
-                hasConfigProposal
-            });
 
             const hasUsefulPayload =
                 hasText ||
@@ -3042,38 +3055,41 @@ useEffect(() => {
                 hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
                 (js?.message || 'Consulta resuelta.');
 
-            // Guardar respuesta completa y iniciar typing
-            const finalContent = resolvedContent;
-            const finalData = js?.data || null;
-            const finalError = js?.error || null;
-            
-            // Iniciar efecto de typing con el contenido completo
-            startTypingEffect(typingId, finalContent);
-            
-            // Actualizar mensaje con datos pero sin mostrar contenido todavía
-            setAiMessages(prev => prev.map(msg => {
-                if (msg.id !== typingId) return msg;
-                
-                if (!res.ok) {
+            if (!res.ok) {
+                setAiMessages(prev => prev.map(msg => {
+                    if (msg.id !== typingId) return msg;
                     return {
                         ...msg,
                         kind: 'text',
                         content: 'Error HTTP ' + status + ': ' + (statusText || 'fallo en consulta') + '.',
-                        data: js || null,
+                        data: js || {
+                            debug: {
+                                endpoint,
+                                phase,
+                                status,
+                                statusText,
+                                contentType,
+                                rawTextHead: rawText.slice(0, 500)
+                            }
+                        },
                         error: js?.error || rawText || ('http_' + status),
                         isTyping: false
                     };
-                }
+                }));
+                return;
+            }
 
-                if (js?.ok !== true) {
-                    const stageText = js?.stage ? ' [' + js.stage + ']' : '';
-                    const errText =
-                        (typeof js?.error === 'string' && js.error.trim())
-                            ? js.error.trim()
-                            : (typeof js?.message === 'string' && js.message.trim())
-                                ? js.message.trim()
-                                : 'No se pudo resolver la consulta en este momento.';
+            if (js?.ok !== true) {
+                const stageText = js?.stage ? ' [' + js.stage + ']' : '';
+                const errText =
+                    (typeof js?.error === 'string' && js.error.trim())
+                        ? js.error.trim()
+                        : (typeof js?.message === 'string' && js.message.trim())
+                            ? js.message.trim()
+                            : 'No se pudo resolver la consulta en este momento.';
 
+                setAiMessages(prev => prev.map(msg => {
+                    if (msg.id !== typingId) return msg;
                     return {
                         ...msg,
                         kind: 'text',
@@ -3082,9 +3098,13 @@ useEffect(() => {
                         error: js?.error || 'query_failed',
                         isTyping: false
                     };
-                }
+                }));
+                return;
+            }
 
-                if (!hasUsefulPayload) {
+            if (!hasUsefulPayload) {
+                setAiMessages(prev => prev.map(msg => {
+                    if (msg.id !== typingId) return msg;
                     return {
                         ...msg,
                         kind: 'text',
@@ -3093,38 +3113,68 @@ useEffect(() => {
                         error: js?.error || 'empty_or_invalid_response',
                         isTyping: false
                     };
-                }
+                }));
+                return;
+            }
 
+            const finalData = js?.data || null;
+            const finalError = js?.error || null;
+
+            setAiMessages(prev => prev.map(msg => {
+                if (msg.id !== typingId) return msg;
                 return {
                     ...msg,
                     kind: resolvedKind,
-                    content: '', // El contenido se mostrará con el efecto typing
+                    content: '',
                     data: finalData,
                     error: finalError,
-                    isTyping: true // Mantener isTyping true hasta que termine el efecto
+                    isTyping: true
                 };
             }));
-        } catch (e) {
-            const errMsg = String(e && e.message ? e.message : e);
+
+            phase = 'typing_effect';
+            startTypingEffect(typingId, resolvedContent);
+        } catch (e: any) {
+            const errorName = e?.name || 'Error';
+            const errorMessage = e?.message || String(e);
+            const isAbort = errorName === 'AbortError';
+
+            console.error('[InvernIA][UI][QUERY_EXCEPTION]', {
+                endpoint,
+                phase,
+                errorName,
+                errorMessage,
+                status: res?.status ?? null,
+                statusText: res?.statusText ?? null,
+                rawTextHead: rawText ? rawText.slice(0, 500) : '',
+                stack: e?.stack || null
+            });
 
             setAiMessages(prev => prev.map(msg => {
                 if (msg.id !== typingId) return msg;
                 return {
                     ...msg,
                     kind: 'text',
-                    content: 'ERROR UI/QUERY: ' + errMsg,
+                    content: isAbort
+                        ? 'ERROR UI/QUERY [timeout_abort]: la consulta tardó demasiado o fue cancelada.'
+                        : 'ERROR UI/QUERY [' + phase + ']: ' + errorMessage,
                     data: {
                         debug: {
-                            message: errMsg,
-                            baseUrl: BASE_URL,
-                            endpoint: BASE_URL + '/api/invernIA/query'
+                            endpoint,
+                            phase,
+                            errorName,
+                            errorMessage,
+                            status: res?.status ?? null,
+                            statusText: res?.statusText ?? null,
+                            rawTextHead: rawText ? rawText.slice(0, 500) : ''
                         }
                     },
-                    error: errMsg,
+                    error: errorMessage,
                     isTyping: false
                 };
             }));
         } finally {
+            if (timeoutId) clearTimeout(timeoutId);
             setAiBusy(false);
         }
     };
