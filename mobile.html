@@ -2418,8 +2418,31 @@ const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
 const DEFAULT_ALERT_TYPE = {
   label: 'SIN TIPO',
   color: '#0891b2',      // Cyan distintivo
-  bgColor: '#0891b215',  // Fondo cyan transparente
-  borderColor: '#0891b244' // Borde cyan
+  bgColor: '#0891b215', 
+  borderColor: '#0891b244'
+};
+
+// Helper para renderizar Markdown de forma segura
+const renderMarkdown = (content) => {
+    if (!content || typeof content !== 'string') return content;
+    
+    try {
+        // Convertir Markdown a HTML
+        let html = content
+            // Negrita
+            .replace(/**(.*?)**/g, '<strong>$1</strong>')
+            // Cursiva
+            .replace(/*(.*?)*/g, '<em>$1</em>')
+            // Código inline
+            .replace(/`(.*?)`/g, '<code style="background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>')
+            // Líneas
+            .replace(/\n/g, '<br>');
+        
+        return html;
+    } catch (e) {
+        console.warn('Error rendering markdown:', e);
+        return content;
+    }
 };
 
 // ALERT_TYPES con colores y etiquetas - IGUAL que React Desktop y MobileDashboardPreview
@@ -2901,6 +2924,25 @@ const MobileDashboardApp = () => {
     const [alerts, setAlerts] = useState([]);
     const [controlState, setControlState] = useState({});
     const [pendingCommands, setPendingCommands] = useState({}); 
+    // === ESTADOS DE IA ===
+    const [aiMessages, setAiMessages] = useState([
+        {
+            id: 'welcome',
+            role: 'assistant',
+            kind: 'text',
+            content: '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.',
+            data: null,
+            isTyping: false,
+            timestamp: new Date().toISOString()
+        }
+    ]);
+    const [aiInput, setAiInput] = useState('');
+    const [aiBusy, setAiBusy] = useState(false);
+    const [typingDots, setTypingDots] = useState('');
+    const [typingMessageId, setTypingMessageId] = useState(null);
+    const [typingContent, setTypingContent] = useState('');
+    const [typingFullContent, setTypingFullContent] = useState('');
+    const aiScrollRef = useRef(null); 
     // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
     const [sparkTick, setSparkTick] = useState(0);
     const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
@@ -2916,6 +2958,314 @@ const MobileDashboardApp = () => {
             setAlerts([]);
         }
     }, [alerts, setSeenUntil, setAlerts]);
+    
+    // === FUNCIÓN DE TYPING SIMULADO ===
+    const startTypingEffect = useCallback((messageId, fullContent) => {
+        setTypingMessageId(messageId);
+        setTypingFullContent(fullContent);
+        setTypingContent('');
+        
+        let currentIndex = 0;
+        const typingSpeed = 15; // ms entre caracteres
+        
+        const typeNextChar = () => {
+            if (currentIndex < fullContent.length) {
+                setTypingContent(fullContent.slice(0, currentIndex + 1));
+                currentIndex++;
+                setTimeout(typeNextChar, typingSpeed);
+            } else {
+                // Terminó el typing
+                
+                // 1. Primero establecer el contenido final en el mensaje
+                setAiMessages(prev => prev.map(msg => 
+                    msg.id === messageId ? { 
+                        ...msg, 
+                        content: fullContent,  // Establece el contenido final
+                        isTyping: false 
+                    } : msg
+                ));
+                
+                // 2. Luego limpiar los estados de typing (con un pequeño delay)
+                setTimeout(() => {
+                    setTypingMessageId(null);
+                    setTypingContent('');
+                    setTypingFullContent('');
+                }, 50);
+            }
+        };
+        
+        // Iniciar el efecto
+        setTimeout(typeNextChar, 100);
+    }, []);
+
+    // === FUNCIÓN PARA MOSTRAR MENSAJE DE BIENVENIDA CON TYPING ===
+    const showWelcomeMessageWithTyping = useCallback(() => {
+        const welcomeContent = '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.';
+        const welcomeId = 'welcome_' + Date.now();
+        
+        // Agregar mensaje vacío con typing
+        setAiMessages([{
+            id: welcomeId,
+            role: 'assistant',
+            kind: 'text',
+            content: '',
+            data: null,
+            isTyping: true,
+            timestamp: new Date().toISOString()
+        }]);
+        
+        // Iniciar efecto typing
+        setTimeout(() => {
+            startTypingEffect(welcomeId, welcomeContent);
+        }, 500);
+    }, [startTypingEffect]);
+
+    // === FUNCIÓN PARA LIMPIAR CHAT ===
+    const handleClearChat = useCallback(() => {
+        // Limpiar completamente
+        setAiMessages([]);
+        
+        // Mostrar mensaje de bienvenida con typing después de un breve momento
+        setTimeout(() => {
+            showWelcomeMessageWithTyping();
+        }, 300);
+    }, [showWelcomeMessageWithTyping]);
+
+    // === FUNCIÓN PARA ENVIAR MENSAJE A IA ===
+    const sendAiMessage = useCallback(async () => {
+        const prompt = aiInput.trim();
+        if (!prompt || aiBusy) return;
+
+        const userMsg = {
+            id: 'u_' + Date.now(),
+            role: 'user',
+            kind: 'text',
+            content: prompt,
+            data: null,
+            timestamp: new Date().toISOString()
+        };
+
+        const typingId = 'a_' + (Date.now() + 1);
+
+        setAiMessages(prev => [
+            ...prev,
+            userMsg,
+            {
+                id: typingId,
+                role: 'assistant',
+                kind: 'text',
+                content: '', // El contenido se llenará con el efecto typing
+                data: null,
+                timestamp: new Date().toISOString(),
+                isTyping: true
+            }
+        ]);
+
+        setAiInput('');
+        setAiBusy(true);
+
+        try {
+            const u = new URL(BASE_URL + '/api/invernIA/query', window.location.origin);
+            const res = await fetch(u, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    context: {
+                        platform: 'mobile',
+                        view: 'assistant'
+                    },
+                    options: {
+                        mode: 'auto'
+                    }
+                })
+            });
+
+            if (!res.ok) {
+                const status = res.status;
+                const statusText = res.statusText;
+                const js = await res.json().catch(() => ({}));
+                const rawText = await res.text().catch(() => '');
+
+                setAiMessages(prev => prev.map(msg => {
+                    if (msg.id !== typingId) return msg;
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: 'Error HTTP ' + status + ': ' + (statusText || 'fallo en consulta') + '.',
+                        data: js || null,
+                        error: js?.error || rawText || ('http_' + status),
+                        isTyping: false
+                    };
+                }));
+                return;
+            }
+
+            const js = await res.json();
+            const hasRows = js?.data?.rows && Array.isArray(js.data.rows) && js.data.rows.length > 0;
+            const hasTable = js?.data?.table;
+            const hasStats = js?.data?.stats;
+            const hasChart = js?.data?.chart;
+            const hasExport = js?.data?.export;
+            const hasConfigProposal = js?.data?.configProposal;
+            const hasText = typeof js?.data?.text === 'string' && js.data.text.trim().length > 0;
+
+            const hasUsefulPayload = hasRows || hasTable || hasStats || hasChart || hasExport || hasConfigProposal || hasText;
+
+            const resolvedKind = 
+                hasRows ? 'table' :
+                hasTable ? 'table' :
+                hasStats ? 'stats' :
+                hasChart ? 'chart' :
+                hasExport ? 'export' :
+                hasConfigProposal ? 'config' :
+                'text';
+
+            const resolvedContent = 
+                hasText ? js.data.text :
+                hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
+                hasTable ? (js?.message || 'Tabla generada correctamente.') :
+                hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
+                hasChart ? (js?.message || 'Gráfico generado correctamente.') :
+                hasExport ? (js?.message || 'Exportación generada correctamente.') :
+                hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
+                (js?.message || 'Consulta resuelta.');
+
+            // Guardar respuesta completa y iniciar typing
+            const finalContent = resolvedContent;
+            const finalData = js?.data || null;
+            const finalError = js?.error || null;
+            
+            // Iniciar efecto de typing con el contenido completo
+            startTypingEffect(typingId, finalContent);
+            
+            // Actualizar mensaje con datos pero sin mostrar contenido todavía
+            setAiMessages(prev => prev.map(msg => {
+                if (msg.id !== typingId) return msg;
+                
+                if (!res.ok) {
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: 'Error HTTP ' + status + ': ' + (statusText || 'fallo en consulta') + '.',
+                        data: js || null,
+                        error: js?.error || rawText || ('http_' + status),
+                        isTyping: false
+                    };
+                }
+
+                if (js?.ok !== true) {
+                    const stageText = js?.stage ? ' [' + js.stage + ']' : '';
+                    const errText =
+                        (typeof js?.error === 'string' && js.error.trim())
+                            ? js.error.trim()
+                            : (typeof js?.message === 'string' && js.message.trim())
+                                ? js.message.trim()
+                                : 'No se pudo resolver la consulta en este momento.';
+
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: 'InvernIA no pudo resolver la consulta' + stageText + ': ' + errText,
+                        data: js || null,
+                        error: js?.error || 'query_failed',
+                        isTyping: false
+                    };
+                }
+
+                if (!hasUsefulPayload) {
+                    return {
+                        ...msg,
+                        kind: 'text',
+                        content: js?.message || 'Respuesta vacía o sin payload útil.',
+                        data: js || null,
+                        error: js?.error || 'empty_or_invalid_response',
+                        isTyping: false
+                    };
+                }
+
+                return {
+                    ...msg,
+                    kind: resolvedKind,
+                    content: '', // El contenido se mostrará con el efecto typing
+                    data: finalData,
+                    error: finalError,
+                    isTyping: true // Mantener isTyping true hasta que termine el efecto
+                };
+            }));
+        } catch (e) {
+            const errMsg = String(e && e.message ? e.message : e);
+
+            setAiMessages(prev => prev.map(msg => {
+                if (msg.id !== typingId) return msg;
+                return {
+                    ...msg,
+                    kind: 'text',
+                    content: 'ERROR UI/QUERY: ' + errMsg,
+                    data: {
+                        debug: {
+                            message: errMsg,
+                            baseUrl: BASE_URL,
+                            endpoint: BASE_URL + '/api/invernIA/query'
+                        }
+                    },
+                    error: errMsg,
+                    isTyping: false
+                };
+            }));
+        } finally {
+            setAiBusy(false);
+        }
+    }, [aiInput, aiBusy, startTypingEffect]);
+
+    // === ANIMACIÓN DE PUNTOS PROGRESIVOS ===
+    useEffect(() => {
+        if (!aiBusy) {
+            setTypingDots('');
+            return;
+        }
+
+        let dots = '';
+        const interval = setInterval(() => {
+            dots = dots.length >= 3 ? '' : dots + '.';
+            setTypingDots(dots);
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [aiBusy]);
+
+    // === DETECCIÓN DE PRIMERA CARGA ===
+    const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+    useEffect(() => {
+        if (!hasLoadedOnce && aiMessages.length === 1 && aiMessages[0].id === 'welcome') {
+            // Primera carga: reemplazar mensaje estático con typing
+            setTimeout(() => {
+                showWelcomeMessageWithTyping();
+                setHasLoadedOnce(true);
+            }, 1000);
+        }
+    }, [hasLoadedOnce, aiMessages.length, showWelcomeMessageWithTyping]);
+
+    // === DETECCIÓN DE SOLO MENSAJE DEFAULT ===
+    const isOnlyWelcomeMessage = useMemo(() => {
+        return aiMessages.length === 1 && 
+               aiMessages[0].id === 'welcome' && 
+               !aiMessages[0].isTyping;
+    }, [aiMessages]);
+
+    // === TYPING AL CAMBIAR PESTAÑA ===
+    useEffect(() => {
+        if (isOnlyWelcomeMessage) {
+            showWelcomeMessageWithTyping();
+        }
+    }, [activeTabId]); // Solo depende del cambio de pestaña
+
+    // === AUTOSCROLL ===
+    useEffect(() => {
+        if (aiScrollRef.current) {
+            aiScrollRef.current.scrollTop = aiScrollRef.current.scrollHeight;
+        }
+    }, [aiMessages, typingMessageId, typingContent]);
     const [cacheApiEtag, setCacheApiEtag] = useState(null);
     const cacheApiLastFetchRef = useRef(0);
     const [historyData, setHistoryData] = useState([]); 
@@ -4593,6 +4943,167 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                 )
             }, [
                 (() => {
+                    // Check if this tab is ai-assistant - render chat view first (IGUAL que View y Preview)
+                    if (currentTabData?.type === 'ai-assistant') {
+                        return React.createElement('div', {
+                            key: 'chat-container',
+                            style: {
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '100%',
+                                background: 'var(--surface)',
+                                borderRadius: 12,
+                                overflow: 'hidden'
+                            }
+                        }, [
+                            // Área de Mensajes
+                            React.createElement('div', {
+                                key: 'messages-area',
+                                ref: aiScrollRef,
+                                style: {
+                                    flex: 1,
+                                    overflowY: 'auto',
+                                    padding: '15px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '12px'
+                                }
+                            }, 
+                                aiMessages.map(msg => 
+                                    React.createElement('div', {
+                                        key: msg.id,
+                                        style: {
+                                            display: 'flex',
+                                            flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
+                                            alignItems: 'flex-start',
+                                            gap: '6px'
+                                        }
+                                    }, [
+                                        React.createElement('span', {
+                                            key: 'avatar',
+                                            style: {
+                                                fontSize: '14px',
+                                                flexShrink: 0
+                                            }
+                                        }, msg.role === 'user' ? '👤' : '🤖'),
+                                        React.createElement('div', {
+                                            key: 'bubble',
+                                            style: {
+                                                maxWidth: '80%',
+                                                padding: '8px 12px',
+                                                borderRadius: msg.role === 'user' 
+                                                    ? '12px 12px 4px 12px' 
+                                                    : '12px 12px 12px 4px',
+                                                background: msg.role === 'user' 
+                                                    ? '#38bdf8' 
+                                                    : 'rgba(139, 92, 246, 0.15)',
+                                                color: msg.role === 'user' ? '#08111f' : '#e9d5ff',
+                                                border: msg.role === 'user' 
+                                                    ? '1px solid #38bdf8' 
+                                                    : '1px solid rgba(139, 92, 246, 0.3)',
+                                                fontSize: '12px',
+                                                lineHeight: '1.4'
+                                            }
+                                        }, [
+                                            // Contenido del mensaje
+                                            msg.role === 'assistant' && msg.kind === 'text' 
+                                                ? React.createElement('div', {
+                                                    key: 'content',
+                                                    className: 'markdown-content',
+                                                    dangerouslySetInnerHTML: {
+                                                        __html: msg.isTyping && typingMessageId === msg.id 
+                                                            ? renderMarkdown(typingContent) + '<span class="typing-cursor">|</span>'
+                                                            : renderMarkdown(msg.content)
+                                                    }
+                                                })
+                                                : React.createElement('div', {
+                                                    key: 'content',
+                                                    dangerouslySetInnerHTML: {
+                                                        __html: msg.isTyping && typingMessageId === msg.id 
+                                                            ? typingContent + '<span class="typing-cursor">|</span>'
+                                                            : msg.content
+                                                    }
+                                                }),
+                                            
+                                            // Timestamp
+                                            React.createElement('div', {
+                                                key: 'timestamp',
+                                                style: {
+                                                    fontSize: '9px',
+                                                    opacity: 0.6,
+                                                    marginTop: '4px',
+                                                    textAlign: msg.role === 'user' ? 'right' : 'left'
+                                                }
+                                            }, msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--')
+                                        ])
+                                    ])
+                                )
+                            ),
+                            
+                            // Área de Input
+                            React.createElement('div', {
+                                key: 'input-area',
+                                style: {
+                                    padding: '10px',
+                                    borderTop: '1px solid rgba(148,163,184,0.1)',
+                                    background: 'rgba(15,23,42,0.8)',
+                                    flexShrink: 0
+                                }
+                            }, [
+                                React.createElement('div', {
+                                    key: 'input-wrapper',
+                                    style: {
+                                        display: 'flex',
+                                        gap: '8px',
+                                        alignItems: 'center'
+                                    }
+                                }, [
+                                    React.createElement('input', {
+                                        key: 'input',
+                                        type: 'text',
+                                        value: aiInput,
+                                        onChange: (e) => setAiInput(e.target.value),
+                                        onKeyDown: (e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                sendAiMessage();
+                                            }
+                                        },
+                                        placeholder: '💭 Escribe tu pregunta...',
+                                        disabled: aiBusy,
+                                        style: {
+                                            flex: 1,
+                                            padding: '8px 12px',
+                                            border: '1px solid rgba(148,163,184,0.2)',
+                                            borderRadius: '20px',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            color: '#f8fafc',
+                                            fontSize: '13px',
+                                            outline: 'none'
+                                        }
+                                    }),
+                                    React.createElement('button', {
+                                        key: 'send-btn',
+                                        onClick: sendAiMessage,
+                                        disabled: aiBusy || !aiInput.trim(),
+                                        style: {
+                                            padding: '8px 16px',
+                                            background: aiBusy || !aiInput.trim() 
+                                                ? 'rgba(148,163,184,0.2)' 
+                                                : '#38bdf8',
+                                            color: aiBusy || !aiInput.trim() ? '#6b7280' : '#08111f',
+                                            border: 'none',
+                                            borderRadius: '20px',
+                                            fontSize: '13px',
+                                            fontWeight: 600,
+                                            cursor: aiBusy || !aiInput.trim() ? 'not-allowed' : 'pointer'
+                                        }
+                                    }, aiBusy ? 'Analizando' + typingDots : 'Enviar')
+                                ])
+                            ])
+                        ]);
+                    }
+
                     // Check if this tab has a chart widget - render full chart (IGUAL que View y Preview)
                     const chartWidget = currentTabWidgets.find(w => w.type === 'chart' || w.type === 'summary-chart');
                     
@@ -4664,83 +5175,6 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                         )
                     );
                 })()
-            ]),
-
-            // Fixed Bottom Control Panel - Only for Control Tabs (IGUAL que preview)
-            currentTabData?.type === 'control' && React.createElement('div', {
-                key: 'control-panel',
-                style: {
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0, 
-                    background: 'var(--surface)',
-                    borderTop: '1px solid var(--border)',
-                    padding: '12px 20px',
-                    zIndex: 1000
-                }
-            }, [
-                React.createElement('div', {
-                    key: 'control-content',
-                    style: { 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        gap: '12px'
-                    }
-                }, [
-                    React.createElement('span', {
-                        key: 'control-text',
-                        style: { 
-                            fontSize: '12px', 
-                            fontWeight: 700, 
-                            color: controlState?.manual ? '#facc15' : '#6b7280',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px'
-                        }
-                    }, controlState?.manual ? '🔧 Manual' : '🤖 Automático'),
-                    React.createElement('div', {
-                        key: 'control-toggle',
-                        style: { 
-                            display: 'flex', 
-                            background: '#1e293b', 
-                            borderRadius: '20px', 
-                            padding: '2px',
-                            border: '1px solid rgba(148,163,184,0.2)'
-                        }
-                    }, [
-                        React.createElement('button', {
-                            key: 'manual-btn',
-                            style: {
-                                padding: '8px 16px',
-                                background: controlState?.manual ? '#facc15' : 'transparent',
-                                border: 'none',
-                                borderRadius: '18px',
-                                color: controlState?.manual ? '#000' : '#6b7280',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            },
-                            onClick: () => sendControl('manual', true)
-                        }, 'MANUAL'),
-                        React.createElement('button', {
-                            key: 'auto-btn',
-                            style: {
-                                padding: '8px 16px',
-                                background: !controlState?.manual ? '#10b981' : 'transparent',
-                                border: 'none',
-                                borderRadius: '18px',
-                                color: !controlState?.manual ? '#fff' : '#6b7280',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            },
-                            onClick: () => sendControl('manual', false)
-                        }, 'AUTO')
-                    ])
-                ])
             ])
         ])
     ]);
