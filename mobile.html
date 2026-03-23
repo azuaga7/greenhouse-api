@@ -2422,21 +2422,32 @@ const DEFAULT_ALERT_TYPE = {
   borderColor: '#0891b244'
 };
 
-// Helper para renderizar Markdown de forma segura
+// Helper para renderizar Markdown de forma segura - IGUAL que React Desktop
 const renderMarkdown = (content) => {
     if (!content || typeof content !== 'string') return content;
     
     try {
-        // Convertir Markdown a HTML
-        let html = content
-            // Negrita
-            .replace(/**(.*?)**/g, '<strong>$1</strong>')
-            // Cursiva
-            .replace(/*(.*?)*/g, '<em>$1</em>')
-            // Código inline
-            .replace(/`(.*?)`/g, '<code style="background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>')
-            // Líneas
-            .replace(/\n/g, '<br>');
+        // Convertir Markdown a HTML - usando marked si está disponible, fallback simple
+        let html;
+        if (typeof marked !== 'undefined' && marked.parse) {
+            html = marked.parse(content);
+        } else {
+            // Fallback simple si marked no está disponible
+            html = content
+                // Negrita
+                .replace(/**(.*?)**/g, '<strong>$1</strong>')
+                // Cursiva
+                .replace(/*(.*?)*/g, '<em>$1</em>')
+                // Código inline
+                .replace(/`(.*?)`/g, '<code style="background: rgba(139, 92, 246, 0.2); padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>')
+                // Líneas
+                .replace(/\n/g, '<br>');
+        }
+        
+        // Sanitizar HTML si DOMPurify está disponible
+        if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+            return DOMPurify.sanitize(html);
+        }
         
         return html;
     } catch (e) {
@@ -5087,18 +5098,19 @@ return React.createElement('div', { className: 'mobile-widget' }, [
                                         onClick: sendAiMessage,
                                         disabled: aiBusy || !aiInput.trim(),
                                         style: {
-                                            padding: '8px 16px',
-                                            background: aiBusy || !aiInput.trim() 
-                                                ? 'rgba(148,163,184,0.2)' 
-                                                : '#38bdf8',
-                                            color: aiBusy || !aiInput.trim() ? '#6b7280' : '#08111f',
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '50%',
                                             border: 'none',
-                                            borderRadius: '20px',
-                                            fontSize: '13px',
-                                            fontWeight: 600,
-                                            cursor: aiBusy || !aiInput.trim() ? 'not-allowed' : 'pointer'
+                                            background: aiBusy ? 'rgba(148,163,184,0.35)' : '#38bdf8',
+                                            color: '#08111f',
+                                            fontSize: '16px',
+                                            cursor: aiBusy || !aiInput.trim() ? 'not-allowed' : 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
                                         }
-                                    }, aiBusy ? 'Analizando' + typingDots : 'Enviar')
+                                    }, aiBusy ? '⏳' : '📤')
                                 ])
                             ])
                         ]);
