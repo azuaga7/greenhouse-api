@@ -2946,10 +2946,10 @@ useEffect(() => {
         setAiBusy(true);
 
         let phase = 'fetch';
-        let res = null as Response | null;
+        let res = null;
         let rawText = '';
-        let js: any = null;
-        let timeoutId: any = null;
+        let js = null;
+        let timeoutId = null;
 
         try {
             const controller = new AbortController();
@@ -2993,7 +2993,7 @@ useEffect(() => {
             phase = 'parse_json';
             try {
                 js = rawText ? JSON.parse(rawText) : null;
-            } catch (parseErr: any) {
+            } catch (parseErr) {
                 console.error('[InvernIA][UI][PARSE_ERROR]', {
                     endpoint,
                     phase,
@@ -3047,13 +3047,13 @@ useEffect(() => {
 
             const resolvedContent =
                 hasText ? js.data.text :
-                hasRows ? `Se encontraron ${js?.data?.meta?.count ?? js.data.rows.length} filas.` :
-                hasTable ? (js?.message || 'Tabla generada correctamente.') :
-                hasStats ? (js?.message || 'Estadísticas generadas correctamente.') :
-                hasChart ? (js?.message || 'Gráfico generado correctamente.') :
-                hasExport ? (js?.message || 'Exportación generada correctamente.') :
-                hasConfigProposal ? (js?.message || 'Propuesta de configuración generada correctamente.') :
-                (js?.message || 'Consulta resuelta.');
+                hasRows ? 'Se encontraron ' + (js && js.data && js.data.meta && js.data.meta.count ? js.data.meta.count : js.data.rows.length) + ' filas.' :
+                hasTable ? (js && js.message ? js.message : 'Tabla generada correctamente.') :
+                hasStats ? (js && js.message ? js.message : 'Estadísticas generadas correctamente.') :
+                hasChart ? (js && js.message ? js.message : 'Gráfico generado correctamente.') :
+                hasExport ? (js && js.message ? js.message : 'Exportación generada correctamente.') :
+                hasConfigProposal ? (js && js.message ? js.message : 'Propuesta de configuración generada correctamente.') :
+                (js && js.message ? js.message : 'Consulta resuelta.');
 
             if (!res.ok) {
                 setAiMessages(prev => prev.map(msg => {
@@ -3072,19 +3072,19 @@ useEffect(() => {
                                 rawTextHead: rawText.slice(0, 500)
                             }
                         },
-                        error: js?.error || rawText || ('http_' + status),
+                        error: (js && js.error) || rawText || ('http_' + status),
                         isTyping: false
                     };
                 }));
                 return;
             }
 
-            if (js?.ok !== true) {
-                const stageText = js?.stage ? ' [' + js.stage + ']' : '';
+            if (!js || js.ok !== true) {
+                const stageText = js && js.stage ? ' [' + js.stage + ']' : '';
                 const errText =
-                    (typeof js?.error === 'string' && js.error.trim())
+                    (js && typeof js.error === 'string' && js.error.trim())
                         ? js.error.trim()
-                        : (typeof js?.message === 'string' && js.message.trim())
+                        : (js && typeof js.message === 'string' && js.message.trim())
                             ? js.message.trim()
                             : 'No se pudo resolver la consulta en este momento.';
 
@@ -3095,7 +3095,7 @@ useEffect(() => {
                         kind: 'text',
                         content: 'InvernIA no pudo resolver la consulta' + stageText + ': ' + errText,
                         data: js || null,
-                        error: js?.error || 'query_failed',
+                        error: (js && js.error) || 'query_failed',
                         isTyping: false
                     };
                 }));
@@ -3134,7 +3134,7 @@ useEffect(() => {
 
             phase = 'typing_effect';
             startTypingEffect(typingId, resolvedContent);
-        } catch (e: any) {
+        } catch (e) {
             const errorName = e?.name || 'Error';
             const errorMessage = e?.message || String(e);
             const isAbort = errorName === 'AbortError';
