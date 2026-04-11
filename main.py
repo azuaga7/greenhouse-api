@@ -351,7 +351,7 @@ async def home(request: Request):
     # Servir index.html (tendrá redirección inteligente)
     return await _serve_html("index.html", "ADTEC Dashboard")
 
-@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/dashboard.html", response_class=HTMLResponse)
 async def desktop(request: Request):
     # Servir el dashboard directamente
     return await _serve_html("dashboard.html", "ADTEC Dashboard")
