@@ -954,17 +954,18 @@ const DashboardChart = ({ widget, dataHistory, chartConfig }) => {
 
 // --- DASHBOARD APP CON AUTH ---
 const DashboardApp = () => {
-    const [activeTabId, setActiveTabId] = React.useState(CONFIG.dashboard?.tabs?.[0]?.id || 'default');
-    const [lastData, setLastData] = React.useState(null);
-    const [alerts, setAlerts] = React.useState([]);
-    const [controlState, setControlState] = React.useState({});
-    const [pendingCommands, setPendingCommands] = React.useState({});
-    const [historyData, setHistoryData] = React.useState([]);
-    const [connStatus, setConnStatus] = React.useState('DESCONECTADO');
-    const [aiMessages, setAiMessages] = React.useState([]);
-    const [aiInput, setAiInput] = React.useState('');
-    const [aiBusy, setAiBusy] = React.useState(false);
-    const [chartConfig, setChartConfig] = React.useState({
+    // ESTADOS
+    const [activeTabId, setActiveTabId] = useState(CONFIG.dashboard?.tabs?.[0]?.id || 'default');
+    const [lastData, setLastData] = useState(null);
+    const [alerts, setAlerts] = useState([]);
+    const [controlState, setControlState] = useState({});
+    const [pendingCommands, setPendingCommands] = useState({});
+    const [historyData, setHistoryData] = useState([]);
+    const [connStatus, setConnStatus] = useState('DESCONECTADO');
+    const [aiMessages, setAiMessages] = useState([]);
+    const [aiInput, setAiInput] = useState('');
+    const [aiBusy, setAiBusy] = useState(false);
+    const [chartConfig, setChartConfig] = useState({
         primaryY: '',
         secondaryY: '',
         filter: 'all',
@@ -973,6 +974,12 @@ const DashboardApp = () => {
         timeRange: 'Ahora'
     });
     
+    // ESTADOS FALTANTES AGREGADOS
+    const [liveData, setLiveData] = useState([]);
+    const [liveFirstIso, setLiveFirstIso] = useState('');
+    const [liveLastIso, setLiveLastIso] = useState('');
+    const [chartData, setChartData] = useState([]);
+    
     // Obtener valor de widget
     const getWidgetValue = (key) => {
         if (!lastData) return '--';
@@ -980,13 +987,8 @@ const DashboardApp = () => {
         return val !== undefined ? formatValue(val, null, null) : '--';
     };
     
-    // Enviar comando de control
-    const sendControl = useCallback((target, value) => {
-        if (!hasPermission('control_actuators')) {
-            alert('No tienes permiso para controlar actuadores');
-            return;
-        }
-    React.useEffect(() => {
+    // WebSocket useEffect
+    useEffect(() => {
         const ws = new WebSocket(CONFIG.websocket?.url || 'ws://localhost:8765');
         
         ws.onopen = () => {
@@ -1027,7 +1029,13 @@ const DashboardApp = () => {
         return () => ws.close();
     }, []);
 
-    const sendControl = (command, value) => {
+    // sendControl useCallback
+    const sendControl = useCallback((command, value) => {
+        if (!hasPermission('control_actuators')) {
+            alert('No tienes permiso para controlar actuadores');
+            return;
+        }
+        
         const commandId = Date.now().toString();
         setPendingCommands(prev => ({ ...prev, [command]: { value, timestamp: Date.now() } }));
         
@@ -1054,15 +1062,16 @@ const DashboardApp = () => {
                 return newCommands;
             });
         });
-    };
+    }, [hasPermission]);
 
+    // handleAiSubmit
     const handleAiSubmit = () => {
-        if (!aiInput.trim() || aiLoading) return;
+        if (!aiInput.trim() || aiBusy) return;
         
         const userMessage = { role: 'user', content: aiInput, timestamp: Date.now() };
         setAiMessages(prev => [...prev, userMessage]);
         setAiInput('');
-        setAiLoading(true);
+        setAiBusy(true);
         
         fetch(CONFIG.api?.baseUrl + '/api/ai/chat', {
             method: 'POST',
@@ -1082,10 +1091,11 @@ const DashboardApp = () => {
             setAiMessages(prev => [...prev, errorMessage]);
         })
         .finally(() => {
-            setAiLoading(false);
+            setAiBusy(false);
         });
     };
 
+    // exportChat
     const exportChat = () => {
         const chatContent = aiMessages.map(msg => 
             `[${new Date(msg.timestamp).toLocaleString()}] ${msg.role.toUpperCase()}: ${msg.content}`
@@ -1100,6 +1110,7 @@ const DashboardApp = () => {
         URL.revokeObjectURL(url);
     };
 
+    // clearChat
     const clearChat = () => {
         if (confirm('¿Estás seguro de que quieres limpiar el chat?')) {
             setAiMessages([]);
@@ -1368,7 +1379,7 @@ const DashboardApp = () => {
                                 onChange: (e) => setAiInput(e.target.value),
                                 onKeyPress: (e) => e.key === 'Enter' && handleAiSubmit(),
                                 placeholder: 'Escribe tu mensaje...',
-                                disabled: !hasPermission('access_invernia') || aiLoading,
+                                disabled: !hasPermission('access_invernia') || aiBusy,
                                 style: {
                                     flex: 1,
                                     padding: '12px',
@@ -1381,18 +1392,18 @@ const DashboardApp = () => {
                             }),
                             React.createElement('button', {
                                 onClick: handleAiSubmit,
-                                disabled: !hasPermission('access_invernia') || aiLoading || !aiInput.trim(),
+                                disabled: !hasPermission('access_invernia') || aiBusy || !aiInput.trim(),
                                 style: {
                                     padding: '12px 20px',
-                                    background: hasPermission('access_invernia') && aiInput.trim() && !aiLoading ? '#3b82f6' : '#475569',
+                                    background: hasPermission('access_invernia') && aiInput.trim() && !aiBusy ? '#3b82f6' : '#475569',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '8px',
-                                    cursor: hasPermission('access_invernia') && aiInput.trim() && !aiLoading ? 'pointer' : 'not-allowed',
+                                    cursor: hasPermission('access_invernia') && aiInput.trim() && !aiBusy ? 'pointer' : 'not-allowed',
                                     fontSize: '14px',
                                     fontWeight: 600
                                 }
-                            }, aiLoading ? 'Enviando...' : 'Enviar'),
+                            }, aiBusy ? 'Enviando...' : 'Enviar'),
                             React.createElement('button', {
                                 onClick: exportChat,
                                 disabled: !hasPermission('access_invernia') || aiMessages.length === 0,
@@ -1425,7 +1436,6 @@ const DashboardApp = () => {
             ])
         ])
     ]);
-    })
 };
 
 // --- RENDERIZADO DE LA APLICACIÓN ---
