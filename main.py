@@ -342,7 +342,7 @@ async def _serve_html(path: str, title: str):
             return HTMLResponse(content=f.read())
     return HTMLResponse(content=f"<h1>{title}</h1><p>No existe: {path}</p>", status_code=404)
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/login.html", response_class=HTMLResponse)
 async def login_page(request: Request):
     return await _serve_html("login.html", "ADTEC Login")
 
