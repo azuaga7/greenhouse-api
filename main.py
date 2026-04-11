@@ -16,6 +16,8 @@ import asyncio
 import time
 from urllib.parse import parse_qs
 from email.utils import formatdate, parsedate_to_datetime
+import jwt
+from datetime import timedelta
 
 # IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
 try:
@@ -27,7 +29,7 @@ except ImportError:
     def _iter_archive_chunks(s, e): return []
     def _ungzip_to_cache(p): return p
 
-app = FastAPI(title="ADTEC Bridge API (Desktop+Mobile Unified)")
+app = FastAPI(title="ADTEC Bridge API (Authenticated)")
 
 DATA_DIR = os.environ.get("DATA_DIR", "data")
 DB_FILE = os.path.join(DATA_DIR, "telemetry.db")
@@ -36,6 +38,11 @@ DEFAULT_DEVICE = "TEST-EMU"
 DEFAULT_CHANNEL = "ingreso"
 PY_TZ = ZoneInfo("America/Asuncion")  # UTC-3
 LIVE_RETENTION_DAYS = 30
+
+# === CONFIGURACIÓN JWT ===
+JWT_SECRET = os.environ.get("JWT_SECRET", "your-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+TOKEN_EXPIRATION_HOURS = int(os.environ.get("TOKEN_EXPIRATION_HOURS", "24"))
 
 # === UPSTREAM (Bridge HTTP) ===
 # App Platform -> Bridge (droplet) por HTTP (SIM800L no acepta https)
@@ -47,6 +54,130 @@ CACHE_API_SNAPSHOT_GZ = os.path.join(CACHE_API_DIR, "snapshot.json.gz")
 CACHE_API_TMP_GZ = CACHE_API_SNAPSHOT_GZ + ".tmp"
 CACHE_API_TOKEN = os.environ.get("CACHE_API_TOKEN", "")
 os.makedirs(CACHE_API_DIR, exist_ok=True)
+
+# === CARGA DE USUARIOS ===
+def load_users():
+    """Cargar usuarios desde users_database.json"""
+    try:
+        if os.path.exists("users_database.json"):
+            with open("users_database.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("users", [])
+    except Exception as e:
+        print(f"Error cargando usuarios: {e}")
+    return []
+
+USERS = load_users()
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    """Crear token JWT"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(hours=TOKEN_EXPIRATION_HOURS)
+    
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return encoded_jwt
+
+def verify_token(token: str):
+    """Verificar token JWT"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        return username
+    except jwt.PyJWTError:
+        return None
+
+def get_user_by_username(username: str):
+    """Obtener usuario por username"""
+    for user in USERS:
+        if user.get("username") == username and user.get("enabled", True):
+            return user
+    return None
+
+# === ENDPOINTS DE AUTENTICACIÓN ===
+@app.post("/auth")
+async def login(request: Request):
+    """Endpoint de autenticación"""
+    try:
+        data = await request.json()
+        username = data.get("username")
+        password = data.get("password")
+        
+        if not username or not password:
+            raise HTTPException(status_code=400, detail="Usuario y contraseña requeridos")
+        
+        # Buscar usuario
+        user = get_user_by_username(username)
+        if not user:
+            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        
+        # Verificar contraseña
+        if user.get("password") != password:
+            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        
+        # Crear token
+        access_token_expires = timedelta(hours=TOKEN_EXPIRATION_HOURS)
+        access_token = create_access_token(
+            data={"sub": username}, expires_delta=access_token_expires
+        )
+        
+        # Devolver respuesta sin contraseña
+        user_response = {
+            "id": user.get("id"),
+            "username": user.get("username"),
+            "email": user.get("email"),
+            "role": user.get("role"),
+            "enabled": user.get("enabled"),
+            "apiKey": user.get("apiKey"),
+            "createdAt": user.get("createdAt")
+        }
+        
+        return {
+            "success": True,
+            "user": user_response,
+            "token": access_token,
+            "token_type": "bearer",
+            "expires_in": TOKEN_EXPIRATION_HOURS * 3600
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en autenticación: {str(e)}")
+
+@app.get("/auth/me")
+async def get_current_user(request: Request):
+    """Obtener usuario actual desde token"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token requerido")
+    
+    token = auth_header.split(" ")[1]
+    username = verify_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Token inválido")
+    
+    user = get_user_by_username(username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+    
+    return {
+        "success": True,
+        "user": {
+            "id": user.get("id"),
+            "username": user.get("username"),
+            "email": user.get("email"),
+            "role": user.get("role"),
+            "enabled": user.get("enabled"),
+            "apiKey": user.get("apiKey"),
+            "createdAt": user.get("createdAt")
+        }
+    }
 
 @app.post("/cache_api/upload")
 async def cache_api_upload(request: Request):
@@ -211,21 +342,19 @@ async def _serve_html(path: str, title: str):
             return HTMLResponse(content=f.read())
     return HTMLResponse(content=f"<h1>{title}</h1><p>No existe: {path}</p>", status_code=404)
 
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return await _serve_html("login.html", "ADTEC Login")
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    # Auto: si es mobile -> mobile.html, si no -> index.html
-    ua = request.headers.get("user-agent", "")
-    if _is_mobile_ua(ua):
-        return await _serve_html("mobile.html", "ADTEC Mobile UI")
-    return await _serve_html("index.html", "ADTEC Desktop UI")
+    # Servir index.html (tendrá redirección inteligente)
+    return await _serve_html("index.html", "ADTEC Dashboard")
 
-@app.get("/mobile", response_class=HTMLResponse)
-async def mobile(request: Request):
-    return await _serve_html("mobile.html", "ADTEC Mobile UI")
-
-@app.get("/desktop", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 async def desktop(request: Request):
-    return await _serve_html("index.html", "ADTEC Desktop UI")
+    # Servir el dashboard directamente
+    return await _serve_html("dashboard.html", "ADTEC Dashboard")
 
 # 1) ESTADO DE CONTROL (placeholder tuyo)
 CONTROL_STATE = {
@@ -412,6 +541,28 @@ async def api_invernia_proxy(path: str, request: Request):
     url = f"{BRIDGE_HTTP_BASE}/api/invernIA/{path}"
     full_url = f"{url}?{qs}" if qs else url
     return await proxy_stream(request, full_url)
+
+# IA Assistant endpoint
+@app.api_route("/api/ai/chat", methods=["POST"])
+async def ai_chat(request: Request):
+    """Endpoint para chat con IA"""
+    try:
+        data = await request.json()
+        message = data.get("message", "")
+        context = data.get("context", "dashboard")
+        
+        # Aquí puedes integrar con tu servicio de IA
+        # Por ahora, respuesta simulada
+        response_text = f"Recibí tu mensaje: '{message}'. Contexto: {context}"
+        
+        return {
+            "success": True,
+            "response": response_text,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en chat IA: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
