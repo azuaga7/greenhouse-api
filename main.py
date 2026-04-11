@@ -16,7 +16,7 @@ import asyncio
 import time
 from urllib.parse import parse_qs
 from email.utils import formatdate, parsedate_to_datetime
-import jwt
+from jose import jwt
 from datetime import timedelta
 
 # IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
