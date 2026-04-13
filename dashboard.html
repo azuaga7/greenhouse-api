@@ -544,12 +544,297 @@
 <body>
     <div id="dashboard-root"></div>
     
+    <!-- Sistema de Diagnóstico de Errores -->
+    <div id="error-fallback" class="error-fallback">
+        <h1 class="error-title">❌ Error de Renderizado</h1>
+        <p class="error-message">El dashboard no pudo iniciarse correctamente. Esto suele deberse a un error en la configuración o un problema en el script de React.</p>
+        <div id="error-details" class="error-details"></div>
+        <button class="error-retry-btn" onclick="window.location.reload()">REINTENTAR CARGA</button>
+    </div>
+
     <script type="text/babel">
-        // Configuración del dashboard
-        window.CONFIG = {"tabs":[{"id":"1","name":"Estado Actual","icon":"📊","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"📈","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"🎮","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"🔔","title":"Alertas","width":1000,"height":700,"type":"alerts"},{"id":"6","name":"Invernia","icon":"🤖","title":"InvernIA - IA Assistant","width":1000,"height":700,"type":"ai-assistant"}],"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"x":620,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"x":490,"y":50,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":50,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"x":710,"y":520,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":660,"y":560,"w":250,"h":85,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"x":160,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":240,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"x":130,"y":450,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"x":510,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":480,"y":200,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"x":480,"y":420,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"x":480,"y":310,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"x":720,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":420,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":310,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":200,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":120,"y":60,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":120,"y":230,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":120,"y":400,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}],"aiConfig":{"model":"gemini-2.5-flash","baseUrl":"https://generativelanguage.googleapis.com","systemPrompt":"Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas.","aiAssistantEnabled":true,"assistantName":"InvernIA","providerLabel":"Google Gemini","modelLabel":"Gemini 2.5 Flash"}};
+        try {
+            
+        window.CONFIG = {
+            BASE_URL: '',
+            dashboard: {"tabs":[{"id":"1","name":"Estado Actual","icon":"layout-dashboard","title":"Estado Actual del Invernadero","width":970,"height":773,"type":"dashboard"},{"id":"5","name":"Laboratorio de GRáficos","icon":"activity","title":"Laboratorio de Gráficos","width":1000,"height":700,"type":"charts"},{"id":"3","name":"Control","icon":"gamepad-2","title":"Control Remoto de Invernadero","width":700,"height":800,"type":"control"},{"id":"4","name":"Alertas","icon":"bell","title":"Alertas","width":1000,"height":700,"type":"alerts"},{"id":"6","name":"Invernia","icon":"cpu","title":"InvernIA - IA Assistant","width":1000,"height":700,"type":"ai-assistant"}],"widgets":[{"id":"w_1772135812734","type":"label","label":"SISTEMA","key":"static_text","min":0,"max":0,"x":620,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768844189895","type":"datetime","label":"Reloj Sistema","key":"timestamp","min":0,"max":0,"x":490,"y":50,"w":220,"h":85,"tabId":"1","format":"datetime_hm_full","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"hideKey":true},{"id":"w_1768844223684","type":"connection","label":"Estado Red","key":"gsm_signal","min":0,"max":0,"x":720,"y":50,"w":180,"h":85,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false,"signalKey":"gsm_1_SIGNAL","statusKey":"gsm_1_STATE","hideKey":true},{"id":"w_1772168062757","type":"label","label":"GPS","key":"static_text","min":0,"max":0,"x":710,"y":520,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271000492","type":"location","label":"GPS","key":"gsm_1_LOCATION","min":0,"max":100,"x":660,"y":560,"w":250,"h":85,"tabId":"1","format":"fixed1","hideKey":true,"statusKey":"gsm_1_CITY_COUNTRY"},{"id":"w_1772135779717","type":"label","label":"SENSORES","key":"static_text","min":0,"max":0,"x":160,"y":10,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270908326","type":"gauge","label":"Temperatura de Sector 1","key":"ds18b20_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270825285","type":"gauge","label":"Humedad del Invernadero","key":"dht22_1_HUM_OUT","unit":"%","min":0,"max":100,"x":240,"y":50,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270903173","type":"gauge","label":"Temperatura de Sector 2","key":"ds18b20_2_TEMP_OUT","unit":"°C","min":0,"max":60,"x":10,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showSparkline":true,"showMinMax":true,"inverted":false,"hideKey":true},{"id":"w_1768270831388","type":"gauge","label":"Temperatura de Sector 3","key":"dht22_1_TEMP_OUT","unit":"°C","min":0,"max":60,"x":240,"y":250,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1768270972142","type":"gauge","label":"Luxes","key":"tsl2561_1_LUX_OUT","unit":"LX","min":0,"max":20000,"x":130,"y":450,"w":220,"h":180,"tabId":"1","format":"fixed1","showMinMax":true,"showSparkline":true,"hideKey":true},{"id":"w_1772135833262","type":"label","label":"ESTADO","key":"static_text","min":0,"max":0,"x":510,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768270996596","type":"indicator","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","min":0,"max":100,"x":480,"y":200,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271019940","type":"indicator","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","min":0,"max":100,"x":480,"y":420,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1768271020388","type":"indicator","label":"Estado Ventiladores axiales","key":"relay_1_STATE_OUT","min":0,"max":100,"x":480,"y":310,"w":200,"h":90,"tabId":"1","format":"bool_onoff","hideKey":true},{"id":"w_1772135855669","type":"label","label":"USO","key":"static_text","min":0,"max":0,"x":720,"y":160,"w":150,"h":40,"color":"#38bdf8","fontSize":14,"tabId":"1","format":"fixed1","borderRadius":12,"boxShadow":"0 0 10px","showBar":false},{"id":"w_1768271034900","type":"text","label":"Uso Ventiladores Internos","key":"relay_2_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":420,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035300","type":"text","label":"Uso Ventiladores Axiales","key":"relay_1_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":310,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271035668","type":"text","label":"Uso Bomba de Agua","key":"relay_3_RUNTIME_OUT","unit":"Hs","min":0,"max":100,"x":690,"y":200,"w":210,"h":90,"tabId":"1","format":"time_hm","hideKey":true,"showMinMax":true},{"id":"w_1768271685572","type":"control-relay","label":"Estado Bomba de Agua","key":"relay_3_STATE_OUT","target":"relay_3","min":0,"max":100,"x":120,"y":60,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271690253","type":"control-relay","label":"Estado Ventiladores Axiales","key":"relay_1_STATE_OUT","target":"relay_1","min":0,"max":100,"x":120,"y":230,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true},{"id":"w_1768271692422","type":"control-relay","label":"Estado Ventiladores Internos","key":"relay_2_STATE_OUT","target":"relay_2","min":0,"max":100,"x":120,"y":400,"w":400,"h":120,"tabId":"3","format":"fixed1","hideKey":true}],"variables":[{"key":"dht22_1_HUM_OUT","label":"Humedad del Invernadero","dataType":"HUM"},{"key":"dht22_1_TEMP_OUT","label":"Temperatura Sector 3","dataType":"TEMP"},{"key":"ds18b20_2_TEMP_OUT","label":"Temperatura Sector 2","dataType":"TEMP"},{"key":"relay_3_STATE_OUT","label":"Estado Bomba de Agua","dataType":"STATE"},{"key":"relay_1_STATE_OUT","label":"Estado Vent. 1","dataType":"STATE"},{"key":"relay_2_STATE_OUT","label":"Estado Vent. 2","dataType":"STATE"},{"key":"relay_3_RUNTIME_OUT","label":"Uso Bomba de Agua","dataType":""},{"key":"relay_1_RUNTIME_OUT","label":"Uso Ventiladores 1 - 2","dataType":""},{"key":"relay_2_RUNTIME_OUT","label":"Uso Ventiladores 3 - 4","dataType":""},{"key":"ds18b20_1_TEMP_OUT","label":"Temperatura Sector 1","dataType":"TEMP"},{"key":"tsl2561_1_LUX_OUT","label":"Luxes","dataType":"LUX"},{"key":"gsm_1_SIGNAL","label":"Signal GSM","dataType":"SIGNAL"},{"key":"gsm_1_STATE","label":"Estado GSM","dataType":"STATE"},{"key":"gsm_1_LOCATION","label":"GPS","dataType":"LOCATION"},{"key":"gsm_1_CITY_COUNTRY","label":"City, Country","dataType":"LOCATION"}],"actuators":[{"id":"relay_1","label":"relay_1","type":"ACT_RELAY_SINGLE"},{"id":"relay_2","label":"relay_2","type":"ACT_RELAY_SINGLE"},{"id":"relay_3","label":"relay_3","type":"ACT_RELAY_SINGLE"}],"aiConfig":{"model":"gemini-2.5-flash","baseUrl":"https://generativelanguage.googleapis.com","systemPrompt":"Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas.","aiAssistantEnabled":true,"assistantName":"InvernIA","providerLabel":"Google Gemini","modelLabel":"Gemini 2.5 Flash"}},
+            labels: {"dht22_1_HUM_OUT":"Humedad del Invernadero","dht22_1_TEMP_OUT":"Temperatura Sector 3","ds18b20_2_TEMP_OUT":"Temperatura Sector 2","relay_3_STATE_OUT":"Estado Bomba de Agua","relay_1_STATE_OUT":"Estado Vent. 1","relay_2_STATE_OUT":"Estado Vent. 2","relay_3_RUNTIME_OUT":"Uso Bomba de Agua","relay_1_RUNTIME_OUT":"Uso Ventiladores 1 - 2","relay_2_RUNTIME_OUT":"Uso Ventiladores 3 - 4","ds18b20_1_TEMP_OUT":"Temperatura Sector 1","tsl2561_1_LUX_OUT":"Luxes","gsm_1_SIGNAL":"Signal GSM","gsm_1_STATE":"Estado GSM","gsm_1_LOCATION":"GPS","gsm_1_CITY_COUNTRY":"City, Country"},
+            refreshInterval: 1000,
+            
+            chartConfig: {
+                primaryY: '',
+                secondaryY: '',
+                timeRange: 'Ahora'
+            }
+        };
         
-        // Template del dashboard con autenticación
         
+        const formatValue = (val, format, unit = "") => {
+            if (val === null || val === undefined || val === '--') return "--";
+            
+            // Convertir a número si es posible para formatos numéricos
+            const num = parseFloat(val);
+            const isNum = !isNaN(num);
+
+            if (format === 'fixed1') return (isNum ? num.toFixed(1) : val) + unit;
+            if (format === 'fixed2') return (isNum ? num.toFixed(2) : val) + unit;
+            
+            const isDateStr = typeof val === 'string' && (val.includes('T') || (val.includes('-') && val.includes(':')));
+
+            // Formatos de Tiempo y Fecha
+            if (format?.startsWith('datetime') || format?.startsWith('time') || isDateStr) {
+                try {
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        const is12h = format?.endsWith('_12');
+                        const showSeconds = format === 'time_hms' || format === 'time_hms_12' || format === 'datetime_full' || format === 'datetime_full_12' || format === 'raw';
+                        const time = d.toLocaleTimeString('es-ES', { 
+                            hour: '2-digit', minute: '2-digit', 
+                            second: showSeconds ? '2-digit' : undefined,
+                            hour12: is12h
+                        });
+                        
+                        // Añadir sufijo ' hs' si es formato 24h y no hay unidad configurada, o usar unidad si existe
+                        let timeSuffix = "";
+                        if (!is12h) {
+                            // Solo añadir "hs" automáticamente si no hay una unidad configurada
+                            timeSuffix = unit ? (" " + unit) : " hs";
+                        } else if (unit) {
+                            timeSuffix = " " + unit;
+                        }
+                        
+                        const timeWithSuffix = time + timeSuffix;
+                        
+                        const dateStr = d.toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+                        const date = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+                        
+                        if (format?.startsWith('datetime')) return `${timeWithSuffix}|${date}`;
+                        
+                        // Si es un formato de tiempo específico (time_hm, time_hms, etc.)
+                        if (format?.startsWith('time')) return timeWithSuffix;
+                    }
+                } catch (e) { }
+            }
+
+            // Formatos booleanos
+            if (format === 'bool_onoff') {
+                if (val === '1' || val === 1 || val === true || val === 'ON' || val === 'TRUE') return 'ON';
+                if (val === '0' || val === 0 || val === false || val === 'OFF' || val === 'FALSE') return 'OFF';
+                return val + unit;
+            }
+
+            // Formato porcentaje
+            if (format === 'percent') return (isNum ? (num * 100).toFixed(0) : val) + '%';
+
+            // Si es un string que parece una coordenada (ej: "-25.123,57.123"), lo devolvemos tal cual
+            if (typeof val === 'string' && val.includes(',')) {
+                return val + unit;
+            }
+
+            // Formato raw o default
+            return val + unit;
+        };
+  
+
+        const getGaugeColor = (val, key = "") => {
+            const num = parseFloat(val);
+            if (isNaN(num)) return '#10b981';
+            if (key.toLowerCase().includes('temp')) {
+                if (num < 15) return '#3b82f6';
+                if (num < 30) return '#10b981';
+                if (num < 35) return '#f59e0b';
+                return '#ef4444';
+            }
+            if (key.toLowerCase().includes('hum')) {
+                if (num < 40) return '#ef4444';
+                if (num < 70) return '#10b981';
+                return '#f59e0b';
+            }
+            if (num < 20) return '#10b981';
+            if (num < 80) return '#f59e0b';
+            return '#ef4444';
+        };
+
+        const getGradientByType = (type, alpha, inverted) => {
+            let stops = [{ pos: 0, color: '#10b981' }, { pos: 50, color: '#f59e0b' }, { pos: 100, color: '#ef4444' }];
+            if (inverted) {
+                const colors = stops.map(s => s.color).reverse();
+                stops = stops.map((s, i) => ({ ...s, color: colors[i] }));
+            }
+            const alphaHex = Math.floor(alpha * 255).toString(16).padStart(2, '0');
+            return "linear-gradient(90deg, " + stops.map(s => s.color + alphaHex + " " + s.pos + "%").join(", ") + ")";
+        };
+
+        // Motor de Minigráficos (Sparkline Engine)
+        const SparklineEngine = {
+            memory: {},
+            BUFFER_SIZE: 100, // Reducido de 750 a 100
+            getSafeRange(min, max) {
+                const sMin = Number(min) || 0;
+                let sMax = Number(max) || 100;
+                if (sMax <= sMin) sMax = sMin + 1;
+                return { min: sMin, max: sMax, mid: (sMin + sMax) / 2 };
+            },
+            getBuffer(id, variableKey, min, max) {
+                const { mid, min: sMin, max: sMax } = this.getSafeRange(min, max);
+                if (!this.memory[id] || this.memory[id].variableKey !== variableKey) {
+                    this.memory[id] = {
+                        data: new Array(this.BUFFER_SIZE).fill(mid),
+                        variableKey: variableKey,
+                        hasData: false,
+                        lastMin: sMin,
+                        lastMax: sMax,
+                        dailyMin: undefined,
+                        dailyMax: undefined
+                    };
+                } else {
+                    // DETECTAR CAMBIO DE ESCALA EN CALIENTE
+                    const buffer = this.memory[id];
+                    if (buffer.lastMin !== sMin || buffer.lastMax !== sMax) {
+                        const oldMin = buffer.lastMin !== undefined ? buffer.lastMin : 0;
+                        const oldMax = buffer.lastMax !== undefined ? buffer.lastMax : 100;
+                        const oldRange = Math.max(1, oldMax - oldMin);
+                        const newRange = Math.max(1, sMax - sMin);
+
+                        buffer.data = buffer.data.map(val => {
+                            const pct = (val - oldMin) / oldRange;
+                            return sMin + (pct * newRange);
+                        });
+
+                        buffer.lastMin = sMin;
+                        buffer.lastMax = sMax;
+                    }
+                }
+                return this.memory[id].data;
+            },
+            hasRealData(id) {
+                return this.memory[id] && this.memory[id].hasData;
+            },
+            getStats(id) {
+                return {
+                    min: this.memory[id] ? this.memory[id].dailyMin : undefined,
+                    max: this.memory[id] ? this.memory[id].dailyMax : undefined
+                };
+            },
+            // Guardar historial completo en formato [{timestamp, kv}]
+            setHistory(id, variableKey, historyRows, min, max) {
+                const buffer = this.getBuffer(id, variableKey, min, max);
+                const { mid, min: sMin, max: sMax } = this.getSafeRange(min, max);
+                if (!historyRows || historyRows.length === 0) return;
+
+                // Registrar primer timestamp conocido para referencias (no inventar horas)
+                if (historyRows[0] && historyRows[0].timestamp) this._firstHistoryTimestamp = historyRows[0].timestamp;
+
+                this.memory[id].lastMin = sMin;
+                this.memory[id].lastMax = sMax;
+
+                let hMin = Infinity;
+                let hMax = -Infinity;
+
+                const incoming = historyRows.map(row => {
+                    const raw = (row && row.kv) ? row.kv[variableKey] : (row ? row[variableKey] : undefined);
+                    const num = parseFloat(raw);
+                    const val = isNaN(num) ? sMin : Math.max(sMin, Math.min(sMax, num));
+                    if (!isNaN(num)) {
+                        hMin = Math.min(hMin, num);
+                        hMax = Math.max(hMax, num);
+                    }
+                    return val;
+                }).slice(-this.BUFFER_SIZE);
+
+                if (hMin !== Infinity) {
+                    if (this.memory[id].dailyMin === undefined) {
+                        this.memory[id].dailyMin = hMin;
+                        this.memory[id].dailyMax = hMax;
+                    } else {
+                        this.memory[id].dailyMin = Math.min(this.memory[id].dailyMin, hMin);
+                        this.memory[id].dailyMax = Math.max(this.memory[id].dailyMax, hMax);
+                    }
+                }
+
+                if (incoming.length > 0) {
+                    buffer.fill(mid);
+                    const startIdx = this.BUFFER_SIZE - incoming.length;
+                    for (let i = 0; i < incoming.length; i++) {
+                        buffer[startIdx + i] = incoming[i];
+                    }
+                    this.memory[id].hasData = true;
+                }
+            },
+            // Devuelve el primer timestamp almacenado por setHistory o null si no existe
+            getTodayStartISO() {
+                return this._firstHistoryTimestamp || null;
+            },
+            update(id, variableKey, newValue, min, max) {
+                const buffer = this.getBuffer(id, variableKey, min, max);
+                const { min: sMin, max: sMax } = this.getSafeRange(min, max);
+                
+                this.memory[id].lastMin = sMin;
+                this.memory[id].lastMax = sMax;
+
+                let val = parseFloat(newValue);
+                const isInvalid = newValue === null || newValue === undefined || newValue === '' || isNaN(val);
+                if (isInvalid) {
+                    // Mantenemos el último valor para evitar saltos a 0 (especialmente en Luxes)
+                    val = buffer[buffer.length - 1];
+                } else {
+                    val = Math.max(sMin, Math.min(sMax, val));
+                    
+                    const current = parseFloat(newValue);
+                    if (!isNaN(current)) {
+                        if (this.memory[id].dailyMin === undefined) {
+                            this.memory[id].dailyMin = current;
+                            this.memory[id].dailyMax = current;
+                        } else {
+                            this.memory[id].dailyMin = Math.min(this.memory[id].dailyMin, current);
+                            this.memory[id].dailyMax = Math.max(this.memory[id].dailyMax, current);
+                        }
+                    }
+                }
+                
+                buffer.shift();
+                buffer.push(val);
+                this.memory[id].hasData = true;
+                
+                return buffer;
+            }
+        };
+
+        const getRawWidgetValue = (key, state) => {
+            if (!state) return undefined;
+            let val = state.telemetry ? state.telemetry[key] : state[key];
+            if (val === undefined && state.data && typeof state.data === 'object') val = state.data[key];
+            if (val === undefined && state.blocks) {
+                for (const blockId in state.blocks) {
+                    if (state.blocks[blockId][key] !== undefined) {
+                        val = state.blocks[blockId][key];
+                        break;
+                    }
+                }
+            }
+            if (val === undefined && key.includes('.')) {
+                const [blockId, prop] = key.split('.');
+                const block = state.blocks && state.blocks[blockId];
+                val = block && (block[prop.toLowerCase()] || block[prop]);
+            }
+            return val;
+        };
+
+        const getWidgetValueShared = (key, state, widgets) => {
+            if (!state) return '--';
+            if (key.toLowerCase() === 'alert_msg' || key.toLowerCase() === 'ultima_alerta' || key.toLowerCase() === 'alerta') {
+                const alerts = state.activeAlerts || [];
+                if (alerts.length === 0) return '🟢 SISTEMA OK';
+                const lastAlert = alerts[alerts.length - 1];
+                return (lastAlert.type === 'CRITICAL' ? '🔴' : '🟡') + ' ' + lastAlert.message;
+            }
+            const val = getRawWidgetValue(key, state);
+            if (val === undefined) return '--';
+            const widget = widgets.find(w => w.key === key);
+            return formatValue(val, widget && widget.format, widget && widget.unit);
+        };
+  
+            
 // === IMPORTS Y VARIABLES GLOBALES ===
 const CONFIG = window.CONFIG || {};
 
@@ -3909,6 +4194,16 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
     );
 };
 ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
+            
+            // Inicializar iconos después de que React termine
+            setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
+            
+            console.log("✅ ADTEC Dashboard: Renderizado exitoso.");
+        } catch (err) {
+            console.error("❌ Error Crítico Dashboard:", err);
+            document.getElementById('error-fallback').style.display = 'block';
+            document.getElementById('error-details').innerText = err.stack || err.message;
+        }
     </script>
 </body>
 </html>
