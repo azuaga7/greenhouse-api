@@ -1132,169 +1132,17 @@ const DashboardApp = () => {
                 flexDirection: 'column'
             }
         }, [
-                // --- TAB CONTENT ---
+                // --- CONTENIDO VACÍO ---
                 React.createElement('div', {
-                    style: { flex: 1, overflow: 'auto', padding: '20px' }
-                }, [
-                    currentTab?.type === 'dashboard' && React.createElement('div', {
-                        style: {
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                            gap: '20px'
-                        }
-                    }, CONFIG.dashboard?.widgets?.filter(w => w.tabId === currentTab.id).map(widget => 
-                        React.createElement('div', {
-                            key: widget.id,
-                            className: 'card',
-                            style: {
-                                gridColumn: `span ${Math.ceil(widget.w / 100)}`,
-                                gridRow: `span ${Math.ceil(widget.h / 100)}`
-                            }
-                        }, [
-                            React.createElement('h3', { style: { margin: '0 0 10px 0', color: '#f1f5f9', fontSize: '14px' } }, widget.label),
-                            React.createElement('div', {
-                                style: {
-                                    fontSize: `${widget.fontSize || 24}px`,
-                                    fontWeight: 700,
-                                    color: widget.color || '#10b981'
-                                }
-                            }, formatValue(lastData[normalizeKey(widget.key)], widget.format, widget.unit))
-                        ])
-                    )),
-                    
-                    currentTab?.type === 'charts' && React.createElement('div', null, 'Contenido de gráficos...'),
-                    
-                    currentTab?.type === 'control' && React.createElement('div', null, 'Contenido de control...'),
-                    
-                    currentTab?.type === 'alerts' && React.createElement('div', null, 
-                        React.createElement('div', { className: 'alerts-container' }, 
-                            alerts.length === 0 
-                                ? React.createElement('div', { style: { padding: '20px', textAlign: 'center', color: '#10b981' } }, 'No hay alertas activas')
-                                : alerts.map(alert => 
-                                    React.createElement('div', {
-                                        key: alert.id || alert.timestamp,
-                                        className: `alert-item ${alert.type?.toLowerCase()}`,
-                                        style: {
-                                            padding: '12px',
-                                            margin: '10px 0',
-                                            borderRadius: '8px',
-                                            borderLeft: '4px solid',
-                                            background: alert.type === 'CRITICAL' ? '#dc262615' : '#f59e0b15',
-                                            borderLeftColor: alert.type === 'CRITICAL' ? '#dc2626' : '#f59e0b'
-                                        }
-                                    }, [
-                                        React.createElement('div', { style: { fontWeight: 600, marginBottom: '5px' } }, 
-                                            (alert.type === 'CRITICAL' ? 'CRÍTICO: ' : 'ADVERTENCIA: ') + alert.message
-                                        ),
-                                        React.createElement('div', { style: { fontSize: '12px', color: '#94a3b8' } }, 
-                                            new Date(alert.timestamp).toLocaleString()
-                                        )
-                                    ])
-                                )
-                        )
-                    ),
-                    
-                    currentTab?.type === 'ai-assistant' && React.createElement('div', {
-                        style: { height: '100%', display: 'flex', flexDirection: 'column' }
-                    }, [
-                        React.createElement('div', {
-                            style: {
-                                flex: 1,
-                                overflowY: 'auto',
-                                padding: '20px',
-                                background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid rgba(148,163,184,0.1)',
-                                borderRadius: '12px',
-                                marginBottom: '20px'
-                            }
-                        }, aiMessages.length === 0 
-                            ? React.createElement('div', { style: { textAlign: 'center', color: '#94a3b8', padding: '40px' } }, 'No hay mensajes aún. ¡Comienza una conversación!')
-                            : aiMessages.map(msg => 
-                                React.createElement('div', {
-                                    key: msg.timestamp,
-                                    style: {
-                                        margin: '15px 0',
-                                        padding: '12px',
-                                        borderRadius: '12px',
-                                        background: msg.role === 'user' ? '#3b82f6' : '#1e293b'
-                                    }
-                                }, [
-                                    React.createElement('div', {
-                                        style: { fontSize: '12px', color: '#94a3b8', marginBottom: '5px' }
-                                    }, msg.role.toUpperCase() + ' - ' + new Date(msg.timestamp).toLocaleTimeString()),
-                                    React.createElement('div', { style: { lineHeight: '1.5' } }, msg.content)
-                                ])
-                            )
-                        ),
-                        React.createElement('div', {
-                            style: {
-                                display: 'flex',
-                                gap: '10px',
-                                padding: '20px',
-                                background: 'rgba(255,255,255,0.03)',
-                                borderTop: '1px solid rgba(148,163,184,0.1)'
-                            }
-                        }, [
-                            React.createElement('input', {
-                                type: 'text',
-                                value: aiInput,
-                                onChange: (e) => setAiInput(e.target.value),
-                                onKeyPress: (e) => e.key === 'Enter' && handleAiSubmit(),
-                                placeholder: 'Escribe tu mensaje...',
-                                disabled: !hasPermission('access_invernia') || aiBusy,
-                                style: {
-                                    flex: 1,
-                                    padding: '12px',
-                                    background: '#1e293b',
-                                    border: '1px solid #334155',
-                                    borderRadius: '8px',
-                                    color: '#f1f5f9',
-                                    fontSize: '14px'
-                                }
-                            }),
-                            React.createElement('button', {
-                                onClick: handleAiSubmit,
-                                disabled: !hasPermission('access_invernia') || aiBusy || !aiInput.trim(),
-                                style: {
-                                    padding: '12px 20px',
-                                    background: hasPermission('access_invernia') && aiInput.trim() && !aiBusy ? '#3b82f6' : '#475569',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: hasPermission('access_invernia') && aiInput.trim() && !aiBusy ? 'pointer' : 'not-allowed',
-                                    fontSize: '14px',
-                                    fontWeight: 600
-                                }
-                            }, aiBusy ? 'Enviando...' : 'Enviar'),
-                            React.createElement('button', {
-                                onClick: exportChat,
-                                disabled: !hasPermission('access_invernia') || aiMessages.length === 0,
-                                style: {
-                                    padding: '12px 16px',
-                                    background: hasPermission('access_invernia') && aiMessages.length > 0 ? '#10b981' : '#475569',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: hasPermission('access_invernia') && aiMessages.length > 0 ? 'pointer' : 'not-allowed',
-                                    fontSize: '12px'
-                                }
-                            }, 'Exportar'),
-                            React.createElement('button', {
-                                onClick: clearChat,
-                                disabled: !hasPermission('access_invernia') || aiMessages.length === 0,
-                                style: {
-                                    padding: '12px 16px',
-                                    background: hasPermission('access_invernia') && aiMessages.length > 0 ? '#ef4444' : '#475569',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: hasPermission('access_invernia') && aiMessages.length > 0 ? 'pointer' : 'not-allowed',
-                                    fontSize: '12px'
-                                }
-                            }, 'Limpiar')
-                        ])
-                    ])
-                ])
+                    style: { 
+                        flex: 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        color: '#64748b',
+                        fontSize: '18px'
+                    }
+                }, 'Dashboard en construcción...')
         ])
     ]);
 };
