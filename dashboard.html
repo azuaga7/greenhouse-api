@@ -679,8 +679,8 @@ const UserHeader = () => {
         window.location.href = 'login.html';
     };
 
-    return React.createElement('header', {
-        style: {
+    return (
+        <header style={{
             height: '60px',
             backgroundColor: '#0f172a',
             borderBottom: '1px solid #334155',
@@ -689,17 +689,13 @@ const UserHeader = () => {
             justifyContent: 'space-between',
             padding: '0 20px',
             color: '#f8fafc'
-        }
-    }, [
-        React.createElement('div', {
-            style: {
+        }}>
+            <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px'
-            }
-        }, [
-            React.createElement('div', {
-                style: {
+            }}>
+                <div style={{
                     width: '36px',
                     height: '36px',
                     borderRadius: '8px',
@@ -708,37 +704,28 @@ const UserHeader = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
-                }
-            }, React.createElement('div', {
-                style: {
-                    fontSize: '10px',
-                    color: 'white',
-                    fontWeight: 'bold'
-                }
-            }, 'ADTEC')),
-            React.createElement('span', {
-                style: {
+                }}>
+                    <div style={{
+                        fontSize: '10px',
+                        color: 'white',
+                        fontWeight: 'bold'
+                    }}>ADTEC</div>
+                </div>
+                <span style={{
                     fontSize: '16px',
                     fontWeight: '600'
-                }
-            }, 'Dashboard Autenticado')
-        ]),
-        React.createElement('div', {
-            style: {
+                }}>Dashboard Autenticado</span>
+            </div>
+            <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px'
-            }
-        }, [
-            React.createElement('span', {
-                style: {
+            }}>
+                <span style={{
                     fontSize: '14px',
                     color: '#94a3b8'
-                }
-            }, 'Usuario: ' + (currentUser?.name || 'Admin')),
-            React.createElement('button', {
-                onClick: () => setShowUserMenu(!showUserMenu),
-                style: {
+                }}>Usuario: {(currentUser?.name || 'Admin')}</span>
+                <button onClick={() => setShowUserMenu(!showUserMenu)} style={{
                     padding: '8px 16px',
                     backgroundColor: '#1e293b',
                     border: '1px solid #334155',
@@ -746,38 +733,35 @@ const UserHeader = () => {
                     color: '#f8fafc',
                     cursor: 'pointer',
                     fontSize: '14px'
-                }
-            }, 'Menú'),
-            showUserMenu && React.createElement('div', {
-                style: {
-                    position: 'absolute',
-                    top: '100%',
-                    right: '0',
-                    backgroundColor: '#1e293b',
-                    border: '1px solid #334155',
-                    borderRadius: '6px',
-                    padding: '8px 0',
-                    minWidth: '150px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    zIndex: 1000
-                }
-            }, [
-                React.createElement('button', {
-                    onClick: handleLogout,
-                    style: {
-                        width: '100%',
-                        padding: '8px 16px',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        textAlign: 'left'
-                    }
-                }, 'Cerrar Sesión')
-            ])
-        ])
-    ]);
+                }}>Menú</button>
+                {showUserMenu && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: '0',
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '6px',
+                        padding: '8px 0',
+                        minWidth: '150px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000
+                    }}>
+                        <button onClick={handleLogout} style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            textAlign: 'left'
+                        }}>Cerrar Sesión</button>
+                    </div>
+                )}
+            </div>
+        </header>
+    );
 };
 
 // Función de permisos
@@ -3924,7 +3908,7 @@ const maxDay = (ds && ds.max !== null && ds.max !== undefined) ? formatValue(ds.
         </div>
     );
 };
-ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
+ReactDOM.render(React.createElement(DashboardApp), document.getElementById('dashboard-root'));
     </script>
 </body>
 </html>
