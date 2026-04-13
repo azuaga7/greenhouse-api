@@ -542,24 +542,158 @@
     </style>
 </head>
 <body>
-    <!-- Header de Usuario con Autenticación -->
-    <header id="user-header" style="display: none;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center;">
-                <div style="font-size: 10px; color: white; font-weight: bold;">ADTEC</div>
+
+// === LECTURA DE USUARIO DESDE LOCALSTORAGE ===
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const authToken = localStorage.getItem('authToken');
+
+// === REDIRECCIÓN SI NO HAY SESIÓN ===
+if (!currentUser) {
+    window.location.href = 'login.html';
+    throw new Error('Usuario no autenticado, redirigiendo a login...');
+}
+
+// === LÓGICA DE AUTENTICACIÓN ===
+
+// UserHeader Component
+const UserHeader = () => {
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [inactivityTimer, setInactivityTimer] = useState(null);
+
+    // Timer de inactividad
+    useEffect(() => {
+        const resetTimer = () => {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            const timer = setTimeout(() => {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('lastActivity');
+                window.location.href = 'login.html';
+            }, 300000); // 5 minutos
+            setInactivityTimer(timer);
+            localStorage.setItem('lastActivity', Date.now().toString());
+        };
+
+        // Eventos de actividad
+        const handleActivity = () => {
+            resetTimer();
+        };
+
+        window.addEventListener('mousemove', handleActivity);
+        window.addEventListener('keydown', handleActivity);
+        window.addEventListener('click', handleActivity);
+        window.addEventListener('scroll', handleActivity);
+
+        resetTimer();
+
+        return () => {
+            window.removeEventListener('mousemove', handleActivity);
+            window.removeEventListener('keydown', handleActivity);
+            window.removeEventListener('click', handleActivity);
+            window.removeEventListener('scroll', handleActivity);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+        };
+    }, [inactivityTimer]);
+
+    const handleLogout = () => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('lastActivity');
+        window.location.href = 'login.html';
+    };
+
+    return (
+        <header style={{
+            height: '60px',
+            backgroundColor: '#0f172a',
+            borderBottom: '1px solid #334155',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 20px',
+            color: '#f8fafc'
+        }}>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+            }}>
+                <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: '#3b82f6',
+                    boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{
+                        fontSize: '10px',
+                        color: 'white',
+                        fontWeight: 'bold'
+                    }}>ADTEC</div>
+                </div>
+                <span style={{
+                    fontSize: '16px',
+                    fontWeight: '600'
+                }}>Dashboard Autenticado</span>
             </div>
-            <span style="font-size: 16px; font-weight: 600;">Dashboard Autenticado</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <span id="user-name" style="font-size: 14px; color: #94a3b8;">Usuario: Admin</span>
-            <button id="user-menu-btn" style="padding: 8px 16px; background-color: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #f8fafc; cursor: pointer; font-size: 14px;">Menú</button>
-            <div id="user-menu" style="display: none; position: absolute; top: 100%; right: 0; background-color: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 8px 0; min-width: 150px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000;">
-                <button id="logout-btn" style="width: 100%; padding: 8px 16px; background-color: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 14px; text-align: left;">Cerrar Sesión</button>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px'
+            }}>
+                <span style={{
+                    fontSize: '14px',
+                    color: '#94a3b8'
+                }}>Usuario: {(currentUser?.name || 'Admin')}</span>
+                <button onClick={() => setShowUserMenu(!showUserMenu)} style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    color: '#f8fafc',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                }}>Menú</button>
+                {showUserMenu && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: '0',
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '6px',
+                        padding: '8px 0',
+                        minWidth: '150px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000
+                    }}>
+                        <button onClick={handleLogout} style={{
+                            width: '100%',
+                            padding: '8px 16px',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            textAlign: 'left'
+                        }}>Cerrar Sesión</button>
+                    </div>
+                )}
             </div>
-        </div>
-    </header>
-    
-    <div id="dashboard-root"></div>
+        </header>
+    );
+};
+
+// Función de permisos
+const hasPermission = (permission) => {
+    if (!currentUser?.permissions) return false;
+    return currentUser.permissions.includes(permission);
+};    
+
+<div id="dashboard-root"></div>
     
     <!-- Sistema de Diagnóstico de Errores -->
     <div id="error-fallback" class="error-fallback">
@@ -852,76 +986,6 @@
         };
   
             
-            // === LÓGICA DEL HEADER DE USUARIO ===
-            // Verificar autenticación y mostrar header
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            const authToken = localStorage.getItem('authToken');
-            
-            if (!currentUser) {
-                window.location.href = 'login.html';
-                throw new Error('Usuario no autenticado, redirigiendo a login...');
-            }
-            
-            // Mostrar header y configurar datos del usuario
-            const userHeader = document.getElementById('user-header');
-            const userName = document.getElementById('user-name');
-            const userMenuBtn = document.getElementById('user-menu-btn');
-            const userMenu = document.getElementById('user-menu');
-            const logoutBtn = document.getElementById('logout-btn');
-            
-            // Establecer estilos del header
-            userHeader.style.cssText = 'height: 60px; background-color: #0f172a; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: #f8fafc;';
-            
-            // Actualizar nombre del usuario
-            userName.textContent = 'Usuario: ' + (currentUser?.name || 'Admin');
-            
-            // Timer de inactividad
-            let inactivityTimer = null;
-            const resetTimer = () => {
-                if (inactivityTimer) clearTimeout(inactivityTimer);
-                const timer = setTimeout(() => {
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('lastActivity');
-                    window.location.href = 'login.html';
-                }, 300000); // 5 minutos
-                inactivityTimer = timer;
-                localStorage.setItem('lastActivity', Date.now().toString());
-            };
-            
-            // Eventos de actividad
-            const handleActivity = () => {
-                resetTimer();
-            };
-            
-            window.addEventListener('mousemove', handleActivity);
-            window.addEventListener('keydown', handleActivity);
-            window.addEventListener('click', handleActivity);
-            window.addEventListener('scroll', handleActivity);
-            
-            resetTimer();
-            
-            // Manejo del menú de usuario
-            userMenuBtn.addEventListener('click', () => {
-                userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
-            });
-            
-            // Logout
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('lastActivity');
-                window.location.href = 'login.html';
-            });
-            
-            // Cerrar menú al hacer clic fuera
-            document.addEventListener('click', (e) => {
-                if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                    userMenu.style.display = 'none';
-                }
-            });
-            
-            
 // === IMPORTS Y VARIABLES GLOBALES ===
 const CONFIG = window.CONFIG || {};
 
@@ -991,26 +1055,6 @@ const HISTORY_CACHE_LIMIT = 1500;
 const HISTORY_CACHE_KEY = 'adtec_history_cache_ingreso_v1';
 // Poll de alertas desacoplado del loop live (evita spam de GET /api/alerts)
 const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
-
-// === LECTURA DE USUARIO DESDE LOCALSTORAGE ===
-const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-const authToken = localStorage.getItem('authToken');
-
-// === REDIRECCIÓN SI NO HAY SESIÓN ===
-if (!currentUser) {
-    window.location.href = 'login.html';
-    throw new Error('Usuario no autenticado, redirigiendo a login...');
-}
-
-// === LÓGICA DE AUTENTICACIÓN ===
-
-
-// Función de permisos
-const hasPermission = (permission) => {
-    if (!currentUser?.permissions) return false;
-    return currentUser.permissions.includes(permission);
-};
-
 
 const { dashboardStyles } = window.__ADTEC_TEMPLATES__ || {};
 
@@ -4154,9 +4198,9 @@ ReactDOM.render(<DashboardApp />, document.getElementById('dashboard-root'));
             // Inicializar iconos después de que React termine
             setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 500);
             
-            console.log("ADTEC Dashboard: Renderizado exitoso.");
+            console.log("✅ ADTEC Dashboard: Renderizado exitoso.");
         } catch (err) {
-            console.error("Error Crítico Dashboard:", err);
+            console.error("❌ Error Crítico Dashboard:", err);
             document.getElementById('error-fallback').style.display = 'block';
             document.getElementById('error-details').innerText = err.stack || err.message;
         }
