@@ -543,6 +543,23 @@
 </head>
 <body>
 
+
+<div id="dashboard-root"></div>
+    
+    <!-- Sistema de Diagnóstico de Errores -->
+    <div id="error-fallback" class="error-fallback">
+        <h1 class="error-title">❌ Error de Renderizado</h1>
+        <p class="error-message">El dashboard no pudo iniciarse correctamente. Esto suele deberse a un error en la configuración o un problema en el script de React.</p>
+        <div id="error-details" class="error-details"></div>
+        <button class="error-retry-btn" onclick="window.location.reload()">REINTENTAR CARGA</button>
+    </div>
+
+
+    
+    <script type="text/babel">
+        try {
+
+
 // === LECTURA DE USUARIO DESDE LOCALSTORAGE ===
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 const authToken = localStorage.getItem('authToken');
@@ -691,20 +708,11 @@ const UserHeader = () => {
 const hasPermission = (permission) => {
     if (!currentUser?.permissions) return false;
     return currentUser.permissions.includes(permission);
-};    
+};
 
-<div id="dashboard-root"></div>
-    
-    <!-- Sistema de Diagnóstico de Errores -->
-    <div id="error-fallback" class="error-fallback">
-        <h1 class="error-title">❌ Error de Renderizado</h1>
-        <p class="error-message">El dashboard no pudo iniciarse correctamente. Esto suele deberse a un error en la configuración o un problema en el script de React.</p>
-        <div id="error-details" class="error-details"></div>
-        <button class="error-retry-btn" onclick="window.location.reload()">REINTENTAR CARGA</button>
-    </div>
 
-    <script type="text/babel">
-        try {
+
+
             
         window.CONFIG = {
             BASE_URL: '',
