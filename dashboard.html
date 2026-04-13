@@ -852,109 +852,331 @@ const formatValue = (val, format, unit) => {
   }
 };
 
-// --- COMPONENTE SPARKLINE ---
-const Sparkline = ({ id, data, width = 100, height = 50, strokeColor = '#38bdf8', strokeWidth = 2 }) => {
-    if (!data || data.length < 2) return null;
-    
-    const values = data.map(d => d.v).filter(v => v !== null && v !== undefined && !isNaN(v));
-    if (values.length === 0) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    
-    const points = data.map((d, i) => {
-        const x = (i / (data.length - 1)) * width;
-        const y = height - ((d.v - min) / range) * height;
-        return `${x},${y}`;
-    }).join(' ');
-    
-    return React.createElement('svg', {
-        width: width,
-        height: height,
-        style: { overflow: 'visible' }
-    }, [
-        React.createElement('polyline', {
-            points: points,
-            fill: 'none',
-            stroke: strokeColor,
-            strokeWidth: strokeWidth,
-            strokeLinecap: 'round',
-            strokeLinejoin: 'round'
-        })
-    ]);
-};
-
-// --- COMPONENTE CHART ---
-const DashboardChart = ({ widget, dataHistory, chartConfig }) => {
+// Componente de Gráfico Optimizado (Zero-Flicker)
+const DashboardChart = React.memo(({ widget, dataHistory, chartConfig }) => {
+    const canvasRef = useRef(null);
     const chartRef = useRef(null);
-    const chartInstance = useRef(null);
-    
-    useEffect(() => {
-        if (!chartRef.current || !dataHistory || dataHistory.length === 0) return;
+    // Obtener configuración de escala (min/max) y formato
+    const getScaleSettings = (key) => {
+        if (!key) return { min: undefined, max: undefined, format: undefined, unit: "" };
+        const nk = normKey(key);
+const w = CONFIG.dashboard.widgets.find(w => normKey(w.key) === nk);
+        if (!w) return { min: undefined, max: undefined, format: undefined, unit: "" };
         
-        const ctx = chartRef.current.getContext('2d');
-        
-        // Destruir chart anterior si existe
-        if (chartInstance.current) {
-            chartInstance.current.destroy();
+        // Si es estado digital, escala inicial 0-2
+        if (w.format === 'bool_onoff' || w.type === 'indicator' || w.type === 'control-relay') {
+            return { min: 0, max: 2, format: 'bool_onoff', unit: w.unit || "" };
         }
-        
-        // Preparar datos
-        const labels = dataHistory.map(d => d.t || '');
-        const datasets = [{
-            label: widget.label || 'Sensor',
-            data: dataHistory.map(d => d.v),
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0
-        }];
-        
-        // Crear nuevo chart
-        chartInstance.current = new Chart(ctx, {
+        const hasNoLimits = (w.min === 0 && w.max === 0) || (w.min === undefined && w.max === undefined);
+        return { 
+            min: hasNoLimits ? undefined : w.min, 
+            max: hasNoLimits ? undefined : w.max,
+            format: w.format,
+            unit: w.unit || ""
+        };
+    };
+    useEffect(() => {
+        if (!canvasRef.current || typeof Chart === 'undefined') return;
+        const ctx = canvasRef.current.getContext('2d');
+        const pS = getScaleSettings(chartConfig && chartConfig.primaryY);
+        const sS = getScaleSettings(chartConfig && chartConfig.secondaryY);
+        chartRef.current = new Chart(ctx, {
             type: 'line',
-            data: { labels, datasets },
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Eje Principal',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Eje Secundario',
+                        data: [],
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.05)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        yAxisID: 'y1',
+                        hidden: !(chartConfig && chartConfig.secondaryY)
+                    }
+                ]
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
-                plugins: {
-                    legend: { display: false }
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
                 },
                 scales: {
-                    x: {
+                    x: { 
                         display: true,
                         grid: { color: 'rgba(255,255,255,0.03)' },
-                        ticks: { color: '#64748b', font: { size: 9 } }
+                        ticks: { 
+                            color: '#64748b', 
+                            font: { size: 9 },
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 8 
+                        }
                     },
                     y: {
                         display: true,
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#38bdf8', font: { size: 10 } }
+                        position: 'left',
+                        beginAtZero: false,
+                        suggestedMin: pS.min,
+                        suggestedMax: pS.max,
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { 
+                            color: '#38bdf8', 
+                            font: { size: 10 },
+                            callback: (val) => formatValue(val, pS.format, "")
+                        } 
+                    },
+                    y1: {
+                        display: !!(chartConfig && chartConfig.secondaryY),
+                        position: 'right',
+                        beginAtZero: false,
+                        suggestedMin: sS.min,
+                        suggestedMax: sS.max,
+                        grid: { drawOnChartArea: false }, 
+                        ticks: { 
+                            color: '#a855f7', 
+                            font: { size: 10 },
+                            callback: (val) => formatValue(val, sS.format, "")
+                        } 
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#cbd5e1',
+                        borderColor: 'rgba(148, 163, 184, 0.2)',
+                        borderWidth: 1,
+                        padding: 8,
+                        displayColors: false,
+                        callbacks: {
+                            title: (context) => context[0].label,
+                            label: (context) => {
+                                const raw = context.raw;
+                                const dataset = context.dataset;
+                                const yAxisID = dataset.yAxisID;
+                                const settings = yAxisID === 'y1' ? sS : pS;
+                                return dataset.label + ': ' + formatValue(raw.v !== undefined ? raw.v : raw, settings.format, settings.unit);
+                            }
+                        }
                     }
                 }
             }
         });
-        
+        // Actualizar datos dinámicamente
+        if (dataHistory && dataHistory.length > 0) {
+            const labels = dataHistory.map(d => d.t || '');
+            const primaryData = dataHistory.map(d => ({ x: d.t, y: d.v !== undefined ? d.v : d.v2 }));
+            const secondaryData = chartConfig && chartConfig.secondaryY 
+                ? dataHistory.map(d => ({ x: d.t, y: d.v2 !== undefined ? d.v2 : null }))
+                : [];
+            const chart = chartRef.current;
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = primaryData;
+            chart.data.datasets[1].data = secondaryData;
+            // Actualizar límites dinámicamente con auto-escalado (suggested)
+            chart.options.scales.y.suggestedMin = pS.min;
+            chart.options.scales.y.suggestedMax = pS.max;
+            chart.options.scales.y.ticks.callback = (val) => formatValue(val, pS.format, "");
+            if (chartConfig && chartConfig.secondaryY) {
+                chart.options.scales.y1.suggestedMin = sS.min;
+                chart.options.scales.y1.suggestedMax = sS.max;
+                chart.options.scales.y1.ticks.callback = (val) => formatValue(val, sS.format, "");
+            }
+            chart.update('none');
+        }
         return () => {
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
+            if (chartRef.current) {
+                chartRef.current.destroy();
             }
         };
-    }, [dataHistory, widget]);
-    
+    }, [dataHistory, chartConfig]);
     return React.createElement('canvas', {
-        ref: chartRef,
-        style: { width: '100%', height: '100%' }
+        ref: canvasRef,
+        style: { display: 'block', width: '100%', height: '100%' }
     });
+});
+
+// Motor Centralizado de Sparklines (Optimizado para 100 puntos)
+const SparklineEngine = {
+    buffers: new Map(),
+    
+    // Obtener buffer para un widget específico
+    getBuffer: (id, variableKey, min, max) => {
+        const key = `${id}-${variableKey}-${min}-${max}`;
+        if (!SparklineEngine.buffers.has(key)) {
+            SparklineEngine.buffers.set(key, new Array(100).fill(null));
+        }
+        return SparklineEngine.buffers.get(key);
+    },
+    
+    // Actualizar buffer con nuevo valor
+    updateBuffer: (id, variableKey, min, max, value) => {
+        const buffer = SparklineEngine.getBuffer(id, variableKey, min, max);
+        buffer.shift();
+        buffer.push(value);
+        return buffer;
+    },
+    
+    // Verificar si hay datos reales
+    hasRealData: (id) => {
+        for (const [key, buffer] of SparklineEngine.buffers.entries()) {
+            if (key.startsWith(id) && buffer.some(v => v !== null && v !== undefined)) {
+                return true;
+            }
+        }
+        return false;
+    },
+    
+    // Limpiar buffers de un widget
+    clear: (id) => {
+        for (const [key, buffer] of SparklineEngine.buffers.entries()) {
+            if (key.startsWith(id)) {
+                buffer.fill(null);
+            }
+        }
+    }
 };
+
+// Componente de Minigráfico (Sparkline) - Motor Pro de 100 puntos
+const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, historyTick }) => {
+    // Estado local para asegurar dibujo sincronizado
+    const [points, setPoints] = useState(() => {
+        const initial = SparklineEngine.getBuffer(id, variableKey, min, max);
+        return [...initial];
+    });
+    useEffect(() => {
+        // Solo obtener el buffer actual
+        // El motor es actualizado de forma centralizada en fetchUpdate y fetchHistory
+        const currentPoints = SparklineEngine.getBuffer(id, variableKey, min, max);
+        setPoints([...currentPoints]);
+    }, [id, variableKey, value, min, max, historyTick]);
+    const hasData = useMemo(() => SparklineEngine.hasRealData(id), [id, value, historyTick]);
+    const isDisconnected = value === undefined || value === null || value === '' || isNaN(parseFloat(value));
+    const pathData = useMemo(() => {
+        if (points.length === 0) return "";
+        const width = 100;
+        const height = 50;
+        // Ajuste de margen para visibilidad de Luxes y valores mínimos
+        const padding = 4; 
+        const safeHeight = height - (padding * 2);
+        
+        // Sincronizar con motor
+        const sMin = Number(min) || 0;
+        let sMax = Number(max);
+        if (isNaN(sMax)) sMax = 100;
+        if (sMax <= sMin) sMax = sMin + 1;
+        const range = sMax - sMin;
+        
+        return points.map((val, i) => {
+            const x = (i / (points.length - 1)) * width;
+            // Blindaje: fijar al borde si excede (dentro del área segura)
+            const cappedVal = Math.max(sMin, Math.min(sMax, val));
+            const pct = (cappedVal - sMin) / range;
+            const y = (height - padding) - (pct * safeHeight);
+            return (i === 0 ? 'M' : 'L') + " " + x + " " + y;
+        }).join(' ');
+    }, [points, min, max]);
+    // Color de la línea: Degradado real por defecto. Azul de Diagnóstico SOLO si hubo datos y se perdieron.
+    const strokeColor = (hasData && isDisconnected) ? "#3b82f6" : "url(#grad-final-" + id + ")";
+    // Asegurar que las variables de color existan para el degradado
+    const sparklineColors = {
+        '--grad-start': inverted ? '#ef4444' : '#10b981',
+        '--grad-mid': '#f59e0b',
+        '--grad-end': inverted ? '#10b981' : '#ef4444'
+    };
+    return React.createElement('div', { 
+        className: 'adtec-sparkline-container ' + (inverted ? 'gauge-gradient-inverted' : 'gauge-gradient-normal'),
+        style: { 
+            marginTop: '7px', 
+            ...sparklineColors,
+            background: 'rgba(0,0,0,0.2)',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '1px solid rgba(148,163,184,0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            height: '50px'
+        }
+    }, [
+        React.createElement('svg', { 
+            key: 'svg',
+            className: 'adtec-sparkline-svg', 
+            viewBox: '0 -5 100 60', 
+            preserveAspectRatio: 'none',
+            style: { height: '50px', flex: 1 }
+        }, [
+            React.createElement('defs', { key: 'defs' }, [
+                React.createElement('linearGradient', { 
+                    key: 'grad',
+                    id: "grad-final-" + id, 
+                    x1: "0", y1: "50", x2: "0", y2: "0",
+                    gradientUnits: "userSpaceOnUse"
+                }, [
+                    /* Colores en RGB puro para asegurar visibilidad absoluta */
+                    React.createElement('stop', { key: 's1', offset: "0%", stopColor: "var(--grad-start, rgb(16, 185, 129))" }),
+                    React.createElement('stop', { key: 's2', offset: "50%", stopColor: "var(--grad-mid, rgb(245, 158, 11))" }),
+                    React.createElement('stop', { key: 's3', offset: "100%", stopColor: "var(--grad-end, rgb(239, 68, 68))" })
+                ]),
+                /* Fondo Degradado Tenue/Brilloso */
+                React.createElement('linearGradient', { 
+                    key: 'bg-grad',
+                    id: "bg-grad-final-" + id, 
+                    x1: "0", y1: "1", x2: "0", y2: "0"
+                }, [
+                    React.createElement('stop', { key: 'b1', offset: "0%", stopColor: "rgba(56, 189, 248, 0.02)" }),
+                    React.createElement('stop', { key: 'b2', offset: "50%", stopColor: "rgba(56, 189, 248, 0.1)" }),
+                    React.createElement('stop', { key: 'b3', offset: "100%", stopColor: "rgba(56, 189, 248, 0.02)" })
+                ])
+            ]),
+            /* Fondo Degradado Tenue */
+            React.createElement('rect', { 
+                key: 'bg-rect',
+                x: "0", y: "0", width: "100", height: "50", 
+                fill: "url(#bg-grad-final-" + id + ")", 
+                opacity: "0.6" 
+            }),
+            /* Líneas de Guía de Fondo */
+            React.createElement('line', { key: 'g1', x1: "0", y1: "0", x2: "100", y2: "0", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
+            React.createElement('line', { key: 'g2', x1: "0", y1: "25", x2: "100", y2: "25", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5", strokeDasharray: "2,2" }),
+            React.createElement('line', { key: 'g3', x1: "0", y1: "50", x2: "100", y2: "50", stroke: "rgba(255,255,255,0.05)", strokeWidth: "0.5" }),
+            React.createElement('path', {
+                key: 'path',
+                d: pathData,
+                className: 'adtec-sparkline-path',
+                stroke: strokeColor,
+                fill: 'none',
+                strokeWidth: '2',
+                strokeLinecap: 'round',
+                strokeLinejoin: 'round'
+            })
+        ])
+    ]);
+});
 
 // --- DASHBOARD APP CON AUTH ---
 const DashboardApp = () => {
-    // ESTADOS
+    // ESTADOS BÁSICOS
     const [activeTabId, setActiveTabId] = useState(CONFIG.dashboard?.tabs?.[0]?.id || 'default');
     const [lastData, setLastData] = useState(null);
     const [alerts, setAlerts] = useState([]);
@@ -962,9 +1184,119 @@ const DashboardApp = () => {
     const [pendingCommands, setPendingCommands] = useState({});
     const [historyData, setHistoryData] = useState([]);
     const [connStatus, setConnStatus] = useState('DESCONECTADO');
-    const [aiMessages, setAiMessages] = useState([]);
+    // === ESTADOS DE IA AVANZADOS ===
+    const [aiMessages, setAiMessages] = useState([
+        {
+            id: 'welcome',
+            role: 'assistant',
+            kind: 'text',
+            content: '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.',
+            data: null,
+            isTyping: false,
+            timestamp: new Date().toISOString()
+        }
+    ]);
     const [aiInput, setAiInput] = useState('');
     const [aiBusy, setAiBusy] = useState(false);
+    const [typingDots, setTypingDots] = useState('');
+    const [aiHealth, setAiHealth] = useState({ok: false, configured: false, baseUrl: 'missing', apiKey: 'missing'});
+    // Estados para typing simulado
+    const [typingMessageId, setTypingMessageId] = useState(null);
+    const [typingContent, setTypingContent] = useState('');
+    const [typingFullContent, setTypingFullContent] = useState('');
+    // Configuración de IA para la UI (solo flags no sensibles)
+    const [aiConfig, setAiConfig] = useState({
+        model: 'gemini-2.5-flash',
+        baseUrl: 'https://generativelanguage.googleapis.com',
+        systemPrompt: 'Eres un asistente especializado en invernaderos. Analiza datos de sensores, genera gráficos y proporciona recomendaciones sobre temperatura, humedad, luz y control de sistemas.',
+        // NO incluir apiKey en el frontend
+        aiAssistantEnabled: CONFIG.aiConfig?.aiAssistantEnabled || false,
+        assistantName: CONFIG.aiConfig?.assistantName || 'InvernIA',
+        providerLabel: CONFIG.aiConfig?.providerLabel || 'Google Gemini',
+        modelLabel: CONFIG.aiConfig?.modelLabel || 'Gemini 2.5 Flash'
+    });
+    const aiScrollRef = useRef(null);
+
+    // URLs por defecto según modelo
+    const getDefaultUrl = (model) => {
+        switch (model) {
+            case 'gemini-2.5-flash': return 'https://generativelanguage.googleapis.com';
+            case 'gemini-pro': return 'https://generativelanguage.googleapis.com';
+            case 'gpt-4': return 'https://api.openai.com/v1';
+            case 'claude': return 'https://api.anthropic.com';
+            default: return 'https://api.example.com';
+        }
+    };
+
+    // Actualizar configuración cuando cambia el modelo
+    const handleModelChange = (model) => {
+        setAiConfig(prev => ({
+            ...prev,
+            model,
+            baseUrl: prev.baseUrl || getDefaultUrl(model)
+        }));
+    };
+
+    // === FUNCIÓN DE TYPING SIMULADO ===
+    const startTypingEffect = useCallback((messageId, fullContent) => {
+        setTypingMessageId(messageId);
+        setTypingFullContent(fullContent);
+        setTypingContent('');
+        
+        let currentIndex = 0;
+        const typingSpeed = 15; // ms entre caracteres
+        
+        const typeNextChar = () => {
+            if (currentIndex < fullContent.length) {
+                setTypingContent(fullContent.slice(0, currentIndex + 1));
+                currentIndex++;
+                setTimeout(typeNextChar, typingSpeed);
+            } else {
+                // Terminó el typing
+                
+                // 1. Primero establecer el contenido final en el mensaje
+                setAiMessages(prev => prev.map(msg => 
+                    msg.id === messageId ? { 
+                        ...msg, 
+                        content: fullContent,  // Establece el contenido final
+                        isTyping: false 
+                    } : msg
+                ));
+                
+                // 2. Luego limpiar los estados de typing (con un pequeño delay)
+                setTimeout(() => {
+                    setTypingMessageId(null);
+                    setTypingContent('');
+                    setTypingFullContent('');
+                }, 50);
+            }
+        };
+        
+        // Iniciar el efecto
+        setTimeout(typeNextChar, 100);
+    }, []);
+
+    // === FUNCIÓN PARA MOSTRAR MENSAJE DE BIENVENIDA CON TYPING ===
+    const showWelcomeMessageWithTyping = useCallback(() => {
+        const welcomeContent = '¡Hola! Soy InvernIA, tu asistente especializado en invernaderos. Analizo datos de sensores, genero tablas, gráficos y proporciono recomendaciones sobre temperatura, humedad, luz, control de sistemas y alarmas.';
+        const welcomeId = 'welcome_' + Date.now();
+        
+        // Agregar mensaje vacío con typing
+        setAiMessages(prev => [...prev, {
+            id: welcomeId,
+            role: 'assistant',
+            kind: 'text',
+            content: '',
+            data: null,
+            isTyping: true,
+            timestamp: new Date().toISOString()
+        }]);
+        
+        // Iniciar efecto typing
+        setTimeout(() => {
+            startTypingEffect(welcomeId, welcomeContent);
+        }, 500);
+    }, [startTypingEffect]);
     const [chartConfig, setChartConfig] = useState({
         primaryY: '',
         secondaryY: '',
@@ -974,11 +1306,40 @@ const DashboardApp = () => {
         timeRange: 'Ahora'
     });
     
-    // ESTADOS FALTANTES AGREGADOS
+    // ESTADOS AVANZADOS (del template original)
     const [liveData, setLiveData] = useState([]);
     const [liveFirstIso, setLiveFirstIso] = useState('');
     const [liveLastIso, setLiveLastIso] = useState('');
     const [chartData, setChartData] = useState([]);
+    
+    // Tick independiente para refrescar sparklines (evita quedar "pegados" hasta cambiar pestaña)
+    const [sparkTick, setSparkTick] = useState(0);
+    const [cacheApiSnapshot, setCacheApiSnapshot] = useState(null);
+    const [dayStatsLive, setDayStatsLive] = useState({}); // min/max runtime: seed snapshot then extend with live
+    const cacheApiDayFromRef = useRef(null);
+    const [cacheApiEtag, setCacheApiEtag] = useState(null);
+    const cacheApiLastFetchRef = useRef(0);
+    
+    // Mantener rango visible LIVE para XLSX (igual a lo que se ve en el gráfico)
+    useEffect(() => {
+        if (!liveData || liveData.length === 0) {
+            setLiveFirstIso(null);
+            setLiveLastIso(null);
+            return;
+        }
+        setLiveFirstIso(liveData[0]?.timestamp ?? null);
+        setLiveLastIso(liveData[liveData.length - 1]?.timestamp ?? null);
+    }, [liveData]);
+    const [seriesData, setSeriesData] = useState([]);
+    const [seriesLoading, setSeriesLoading] = useState(false);
+    
+    // Estados de conexión avanzados
+    const [connColor, setConnColor] = useState('#f59e0b');
+    const [lastPacketTime, setLastPacketTime] = useState(0);
+    const [lastArrivalLocal, setLastArrivalLocal] = useState(Date.now());
+    const [currentDelta, setCurrentDelta] = useState(300000); // 5 min inicial (Aprendizaje)
+    const [isLearning, setIsLearning] = useState(true);
+    const BASE_URL = CONFIG.BASE_URL || "";
     
     // Obtener valor de widget
     const getWidgetValue = (key) => {
@@ -1064,58 +1425,160 @@ const DashboardApp = () => {
         });
     }, [hasPermission]);
 
-    // handleAiSubmit
-    const handleAiSubmit = () => {
-        if (!aiInput.trim() || aiBusy) return;
+    // === FUNCIÓN PARA EXPORTAR CHAT ===
+    const handleExportChat = useCallback(() => {
+        try {
+            // Crear contenido del documento DOCX
+            const doc = new docx.Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        // Título
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: "Conversación con InvernIA",
+                                    bold: true,
+                                    size: 32
+                                })
+                            ],
+                            heading: "Title",
+                            alignment: "center"
+                        }),
+                        // Espacio
+                        new docx.Paragraph({
+                            children: [new docx.TextRun({ text: "" })]
+                        }),
+                        // Fecha de exportación
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: "Exportado: " + new Date().toLocaleString('es-PY'),
+                                    italics: true,
+                                    size: 20
+                                })
+                            ],
+                            alignment: "center"
+                        }),
+                        // Espacio
+                        new docx.Paragraph({
+                            children: [new docx.TextRun({ text: "" })]
+                        }),
+                        // Mensajes
+                        ...aiMessages.map(msg => [
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: (msg.role === 'user' ? 'Usuario' : 'InvernIA') + ":",
+                                        bold: true,
+                                        color: msg.role === 'user' ? "4F46E5" : "7C3AED"
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: msg.content,
+                                        size: 22
+                                    })
+                                ],
+                                spacing: {
+                                    after: 200
+                                }
+                            }),
+                            // Timestamp
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: msg.timestamp ? fmtPYTime(new Date(msg.timestamp)) : '--:--:--',
+                                        italics: true,
+                                        size: 18,
+                                        color: "6B7280"
+                                    })
+                                ],
+                                alignment: msg.role === 'user' ? "left" : "right"
+                            }),
+                            new docx.Paragraph({
+                                children: [new docx.TextRun({ text: "" })]
+                            })
+                        ]).flat()
+                    ]
+                }]
+            });
+
+            // Generar y descargar
+            docx.Packer.toBlob(doc).then(blob => {
+                const fileName = "invernia_chat_" + new Date().toISOString().slice(0, 10) + ".docx";
+                saveAs(blob, fileName);
+            });
+        } catch (error) {
+            console.error('Error al exportar chat:', error);
+            alert('Error al exportar el chat. Por favor, inténtalo de nuevo.');
+        }
+    }, [aiMessages]);
+    
+    const handleClearChat = useCallback(() => {
+        // Limpiar completamente
+        setAiMessages([]);
+        // Mostrar mensaje de bienvenida con typing después de limpiar
+        setTimeout(() => {
+            showWelcomeMessageWithTyping();
+        }, 300);
+    }, [showWelcomeMessageWithTyping]);
+    
+    // handleAiSubmit avanzado con typing simulado
+    const handleAiSubmit = useCallback(() => {
+        if (!aiInput.trim() || aiBusy || !hasPermission('access_invernia')) return;
         
-        const userMessage = { role: 'user', content: aiInput, timestamp: Date.now() };
+        const userMessage = { 
+            role: 'user', 
+            content: aiInput.trim(), 
+            timestamp: Date.now().toISOString(),
+            kind: 'text',
+            data: null,
+            isTyping: false
+        };
+        
         setAiMessages(prev => [...prev, userMessage]);
+        const userInput = aiInput.trim();
         setAiInput('');
         setAiBusy(true);
+        
+        // Agregar mensaje de IA vacío con typing
+        const aiMessageId = 'ai_' + Date.now();
+        setAiMessages(prev => [...prev, {
+            id: aiMessageId,
+            role: 'assistant',
+            kind: 'text',
+            content: '',
+            data: null,
+            isTyping: true,
+            timestamp: new Date().toISOString()
+        }]);
         
         fetch(CONFIG.api?.baseUrl + '/api/ai/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: aiInput, context: 'dashboard' })
+            body: JSON.stringify({ message: userInput, context: 'dashboard' })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const aiMessage = { role: 'assistant', content: data.response, timestamp: Date.now() };
-                setAiMessages(prev => [...prev, aiMessage]);
+                // Iniciar efecto typing con la respuesta
+                startTypingEffect(aiMessageId, data.response);
+            } else {
+                throw new Error(data.error || 'Error en la respuesta');
             }
         })
         .catch(error => {
             console.error('Error en IA:', error);
-            const errorMessage = { role: 'assistant', content: 'Error al procesar tu mensaje.', timestamp: Date.now() };
-            setAiMessages(prev => [...prev, errorMessage]);
+            const errorMessage = 'Lo siento, ha ocurrido un error al procesar tu mensaje. Por favor, inténtalo de nuevo.';
+            startTypingEffect(aiMessageId, errorMessage);
         })
         .finally(() => {
             setAiBusy(false);
         });
-    };
-
-    // exportChat
-    const exportChat = () => {
-        const chatContent = aiMessages.map(msg => 
-            `[${new Date(msg.timestamp).toLocaleString()}] ${msg.role.toUpperCase()}: ${msg.content}`
-        ).join('\n\n');
-        
-        const blob = new Blob([chatContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    // clearChat
-    const clearChat = () => {
-        if (confirm('¿Estás seguro de que quieres limpiar el chat?')) {
-            setAiMessages([]);
-        }
-    };
+    }, [aiInput, aiBusy, hasPermission, startTypingEffect]);
 
     const currentTab = CONFIG.dashboard?.tabs?.find(t => String(t.id) === String(activeTabId));
 
