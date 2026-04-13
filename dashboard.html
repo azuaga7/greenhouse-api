@@ -1122,154 +1122,16 @@ const DashboardApp = () => {
     // --- RENDERIZADO ---
     return React.createElement(React.Fragment, null, [
         React.createElement(UserHeader),
+        // --- MAIN CONTENT (OCUPANDO TODO EL ESPACIO) ---
         React.createElement('div', {
-            style: { display: 'flex', height: '100vh', backgroundColor: '#0f172a' }
+            style: { 
+                height: 'calc(100vh - 60px)', 
+                backgroundColor: '#0f172a',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+            }
         }, [
-            // --- SIDEBAR ---
-            React.createElement('div', {
-                style: {
-                    width: '280px',
-                    backgroundColor: '#1e293b',
-                    borderRight: '1px solid #334155',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }
-            }, [
-                React.createElement('div', {
-                    style: { padding: '20px', borderBottom: '1px solid #334155' }
-                }, [
-                    React.createElement('div', {
-                        style: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }
-                    }, [
-                        React.createElement('div', { className: 'logo-icon' }, 
-                            React.createElement('div', { className: 'logo-icon-inner' }, 'ADTEC')
-                        ),
-                        React.createElement('span', { className: 'card-title' }, currentTab?.title || 'Dashboard')
-                    ]),
-                    currentTab?.type === 'control' && React.createElement('div', {
-                        style: {
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            background: 'rgba(255,255,255,0.05)',
-                            padding: '5px 12px',
-                            borderRadius: '20px',
-                            border: '1px solid rgba(148,163,184,0.1)'
-                        }
-                    }, [
-                        React.createElement('span', {
-                            style: {
-                                fontSize: '9px',
-                                fontWeight: 700,
-                                color: controlState?.manual ? 'var(--adtec-accent)' : '#9ca3af'
-                            }
-                        }, controlState?.manual ? 'MANUAL' : 'AUTO'),
-                        React.createElement('label', { className: 'switch', style: { transform: 'scale(0.7)' } }, [
-                            React.createElement('input', {
-                                type: 'checkbox',
-                                checked: !!controlState?.manual,
-                                disabled: !hasPermission('control_actuators'),
-                                onChange: hasPermission('control_actuators') ? (e) => sendControl('manual', e.target.checked) : undefined,
-                                title: hasPermission('control_actuators') ? '' : 'Sin permisos para esta acción'
-                            }),
-                            React.createElement('span', { className: 'slider' })
-                        ])
-                    ]),
-                    React.createElement('div', {
-                        style: { fontSize: '11px', fontWeight: '800', color: '#64748b' }
-                    }, connStatus)
-                ]),
-                // --- TABS ---
-                React.createElement('div', {
-                    style: { flex: 1, overflowY: 'auto', padding: '10px' }
-                }, CONFIG.dashboard?.tabs?.map(tab => 
-                    React.createElement('button', {
-                        key: tab.id,
-                        onClick: () => setActiveTabId(tab.id),
-                        className: activeTabId === tab.id ? 'tab-button active' : 'tab-button',
-                        style: {
-                            width: '100%',
-                            padding: '12px',
-                            marginBottom: '8px',
-                            backgroundColor: activeTabId === tab.id ? '#3b82f6' : 'transparent',
-                            color: activeTabId === tab.id ? 'white' : '#94a3b8',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            transition: 'all 0.2s ease'
-                        }
-                    }, tab.icon + ' ' + tab.name)
-                ))
-            ]),
-            // --- MAIN CONTENT ---
-            React.createElement('div', {
-                style: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }
-            }, [
-                // --- HEADER ACTIONS ---
-                React.createElement('div', {
-                    style: {
-                        background: 'rgba(255,255,255,0.03)',
-                        padding: '15px 20px',
-                        borderBottom: '1px solid rgba(148,163,184,0.1)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }
-                }, [
-                    React.createElement('div', null, 'Última actualización: ' + new Date().toLocaleTimeString()),
-                    currentTab?.type === 'charts' && React.createElement('div', {
-                        style: { display: 'flex', gap: '10px', alignItems: 'center' }
-                    }, [
-                        React.createElement('select', {
-                            value: chartConfig.timeRange,
-                            onChange: (e) => setChartConfig(prev => ({ ...prev, timeRange: e.target.value })),
-                            style: {
-                                background: '#1e293b',
-                                color: '#f1f5f9',
-                                border: '1px solid #334155',
-                                padding: '6px 10px',
-                                borderRadius: '6px',
-                                fontSize: '12px'
-                            }
-                        }, [
-                            React.createElement('option', { value: '1h' }, 'Última 1 hora'),
-                            React.createElement('option', { value: '6h' }, 'Últimas 6 horas'),
-                            React.createElement('option', { value: '24h' }, 'Últimas 24 horas'),
-                            React.createElement('option', { value: '7d' }, 'Últimos 7 días'),
-                            React.createElement('option', { value: 'custom' }, 'Rango personalizado')
-                        ]),
-                        React.createElement('a', {
-                            href: '#',
-                            onClick: (e) => {
-                                e.preventDefault();
-                                if (!hasPermission('download_files')) {
-                                    alert('No tienes permisos para descargar archivos.');
-                                    return;
-                                }
-                                // Lógica de descarga XLSX
-                                const from = chartConfig.fromDate || liveFirstIso;
-                                const to = chartConfig.toDate || liveLastIso;
-                                const site = CONFIG.project?.name || 'dashboard';
-                                const url = `${CONFIG.api?.baseUrl}/api/download/xlsx_range?site=${encodeURIComponent(site)}&from_iso=${encodeURIComponent(from)}&to_iso=${encodeURIComponent(to)}`;
-                                window.open(url, '_blank');
-                            },
-                            style: {
-                                background: hasPermission('download_files') ? '#10b981' : '#475569',
-                                color: 'white',
-                                padding: '6px 12px',
-                                borderRadius: '6px',
-                                textDecoration: 'none',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                opacity: hasPermission('download_files') ? 1 : 0.5
-                            },
-                            title: hasPermission('download_files') ? '' : 'Sin permisos para esta acción'
-                        }, 'XLSX')
-                    ])
-                ]),
                 // --- TAB CONTENT ---
                 React.createElement('div', {
                     style: { flex: 1, overflow: 'auto', padding: '20px' }
@@ -1433,7 +1295,6 @@ const DashboardApp = () => {
                         ])
                     ])
                 ])
-            ])
         ])
     ]);
 };
