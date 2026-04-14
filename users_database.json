@@ -9,6 +9,16 @@
       "enabled": true,
       "api_key": "gh_a16w9u1yu_mnxobh05",
       "created_at": "2026-04-13T20:57:13.685Z"
+    },
+    {
+      "id": "user_1776140129640",
+      "username": "VISITANTE",
+      "email": "sincorreo2",
+      "password": "VISITANTE",
+      "role": "visualizer",
+      "enabled": true,
+      "api_key": "gh_eksbcmn1p_mny3z33c",
+      "created_at": "2026-04-14T04:15:29.640Z"
     }
   ]
 }
