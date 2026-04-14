@@ -59,12 +59,19 @@ os.makedirs(CACHE_API_DIR, exist_ok=True)
 def load_users():
     """Cargar usuarios desde users_database.json"""
     try:
+        print(f"🔍 Buscando archivo en: {os.path.abspath('users_database.json')}")
         if os.path.exists("users_database.json"):
             with open("users_database.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("users", [])
+                users = data.get("users", [])
+                print(f"✅ Usuarios cargados: {len(users)}")
+                for u in users:
+                    print(f"  - '{u.get('username')}' (enabled: {u.get('enabled')}) password_len: {len(u.get('password', ''))}")
+                return users
+        else:
+            print("❌ users_database.json NO existe")
     except Exception as e:
-        print(f"Error cargando usuarios: {e}")
+        print(f"❌ Error cargando usuarios: {e}")
     return []
 
 USERS = load_users()
@@ -94,9 +101,14 @@ def verify_token(token: str):
 
 def get_user_by_username(username: str):
     """Obtener usuario por username"""
-    for user in USERS:
-        if user.get("username") == username and user.get("enabled", True):
+    print(f"🔍 Buscando: '{username}' (len: {len(username)})")
+    for i, user in enumerate(USERS):
+        user_name = user.get("username")
+        print(f"  {i}: '{user_name}' (len: {len(user_name)}) == '{username}'? {user_name == username}")
+        if user_name == username and user.get("enabled", True):
+            print(f"✅ Usuario encontrado: {user}")
             return user
+    print("❌ Usuario no encontrado")
     return None
 
 # === ENDPOINTS DE AUTENTICACIÓN ===
@@ -117,7 +129,13 @@ async def login(request: Request):
             raise HTTPException(status_code=401, detail="Credenciales inválidas")
         
         # Verificar contraseña
-        if user.get("password") != password:
+        stored_password = user.get("password")
+        print(f"🔐 Verificando contraseña:")
+        print(f"  Guardada: '{stored_password}' (len: {len(stored_password)})")
+        print(f"  Ingresada: '{password}' (len: {len(password)})")
+        print(f"  Iguales? {stored_password == password}")
+        
+        if stored_password != password:
             raise HTTPException(status_code=401, detail="Credenciales inválidas")
         
         # Crear token

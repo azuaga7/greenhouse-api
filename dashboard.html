@@ -3033,6 +3033,11 @@ useEffect(() => {
     const sendAiMessage = async () => {
         const prompt = (aiInput || '').trim();
         if (!prompt || aiBusy) return;
+        
+        if(currentUser?.role === 'visualizer') {
+            alert('Su usuario no dispone de los permisos necesarios.');
+            return;
+        }
 
         const endpoint = BASE_URL + '/api/invernIA/query';
 
@@ -3359,8 +3364,20 @@ useEffect(() => {
                                 <span style={{ fontSize: '9px', fontWeight: 700, color: controlState.manual ? 'var(--adtec-accent)' : '#9ca3af' }}>
                                     {controlState.manual ? 'MANUAL' : 'AUTO'}
                                 </span>
-                                <label className="switch" style={{ transform: 'scale(0.7)' }}>
-                                    <input type="checkbox" checked={!!controlState.manual} onChange={(e) => sendControl('manual', e.target.checked)} />
+                                <label className="switch" style={{ transform: 'scale(0.7)', opacity: currentUser?.role === 'visualizer' ? 0.5 : 1 }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={currentUser?.role === 'visualizer' ? false : !!controlState.manual} 
+                                        onChange={(e) => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                e.preventDefault();
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                                return;
+                                            }
+                                            sendControl('manual', e.target.checked);
+                                        }} 
+                                        disabled={currentUser?.role === 'visualizer'}
+                                    />
                                     <span className="slider"></span>
                                 </label>
                             </div>
@@ -3491,7 +3508,13 @@ useEffect(() => {
                                         }))}
                                         style={{ padding: '5px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', color: '#9ca3af', border: '1px solid rgba(148,163,184,0.1)', cursor: 'pointer', fontSize: 10 }}
                                     >Reset filtros</button>
-                                    <a href={XLSX_URL ?? "#"} onClick={(e)=>{ if(!XLSX_URL) e.preventDefault(); }} style={{ padding: '5px 10px', borderRadius: 6, background: 'var(--adtec-accent)', color: 'black', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>XLSX</a>
+                                    <a href={XLSX_URL ?? "#"} onClick={(e)=>{ 
+                                        if(!XLSX_URL) e.preventDefault(); 
+                                        if(currentUser?.role === 'visualizer') {
+                                            e.preventDefault();
+                                            alert('Su usuario no dispone de los permisos necesarios.');
+                                        }
+                                    }} style={{ padding: '5px 10px', borderRadius: 6, background: currentUser?.role === 'visualizer' ? '#6b7280' : 'var(--adtec-accent)', color: currentUser?.role === 'visualizer' ? '#9ca3af' : 'black', border: 'none', cursor: currentUser?.role === 'visualizer' ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 10, textDecoration: 'none' }}>XLSX</a>
                                 </div>
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.03)', padding: 15, borderRadius: 12, border: '1px solid rgba(148, 163, 184, 0.1)', marginBottom: 20 }}>
@@ -3744,23 +3767,43 @@ useEffect(() => {
                                     <input
                                         type="text"
                                         value={aiInput}
-                                        onChange={(e) => setAiInput(e.target.value)}
+                                        onChange={(e) => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                e.preventDefault();
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                                return;
+                                            }
+                                            setAiInput(e.target.value);
+                                        }}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
                                                 sendAiMessage();
                                             }
                                         }}
+                                        onClick={() => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                            }
+                                        }}
+                                        onFocus={(e) => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                e.target.blur();
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                            }
+                                        }}
                                         placeholder="💬 Escribe una consulta para InvernIA..."
+                                        readOnly={currentUser?.role === 'visualizer'}
                                         style={{
                                             flex: 1,
                                             padding: '8px 12px',
-                                            background: 'var(--surface)',
+                                            background: currentUser?.role === 'visualizer' ? 'rgba(148,163,184,0.1)' : 'var(--surface)',
                                             border: '1px solid var(--border)',
-                                            color: 'var(--text)',
+                                            color: currentUser?.role === 'visualizer' ? '#6b7280' : 'var(--text)',
                                             borderRadius: 20,
                                             fontSize: 13,
-                                            outline: 'none'
+                                            outline: 'none',
+                                            cursor: currentUser?.role === 'visualizer' ? 'not-allowed' : 'text'
                                         }}
                                     />
                                     <button
@@ -3870,7 +3913,13 @@ useEffect(() => {
                                             <h3 style={{ flex: 1, wordBreak: 'break-word', lineHeight: '1.1' }}>{w.label}</h3>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                                                 {!w.hideKey && <span style={{ fontSize: '9px', opacity: 0.4, color: '#9ca3af' }}>{w.key}</span>}
-                                                <a href={XLSX_URL ?? "#"} onClick={(e)=>{ if(!XLSX_URL) e.preventDefault(); }} title="Descargar XLSX" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+                                                <a href={XLSX_URL ?? "#"} onClick={(e)=>{ 
+                                                    if(!XLSX_URL) e.preventDefault(); 
+                                                    if(currentUser?.role === 'visualizer') {
+                                                        e.preventDefault();
+                                                        alert('Su usuario no dispone de los permisos necesarios.');
+                                                    }
+                                                }} title="Descargar XLSX" style={{ color: currentUser?.role === 'visualizer' ? '#6b7280' : '#94a3b8', textDecoration: 'none', cursor: currentUser?.role === 'visualizer' ? 'not-allowed' : 'pointer' }}>
                                                     <i data-lucide="ArrowDown" style={{ width: 14, height: 14 }}></i>
                                                 </a>
                                                 <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--adtec-accent)' }}>{valStr}</span>
