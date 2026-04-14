@@ -1490,35 +1490,14 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
 
 
 const DashboardApp = () => {
+    // Leer usuario desde localStorage para validación inmediata
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    
     // Validar que exista sesión antes de renderizar
     if (!currentUser) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
-                <div style={{
-                    textAlign: 'center',
-                    color: '#f8fafc'
-                }}>
-                    <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
-                    <h2 style={{ marginBottom: '10px' }}>Sesión no encontrada</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Redirigiendo al login...</p>
-                    <div style={{
-                        width: '40px',
-                        height: '40px',
-                        border: '4px solid #3b82f6',
-                        borderTop: '4px solid transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        margin: '0 auto'
-                    }}></div>
-                </div>
-            </div>
-        );
+        // Redirigir inmediatamente sin mostrar nada
+        window.location.href = 'login.html';
+        return null;
     }
 
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
