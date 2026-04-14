@@ -218,9 +218,7 @@
                     localStorage.setItem('authToken', data.token);
                     localStorage.setItem('loginTime', new Date().toISOString());
                     
-                    console.log('Usuario autenticado:', userData);
-                    console.log('Respuesta completa del backend:', data);
-                    
+                                        
                     // Redirigir al dashboard
                     window.location.href = 'dashboard.html';
                 } else {
