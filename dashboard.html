@@ -923,7 +923,7 @@ const ALERTS_POLL_MS = (CONFIG.alertsInterval ?? 10000);
 // === LÓGICA DE AUTENTICACIÓN ===
 
 // UserHeader Component
-const UserHeader = () => {
+const UserHeader = ({ currentUser }) => {
     const [inactivityTimer, setInactivityTimer] = useState(null);
 
     // Timer de inactividad
@@ -1492,6 +1492,7 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
 const DashboardApp = () => {
     // Leer usuario desde localStorage para validación inmediata
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    console.log('Usuario leído en dashboard:', currentUser);
     
     // Validar que exista sesión antes de renderizar
     if (!currentUser) {
@@ -3300,7 +3301,7 @@ useEffect(() => {
     };
     return (
     <div>
-     <UserHeader />
+     <UserHeader currentUser={currentUser} />
         <div className="adtec-dashboard-root">
             {dashboardStyles && <style>{dashboardStyles}</style>}
             <div className="tabs-nav">
