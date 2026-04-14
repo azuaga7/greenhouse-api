@@ -600,6 +600,23 @@ if (!currentUser) {
             // Formatos de Tiempo y Fecha
             if (format?.startsWith('datetime') || format?.startsWith('time') || isDateStr) {
                 try {
+                    // Para formatos time_hm y time_hms, verificar si es un número grande (milisegundos)
+                    if ((format === 'time_hm' || format === 'time_hms') && isNum && num > 100000) {
+                        // Convertir milisegundos a tiempo HH:MM o HH:MM:SS
+                        const totalSeconds = Math.floor(num / 1000);
+                        const hours = Math.floor(totalSeconds / 3600);
+                        const minutes = Math.floor((totalSeconds % 3600) / 60);
+                        const seconds = totalSeconds % 60;
+                        
+                        if (format === 'time_hm') {
+                            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                            return timeStr + (unit ? " " + unit : "");
+                        } else if (format === 'time_hms') {
+                            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                            return timeStr + (unit ? " " + unit : "");
+                        }
+                    }
+                    
                     const d = new Date(val);
                     if (!isNaN(d.getTime())) {
                         const is12h = format?.endsWith('_12');
@@ -3376,7 +3393,12 @@ useEffect(() => {
                                             }
                                             sendControl('manual', e.target.checked);
                                         }} 
-                                        disabled={currentUser?.role === 'visualizer'}
+                                        onClick={(e) => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                e.preventDefault();
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                            }
+                                        }}
                                     />
                                     <span className="slider"></span>
                                 </label>
@@ -3807,15 +3829,21 @@ useEffect(() => {
                                         }}
                                     />
                                     <button
-                                        onClick={sendAiMessage}
+                                        onClick={() => {
+                                            if(currentUser?.role === 'visualizer') {
+                                                alert('Su usuario no dispone de los permisos necesarios.');
+                                                return;
+                                            }
+                                            sendAiMessage();
+                                        }}
                                         disabled={aiBusy || !(aiInput || '').trim()}
                                         style={{
                                             padding: '8px 12px',
-                                            background: aiBusy ? 'rgba(148,163,184,0.35)' : 'var(--adtec-accent)',
+                                            background: currentUser?.role === 'visualizer' ? '#6b7280' : (aiBusy ? 'rgba(148,163,184,0.35)' : 'var(--adtec-accent)'),
                                             border: 'none',
-                                            color: aiBusy ? '#cbd5e1' : '#08111f',
+                                            color: currentUser?.role === 'visualizer' ? '#9ca3af' : (aiBusy ? '#cbd5e1' : '#08111f'),
                                             borderRadius: 20,
-                                            cursor: aiBusy ? 'not-allowed' : 'pointer',
+                                            cursor: currentUser?.role === 'visualizer' ? 'not-allowed' : (aiBusy ? 'not-allowed' : 'pointer'),
                                             fontSize: 12,
                                             fontWeight: 700
                                         }}
