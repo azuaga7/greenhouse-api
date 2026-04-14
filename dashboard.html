@@ -1496,15 +1496,8 @@ const Sparkline = React.memo(({ id, variableKey, min, max, inverted, value, hist
 
 
 const DashboardApp = () => {
-    // Leer usuario desde localStorage para validación inmediata
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    
-    // Validar que exista sesión antes de renderizar
-    if (!currentUser) {
-        // Redirigir inmediatamente sin mostrar nada
-        window.location.href = 'login.html';
-        return null;
-    }
+    // NOTA: La validación de sesión se hace en dashboardExportAuth.ts
+    // Si llegamos aquí, ya hay una sesión válida
 
     const [activeTabId, setActiveTabId] = useState((CONFIG.dashboard.tabs[0] && CONFIG.dashboard.tabs[0].id) || '0');
     const [lastData, setLastData] = useState({});
