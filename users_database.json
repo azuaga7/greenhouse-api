@@ -1,6 +1,16 @@
 {
   "users": [
     {
+      "id": "user_17761138335412",
+      "username": "FPya",
+      "email": "sincorreo",
+      "password": "FPya",
+      "role": "admin",
+      "enabled": true,
+      "api_key": "gh_a16w9u1yu_mnxobh05",
+      "created_at": "2026-04-13T20:57:13.685Z"
+    },
+    {
       "id": "user_1776113833685",
       "username": "ADTEC",
       "email": "sincorreo",
@@ -10,6 +20,7 @@
       "api_key": "gh_a16w9u1yu_mnxobh05",
       "created_at": "2026-04-13T20:57:13.685Z"
     },
+    
     {
       "id": "user_1776173124107",
       "username": "VISITANTE",
