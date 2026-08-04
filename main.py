@@ -19,7 +19,7 @@ from email.utils import formatdate, parsedate_to_datetime
 from jose import jwt
 from datetime import timedelta
 
-# IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
+#   IMPORTACIONES DEL BRIDGE (Inyectadas en el droplet)
 try:
     from bridge import persist, _series_from_sqlite, _iter_archive_chunks, _ungzip_to_cache
 except ImportError:
